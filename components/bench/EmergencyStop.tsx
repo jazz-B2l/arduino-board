@@ -45,30 +45,5 @@ export function EmergencyStop({ frozen, onFreeze, onResume }: EmergencyStopProps
     )
   }
 
-  return (
-    <button
-      onClick={onFreeze}
-      className="relative px-5 py-2 rounded font-mono font-bold text-sm tracking-wider uppercase transition-all active:scale-95"
-      style={{
-        backgroundColor: '#7f1d1d',
-        color: '#fca5a5',
-        border: '2px solid #ef4444',
-        boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.5), 0 2px 8px rgba(239,68,68,0.3)',
-        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-      }}
-      onMouseDown={e => {
-        const el = e.currentTarget
-        el.style.boxShadow = 'inset 0 4px 8px rgba(0,0,0,0.6)'
-        el.style.transform  = 'translateY(1px)'
-      }}
-      onMouseUp={e => {
-        const el = e.currentTarget
-        el.style.boxShadow = 'inset 0 3px 6px rgba(0,0,0,0.5), 0 2px 8px rgba(239,68,68,0.3)'
-        el.style.transform  = ''
-      }}
-      aria-label="Arrêt d'urgence — stoppe immédiatement l'acquisition de données"
-    >
-      ⏹ ARRÊT D&apos;URGENCE
-    </button>
-  )
+  return null
 }
