@@ -1,0 +1,134 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@theme inline {
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Fallback', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'JetBrains Mono Fallback', monospace;
+
+  /* Bench color palette */
+  --color-bench-bg:       #0a0e1a;
+  --color-bench-surface:  #111827;
+  --color-bench-border:   #1f2937;
+  --color-bench-nominal:  #10b981;
+  --color-bench-info:     #3b82f6;
+  --color-bench-warning:  #f59e0b;
+  --color-bench-danger:   #ef4444;
+  --color-bench-text:     #e2e8f0;
+  --color-bench-muted:    #64748b;
+  --color-bench-subtle:   #1e293b;
+
+  /* Map shadcn tokens to bench palette */
+  --color-background:         var(--color-bench-bg);
+  --color-foreground:         var(--color-bench-text);
+  --color-card:               var(--color-bench-surface);
+  --color-card-foreground:    var(--color-bench-text);
+  --color-popover:            var(--color-bench-surface);
+  --color-popover-foreground: var(--color-bench-text);
+  --color-primary:            var(--color-bench-info);
+  --color-primary-foreground: #ffffff;
+  --color-secondary:          var(--color-bench-subtle);
+  --color-secondary-foreground: var(--color-bench-text);
+  --color-muted:              var(--color-bench-subtle);
+  --color-muted-foreground:   var(--color-bench-muted);
+  --color-accent:             var(--color-bench-subtle);
+  --color-accent-foreground:  var(--color-bench-text);
+  --color-destructive:        var(--color-bench-danger);
+  --color-border:             var(--color-bench-border);
+  --color-input:              var(--color-bench-subtle);
+  --color-ring:               var(--color-bench-info);
+
+  --radius: 0.375rem;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-bench-bg);
+    color: var(--color-bench-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Focus visible states for keyboard accessibility */
+  :focus-visible {
+    outline: 2px solid var(--color-bench-info);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Gauge needle animation ── */
+@keyframes needle-ease {
+  from { transform: rotate(var(--needle-from)); }
+  to   { transform: rotate(var(--needle-to)); }
+}
+
+/* ── Warning/Danger glow pulse ── */
+@keyframes glow-warning {
+  0%, 100% { box-shadow: 0 0 6px 2px rgba(245,158,11,0.25); }
+  50%       { box-shadow: 0 0 14px 4px rgba(245,158,11,0.55); }
+}
+
+@keyframes glow-danger {
+  0%, 100% { box-shadow: 0 0 6px 2px rgba(239,68,68,0.25); }
+  50%       { box-shadow: 0 0 16px 5px rgba(239,68,68,0.6); }
+}
+
+@keyframes svg-glow-warning {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(245,158,11,0.35)); }
+  50%       { filter: drop-shadow(0 0 10px rgba(245,158,11,0.7)); }
+}
+
+@keyframes svg-glow-danger {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(239,68,68,0.35)); }
+  50%       { filter: drop-shadow(0 0 12px rgba(239,68,68,0.75)); }
+}
+
+@keyframes scroll-chart {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── Utility classes ── */
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.state-warning-card {
+  border-color: #f59e0b !important;
+  animation: glow-warning 2s ease-in-out infinite;
+}
+
+.state-danger-card {
+  border-color: #ef4444 !important;
+  animation: glow-danger 1.5s ease-in-out infinite;
+}
+
+.gauge-warning {
+  animation: svg-glow-warning 2s ease-in-out infinite;
+}
+
+.gauge-danger {
+  animation: svg-glow-danger 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .state-warning-card,
+  .state-danger-card {
+    animation: none;
+  }
+  .gauge-warning,
+  .gauge-danger {
+    animation: none;
+  }
+}
