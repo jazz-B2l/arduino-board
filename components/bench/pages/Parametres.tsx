@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { CheckIcon, RotateCcwIcon } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { CheckIcon, CpuIcon, RotateCcwIcon, UsbIcon } from 'lucide-react'
 import { useBench } from '../BenchContext'
 import { DEFAULT_THRESHOLDS, type Thresholds } from '@/lib/types'
 
@@ -14,7 +14,14 @@ const METRIC_CONFIG = [
 ]
 
 export function Parametres() {
-  const { thresholds, updateThresholds, resetThresholds } = useBench()
+  const {
+    thresholds,
+    updateThresholds,
+    resetThresholds,
+    connectionStatus,
+    history,
+  } = useBench()
+
   const [draft, setDraft] = useState<Thresholds>(() => ({ ...thresholds }))
   const [saved, setSaved]   = useState(false)
   const [diameter, setDiameter] = useState(() => {
@@ -23,6 +30,27 @@ export function Parametres() {
     }
     return '85'
   })
+
+  // Sync draft with thresholds when context changes
+  useEffect(() => {
+    setDraft({ ...thresholds })
+  }, [thresholds])
+
+  // Detect which sensors are active during the session
+  const activeSensors = useMemo(() => {
+    return {
+      temp_carburant: history.some(r => r.temp_carburant !== undefined),
+      temp_echap:     history.some(r => r.temp_echap !== undefined),
+      temp_admission: history.some(r => r.temp_admission !== undefined),
+      rpm:            history.some(r => r.rpm !== undefined),
+      vibration:      history.some(r => r.vibration !== undefined),
+    }
+  }, [history])
+
+  // Filter configuration list to show only active metrics
+  const activeConfigs = useMemo(() => {
+    return METRIC_CONFIG.filter(cfg => activeSensors[cfg.key as keyof typeof activeSensors])
+  }, [activeSensors])
 
   const handleChange = (metric: string, level: 'warning' | 'danger', value: string) => {
     const num = parseFloat(value)
@@ -49,6 +77,41 @@ export function Parametres() {
     setSaved(false)
   }
 
+  // 1. Disconnected State
+  if (connectionStatus !== 'connected') {
+    return (
+      <div className="p-6 max-w-md mx-auto text-center flex flex-col gap-4 items-center mt-20 bg-[#111827] rounded-lg border shadow-lg" style={{ borderColor: '#1f2937' }}>
+        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-950/30 text-slate-500 border border-slate-900">
+          <UsbIcon size={20} className="animate-pulse" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-sm font-semibold text-slate-300 font-mono">Configuration indisponible</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Veuillez brancher votre carte Arduino et lancer l&apos;acquisition depuis le tableau de bord pour configurer vos capteurs actifs.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // 2. Connected but no active sensors detected yet
+  if (connectionStatus === 'connected' && activeConfigs.length === 0) {
+    return (
+      <div className="p-6 max-w-md mx-auto text-center flex flex-col gap-4 items-center mt-20 bg-[#111827] rounded-lg border shadow-lg" style={{ borderColor: '#1f2937' }}>
+        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-950/30 text-emerald-500 border border-slate-900">
+          <CpuIcon size={20} className="animate-spin" style={{ animationDuration: '3s' }} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <h2 className="text-sm font-semibold text-slate-300 font-mono">En attente de capteurs actifs</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Aucun capteur n&apos;a été détecté pour le moment. Transmettez des signaux de télémétrie depuis l&apos;Arduino pour pouvoir les configurer.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // 3. Active state: Render inputs for active sensors
   return (
     <div className="p-4 flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -113,11 +176,11 @@ export function Parametres() {
           className="px-4 py-2.5 border-b text-[10px] uppercase tracking-widest font-semibold"
           style={{ color: '#475569', borderColor: '#1f2937' }}
         >
-          Seuils d&apos;alarme
+          Seuils d&apos;alarme pour capteurs actifs
         </div>
 
         <div className="divide-y" style={{ borderColor: '#1f2937' }}>
-          {METRIC_CONFIG.map(cfg => {
+          {activeConfigs.map(cfg => {
             const t = draft[cfg.key as keyof Thresholds]
             return (
               <div key={cfg.key} className="px-4 py-4 flex flex-col gap-3">
@@ -141,7 +204,7 @@ export function Parametres() {
                         step={cfg.step}
                         min={cfg.min}
                         max={cfg.max}
-                        className="flex-1 rounded px-2.5 py-1.5 text-xs font-mono border outline-none"
+                        className="flex-1 rounded px-2.5 py-1 text-xs font-mono border outline-none"
                         style={{
                           backgroundColor: '#0d1220',
                           borderColor: '#f59e0b40',
@@ -164,7 +227,7 @@ export function Parametres() {
                         step={cfg.step}
                         min={cfg.min}
                         max={cfg.max}
-                        className="flex-1 rounded px-2.5 py-1.5 text-xs font-mono border outline-none"
+                        className="flex-1 rounded px-2.5 py-1 text-xs font-mono border outline-none"
                         style={{
                           backgroundColor: '#0d1220',
                           borderColor: '#ef444440',
