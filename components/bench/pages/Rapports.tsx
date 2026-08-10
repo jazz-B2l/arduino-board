@@ -164,7 +164,7 @@ export function Rapports() {
             { label: 'Trames totales',   value: stats.totalFrames.toLocaleString('fr-FR') },
             { label: 'Trames invalides', value: stats.invalidFrames.toString() },
             { label: 'Alarmes total',    value: alarms.length.toString() },
-            { label: 'Mode',             value: 'Démo — Simulation' },
+            { label: 'Source',           value: stats.port !== 'Aucun' ? `Port Série (${stats.port})` : 'Port Déconnecté' },
           ].map(item => (
             <div key={item.label} className="flex flex-col gap-0.5">
               <span style={{ color: '#475569' }}>{item.label}</span>

@@ -19,6 +19,11 @@ interface BenchContextValue {
   resetThresholds:  () => void
   alarms:       AlarmEvent[]
   stateOf:      (metric: string) => MetricState
+  connect:          () => Promise<void>
+  disconnect:       () => Promise<void>
+  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error'
+  serialError:      string | null
+  serialSupported:  boolean
 }
 
 const BenchContext = createContext<BenchContextValue | null>(null)

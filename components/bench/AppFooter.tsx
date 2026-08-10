@@ -21,7 +21,7 @@ function formatDuration(ms: number) {
 }
 
 export function AppFooter() {
-  const { stats, latest, alarms } = useBench()
+  const { stats, latest, alarms, connectionStatus } = useBench()
   const elapsed = useElapsed(stats.startTime)
   const signalQuality = stats.totalFrames === 0
     ? 100
@@ -83,7 +83,9 @@ export function AppFooter() {
       <span className="opacity-30">|</span>
 
       {/* Source */}
-      <span style={{ color: '#475569' }}>Mode démo — données simulées</span>
+      <span style={{ color: '#475569' }}>
+        Source : {connectionStatus === 'connected' ? `Port Série (${stats.port})` : connectionStatus === 'connecting' ? 'Connexion...' : 'Port Déconnecté'}
+      </span>
 
       {/* Frame count */}
       <span className="ml-auto opacity-60">
