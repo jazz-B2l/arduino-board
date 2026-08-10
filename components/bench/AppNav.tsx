@@ -15,7 +15,7 @@ import {
 import { useBench } from './BenchContext'
 
 const NAV_ITEMS = [
-  { href: '/',           label: 'Tableau de bord', icon: LayoutDashboardIcon },
+  { href: '/dashboard',  label: 'Tableau de bord', icon: LayoutDashboardIcon },
   { href: '/graphiques', label: 'Graphiques',       icon: BarChart3Icon },
   { href: '/donnees',    label: 'Données',           icon: TableIcon },
   { href: '/alarmes',    label: 'Alarmes',           icon: AlertTriangleIcon },
@@ -36,7 +36,7 @@ export function AppNav() {
       aria-label="Navigation principale"
     >
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-        const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
+        const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
         const isAlarms = href === '/alarmes'
 
         return (
