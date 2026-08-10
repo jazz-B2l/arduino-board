@@ -1,29 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { EmergencyStop } from './EmergencyStop'
 import { StatusPill } from './StatusPill'
 import { useBench } from './BenchContext'
-
-function LiveClock() {
-  const [time, setTime] = useState('')
-
-  useEffect(() => {
-    const fmt = () => {
-      const now = new Date()
-      setTime(now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
-    }
-    fmt()
-    const id = setInterval(fmt, 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  return (
-    <span className="font-mono text-base font-semibold tabular-nums" style={{ color: '#94a3b8' }}>
-      {time}
-    </span>
-  )
-}
 
 export function AppHeader() {
   const { frozen, freeze, unfreeze } = useBench()
@@ -60,10 +39,9 @@ export function AppHeader() {
           </div>
         </div>
 
-        {/* Center: status + clock */}
+        {/* Center: status */}
         <div className="flex items-center gap-4">
           <StatusPill frozen={frozen} />
-          <LiveClock />
         </div>
 
         {/* Emergency stop */}
