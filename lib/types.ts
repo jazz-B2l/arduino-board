@@ -1,11 +1,11 @@
 export interface SensorReading {
   timestamp: number       // epoch ms
-  temp_carburant: number  // °C
-  temp_echap: number      // °C
-  temp_admission: number  // °C
-  rpm: number             // tr/min
-  vitesse: number         // m/s
-  vibration: number       // m/s²
+  temp_carburant?: number  // °C
+  temp_echap?: number      // °C
+  temp_admission?: number  // °C
+  rpm?: number             // tr/min
+  vitesse?: number         // m/s
+  vibration?: number       // m/s²
 }
 
 export interface Thresholds {

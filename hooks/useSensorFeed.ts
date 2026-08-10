@@ -107,40 +107,52 @@ export function useSensorFeed(): SensorFeedResult {
       } else {
         // Try CSV format (expected order: temp_carburant, temp_echap, temp_admission, rpm, vitesse, vibration)
         const parts = line.split(/[,;\s]+/)
-        if (parts.length >= 6) {
-          parsed = {
-            temp_carburant: parseFloat(parts[0]),
-            temp_echap:     parseFloat(parts[1]),
-            temp_admission: parseFloat(parts[2]),
-            rpm:            parseFloat(parts[3]),
-            vitesse:        parseFloat(parts[4]),
-            vibration:      parseFloat(parts[5]),
-          }
-        }
+        parsed = {}
+        if (parts.length > 0 && parts[0] !== '') parsed.temp_carburant = parseFloat(parts[0])
+        if (parts.length > 1 && parts[1] !== '') parsed.temp_echap     = parseFloat(parts[1])
+        if (parts.length > 2 && parts[2] !== '') parsed.temp_admission = parseFloat(parts[2])
+        if (parts.length > 3 && parts[3] !== '') parsed.rpm            = parseFloat(parts[3])
+        if (parts.length > 4 && parts[4] !== '') parsed.vitesse        = parseFloat(parts[4])
+        if (parts.length > 5 && parts[5] !== '') parsed.vibration      = parseFloat(parts[5])
       }
 
-      if (
-        typeof parsed.temp_carburant === 'number' && !isNaN(parsed.temp_carburant) &&
-        typeof parsed.temp_echap === 'number' && !isNaN(parsed.temp_echap) &&
-        typeof parsed.temp_admission === 'number' && !isNaN(parsed.temp_admission) &&
-        typeof parsed.rpm === 'number' && !isNaN(parsed.rpm) &&
-        typeof parsed.vitesse === 'number' && !isNaN(parsed.vitesse) &&
-        typeof parsed.vibration === 'number' && !isNaN(parsed.vibration)
-      ) {
+      // Build reading from parsed fields
+      const reading: SensorReading = {
+        timestamp: Date.now(),
+      }
+
+      let hasValidField = false
+
+      if (typeof parsed.temp_carburant === 'number' && !isNaN(parsed.temp_carburant)) {
+        reading.temp_carburant = Math.round(parsed.temp_carburant * 10) / 10
+        hasValidField = true
+      }
+      if (typeof parsed.temp_echap === 'number' && !isNaN(parsed.temp_echap)) {
+        reading.temp_echap = Math.round(parsed.temp_echap * 10) / 10
+        hasValidField = true
+      }
+      if (typeof parsed.temp_admission === 'number' && !isNaN(parsed.temp_admission)) {
+        reading.temp_admission = Math.round(parsed.temp_admission * 10) / 10
+        hasValidField = true
+      }
+      if (typeof parsed.rpm === 'number' && !isNaN(parsed.rpm)) {
+        reading.rpm = Math.round(parsed.rpm)
+        hasValidField = true
+      }
+      if (typeof parsed.vitesse === 'number' && !isNaN(parsed.vitesse)) {
+        reading.vitesse = Math.round(parsed.vitesse * 10) / 10
+        hasValidField = true
+      }
+      if (typeof parsed.vibration === 'number' && !isNaN(parsed.vibration)) {
+        reading.vibration = Math.round(parsed.vibration * 100) / 100
+        hasValidField = true
+      }
+
+      if (hasValidField) {
         // Drop frames if Emergency Stop (frozen) is active
         if (frozenRef.current) {
           setStats({ ...statsRef.current })
           return
-        }
-
-        const reading: SensorReading = {
-          timestamp:      Date.now(),
-          temp_carburant: Math.round(parsed.temp_carburant * 10) / 10,
-          temp_echap:     Math.round(parsed.temp_echap * 10) / 10,
-          temp_admission: Math.round(parsed.temp_admission * 10) / 10,
-          rpm:            Math.round(parsed.rpm),
-          vitesse:        Math.round(parsed.vitesse * 10) / 10,
-          vibration:      Math.round(parsed.vibration * 100) / 100,
         }
 
         const buf = bufferRef.current

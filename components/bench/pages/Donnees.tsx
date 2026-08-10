@@ -36,15 +36,34 @@ export function Donnees() {
     return sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   }, [history, page])
 
-  const cols = [
-    { key: 'timestamp',      label: 'Horodatage',     fmt: (v: number) => `${fmtDate(v)} ${fmtTime(v)}`, metric: null },
-    { key: 'temp_carburant', label: 'Carburant (°C)',  fmt: (v: number) => v.toFixed(1),                  metric: 'temp_carburant' },
-    { key: 'temp_echap',     label: 'Échapp. (°C)',    fmt: (v: number) => v.toFixed(1),                  metric: 'temp_echap' },
-    { key: 'temp_admission', label: 'Admiss. (°C)',    fmt: (v: number) => v.toFixed(1),                  metric: 'temp_admission' },
-    { key: 'rpm',            label: 'RPM',              fmt: (v: number) => v.toLocaleString('fr-FR'),     metric: 'rpm' },
-    { key: 'vitesse',        label: 'Vitesse (m/s)',   fmt: (v: number) => v.toFixed(2),                  metric: null },
-    { key: 'vibration',      label: 'Vibration (m/s²)',fmt: (v: number) => v.toFixed(3),                  metric: 'vibration' },
-  ]
+  // Identify active sensors
+  const activeSensors = useMemo(() => {
+    return {
+      temp_carburant: history.some(r => r.temp_carburant !== undefined),
+      temp_echap:     history.some(r => r.temp_echap !== undefined),
+      temp_admission: history.some(r => r.temp_admission !== undefined),
+      rpm:            history.some(r => r.rpm !== undefined),
+      vitesse:        history.some(r => r.vitesse !== undefined),
+      vibration:      history.some(r => r.vibration !== undefined),
+    }
+  }, [history])
+
+  // Build active columns dynamically
+  const cols = useMemo(() => {
+    const allCols = [
+      { key: 'timestamp',      label: 'Horodatage',       fmt: (v: number) => `${fmtDate(v)} ${fmtTime(v)}`, metric: null },
+      { key: 'temp_carburant', label: 'Carburant (°C)',   fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_carburant' },
+      { key: 'temp_echap',     label: 'Échapp. (°C)',     fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_echap' },
+      { key: 'temp_admission', label: 'Admiss. (°C)',     fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_admission' },
+      { key: 'rpm',            label: 'RPM',              fmt: (v: number) => v !== undefined ? v.toLocaleString('fr-FR') : '--',     metric: 'rpm' },
+      { key: 'vitesse',        label: 'Vitesse (m/s)',    fmt: (v: number) => v !== undefined ? v.toFixed(2) : '--',                  metric: null },
+      { key: 'vibration',      label: 'Vibration (m/s²)', fmt: (v: number) => v !== undefined ? v.toFixed(3) : '--',                  metric: 'vibration' },
+    ]
+    return allCols.filter(col => {
+      if (col.key === 'timestamp') return true
+      return activeSensors[col.key as keyof typeof activeSensors]
+    })
+  }, [activeSensors])
 
   return (
     <div className="p-4 flex flex-col gap-4">
@@ -76,14 +95,14 @@ export function Donnees() {
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {rows.length === 0 || cols.length <= 1 ? (
               <tr>
                 <td
-                  colSpan={cols.length}
+                  colSpan={cols.length || 1}
                   className="px-4 py-8 text-center"
                   style={{ color: '#475569' }}
                 >
-                  En attente de données...
+                  En attente de données de capteurs actifs...
                 </td>
               </tr>
             ) : (
@@ -97,14 +116,14 @@ export function Donnees() {
                 >
                   {cols.map(c => {
                     const rawVal = row[c.key as keyof typeof row] as number
-                    const mState = c.metric
+                    const mState = c.metric && rawVal !== undefined
                       ? getMetricState(c.metric, rawVal, thresholds)
                       : 'OK'
                     return (
                       <td
                         key={c.key}
                         className="px-3 py-1.5 tabular-nums whitespace-nowrap"
-                        style={{ color: c.metric ? stateText[mState] : '#94a3b8' }}
+                        style={{ color: c.metric && rawVal !== undefined ? stateText[mState] : '#94a3b8' }}
                       >
                         {c.fmt(rawVal)}
                       </td>

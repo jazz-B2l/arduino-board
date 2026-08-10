@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import {
   Brush,
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -56,6 +55,19 @@ export function Graphiques() {
   const { history } = useBench()
   const [visible, setVisible] = useState<Set<string>>(new Set(METRICS.map(m => m.key)))
 
+  // Identify active sensors from session history
+  const activeMetrics = useMemo(() => {
+    const activeSensors = {
+      temp_carburant: history.some(r => r.temp_carburant !== undefined),
+      temp_echap:     history.some(r => r.temp_echap !== undefined),
+      temp_admission: history.some(r => r.temp_admission !== undefined),
+      rpm:            history.some(r => r.rpm !== undefined),
+      vitesse:        history.some(r => r.vitesse !== undefined),
+      vibration:      history.some(r => r.vibration !== undefined),
+    }
+    return METRICS.filter(m => activeSensors[m.key as keyof typeof activeSensors])
+  }, [history])
+
   // Last 600 samples (10 minutes at 1 Hz)
   const chartData = useMemo(() => {
     return history.slice(-600).map(r => ({
@@ -90,7 +102,7 @@ export function Graphiques() {
 
       {/* Toggles */}
       <div className="flex flex-wrap gap-2">
-        {METRICS.map(m => (
+        {activeMetrics.map(m => (
           <button
             key={m.key}
             onClick={() => toggle(m.key)}
@@ -113,9 +125,9 @@ export function Graphiques() {
         className="rounded-md border p-4"
         style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
       >
-        {chartData.length < 2 ? (
+        {chartData.length < 2 || activeMetrics.length === 0 ? (
           <div className="flex items-center justify-center h-64 text-sm" style={{ color: '#475569' }}>
-            En attente de données...
+            En attente de données de capteurs actifs...
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={420}>
@@ -143,7 +155,7 @@ export function Graphiques() {
                 travellerWidth={6}
                 style={{ fontSize: 10, fontFamily: 'var(--font-mono)' }}
               />
-              {METRICS.filter(m => visible.has(m.key)).map(m => (
+              {activeMetrics.filter(m => visible.has(m.key)).map(m => (
                 <Line
                   key={m.key}
                   type="monotone"
