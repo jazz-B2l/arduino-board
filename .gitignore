@@ -8,8 +8,12 @@ __v0_jsx-dev-runtime.ts
 
 # Environment variables
 .env.local
-.env.local
+
 # Common ignores
 node_modules
 .next/
 .DS_Store
+
+# Supabase CLI
+supabase/.branches
+supabase/.temp
