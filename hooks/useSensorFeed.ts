@@ -26,6 +26,93 @@ export interface SensorFeedResult {
   connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error'
   serialError:      string | null
   serialSupported:  boolean
+  rawLines:         string[]
+}
+
+function getBoardName(vendorId?: number, productId?: number): string {
+  if (!vendorId) return 'Port Série'
+
+  const vid = vendorId
+  const pid = productId || 0
+
+  // Official Arduino LLC (0x2341)
+  if (vid === 0x2341 || vid === 9025) {
+    switch (pid) {
+      case 0x0042:
+      case 66:
+      case 0x0010:
+      case 16:
+        return 'Arduino Mega 2560'
+      case 0x0043:
+      case 67:
+      case 0x0001:
+      case 1:
+        return 'Arduino Uno'
+      case 0x003e:
+      case 62:
+      case 0x0041:
+      case 65:
+        return 'Arduino Due'
+      case 0x0036:
+      case 54:
+      case 0x8036:
+      case 32822:
+        return 'Arduino Leonardo'
+      case 0x8037:
+      case 32823:
+        return 'Arduino Micro'
+      case 0x003f:
+      case 63:
+        return 'Arduino Mega ADK'
+      case 0x0049:
+      case 73:
+        return 'Arduino Zero'
+      default:
+        return 'Arduino'
+    }
+  }
+
+  // Qinheng Electronics (CH340/CH341 clones - 0x1a86 / 6790)
+  if (vid === 0x1a86 || vid === 6790) {
+    if (pid === 0x7523 || pid === 29987) {
+      return 'Arduino Uno/Mega (Clone CH340)'
+    }
+    if (pid === 0x5523 || pid === 21795) {
+      return 'Interface CH341'
+    }
+  }
+
+  // FTDI (0x0403 / 1027) - Used in Nano clones, Duemilanove, and older boards
+  if (vid === 0x0403 || vid === 1027) {
+    if (pid === 0x6001 || pid === 24577) {
+      return 'Arduino Nano (FTDI)'
+    }
+  }
+
+  // Silicon Labs CP210x (0x10c4 / 4292) - Used in ESP32 / ESP8266 and some Arduino clones
+  if (vid === 0x10c4 || vid === 4292) {
+    if (pid === 0xea60 || pid === 60000) {
+      return 'ESP32/Arduino (CP2102)'
+    }
+  }
+
+  // Adafruit (0x239a)
+  if (vid === 0x239a) {
+    return 'Carte Adafruit'
+  }
+
+  // SparkFun (0x1b4f)
+  if (vid === 0x1b4f) {
+    return 'Carte SparkFun'
+  }
+
+  // Teensy (0x16c0)
+  if (vid === 0x16c0) {
+    return 'Teensy'
+  }
+
+  // Generic formatting
+  return `USB (VID: 0x${vid.toString(16).toUpperCase()}, PID: 0x${pid.toString(16).toUpperCase()})`
 }
 
 export function useSensorFeed(): SensorFeedResult {
@@ -48,11 +135,13 @@ export function useSensorFeed(): SensorFeedResult {
   const [serialError, setSerialError] = useState<string | null>(null)
   const [portName, setPortName] = useState<string>('Aucun')
   const [serialSupported, setSerialSupported] = useState(false)
+  const [rawLines, setRawLines] = useState<string[]>([])
 
   const portRef = useRef<any | null>(null)
   const readerRef = useRef<any | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const portNameRef = useRef<string>('Aucun')
+  const rawLinesRef = useRef<string[]>([])
 
   useEffect(() => {
     setSerialSupported(typeof window !== 'undefined' && 'serial' in navigator)
@@ -63,6 +152,7 @@ export function useSensorFeed(): SensorFeedResult {
 
   const restart  = useCallback(() => {
     bufferRef.current    = []
+    rawLinesRef.current  = []
     statsRef.current     = {
       ...statsRef.current,
       totalFrames:   0,
@@ -71,19 +161,20 @@ export function useSensorFeed(): SensorFeedResult {
     }
     setLatest(null)
     setHistory([])
+    setRawLines([])
     setStats({ ...statsRef.current })
   }, [])
 
   const disconnect = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
     if (readerRef.current) {
       try {
         await readerRef.current.cancel()
       } catch (e) {}
       readerRef.current = null
-    }
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-      abortControllerRef.current = null
     }
     if (portRef.current) {
       try {
@@ -94,6 +185,8 @@ export function useSensorFeed(): SensorFeedResult {
     portNameRef.current = 'Aucun'
     setPortName('Aucun')
     statsRef.current.port = 'Aucun'
+    rawLinesRef.current = []
+    setRawLines([])
     setStats({ ...statsRef.current })
     setConnectionStatus('disconnected')
   }, [])
@@ -173,26 +266,37 @@ export function useSensorFeed(): SensorFeedResult {
   }, [])
 
   const readLoop = async (port: any, signal: AbortSignal) => {
+    let reader: any = null
     try {
-      // @ts-ignore
-      const textDecoder = new TextDecoderStream()
-      const readableStreamClosed = port.readable.pipeTo(textDecoder.writable, { signal })
-      const reader = textDecoder.readable.getReader()
+      reader = port.readable.getReader()
       readerRef.current = reader
+      const decoder = new TextDecoder()
 
       let buffer = ''
       while (!signal.aborted) {
         const { value, done } = await reader.read()
         if (done) break
 
-        buffer += value
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
+        if (value) {
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
 
-        for (const line of lines) {
-          const trimmed = line.trim()
-          if (!trimmed) continue
-          processTelemetryLine(trimmed)
+          let chunkLines: string[] = []
+          for (const line of lines) {
+            const trimmed = line.trim()
+            if (!trimmed) continue
+            processTelemetryLine(trimmed)
+            chunkLines.push(trimmed)
+          }
+          if (chunkLines.length > 0) {
+            const nextLines = [...rawLinesRef.current, ...chunkLines]
+            if (nextLines.length > 15) {
+              nextLines.splice(0, nextLines.length - 15)
+            }
+            rawLinesRef.current = nextLines
+            setRawLines(nextLines)
+          }
         }
       }
     } catch (err) {
@@ -201,6 +305,13 @@ export function useSensorFeed(): SensorFeedResult {
         setSerialError('Erreur de lecture du port série')
         setConnectionStatus('error')
       }
+    } finally {
+      if (reader) {
+        try {
+          reader.releaseLock()
+        } catch (e) {}
+      }
+      readerRef.current = null
     }
   }
 
@@ -217,13 +328,23 @@ export function useSensorFeed(): SensorFeedResult {
 
       // @ts-ignore
       const port = await navigator.serial.requestPort()
-      await port.open({ baudRate: 9600 })
+      
+      // Prevent opening the port if it is already open or handles the error safely
+      try {
+        if (!port.readable) {
+          await port.open({ baudRate: 9600 })
+        }
+      } catch (openErr: any) {
+        if (openErr.name === 'InvalidStateError' || openErr.message.includes('already open')) {
+          console.warn('Port is already open. Reusing port connection.')
+        } else {
+          throw openErr
+        }
+      }
 
       portRef.current = port
       const info = port.getInfo()
-      const name = info.usbVendorId
-        ? `USB (VID: 0x${info.usbVendorId.toString(16).toUpperCase()}, PID: 0x${info.usbProductId?.toString(16).toUpperCase()})`
-        : 'Port Série'
+      const name = getBoardName(info.usbVendorId, info.usbProductId)
       
       portNameRef.current = name
       setPortName(name)
@@ -279,5 +400,6 @@ export function useSensorFeed(): SensorFeedResult {
     connectionStatus,
     serialError,
     serialSupported,
+    rawLines,
   }
 }
