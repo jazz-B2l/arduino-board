@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useBench } from '../BenchContext'
 import { AnalogGauge } from '../AnalogGauge'
 import { TempDisplay } from '../TempDisplay'
 import { Sparkline } from '../Sparkline'
 import { RecentAlarms } from '../RecentAlarms'
 import { getMetricState, type Thresholds } from '@/lib/types'
-import { CheckIcon, CpuIcon, RefreshCwIcon, UsbIcon } from 'lucide-react'
+import { CheckIcon, CpuIcon, RefreshCwIcon, UsbIcon, TerminalIcon, AlertTriangleIcon, InfoIcon, FileCode2Icon } from 'lucide-react'
 
 const RPM_ZONES = [
   { from: 0,    to: 0.55,  color: '#3b82f6' },
@@ -39,6 +40,8 @@ export function TableauDeBord() {
     serialError,
     serialSupported,
     updateThresholds,
+    rawLines,
+    stats,
   } = useBench()
 
   const [draft, setDraft] = useState<Thresholds>(() => ({ ...thresholds }))
@@ -180,17 +183,137 @@ export function TableauDeBord() {
 
   // 2. Connected but no active captures/sensors detected yet
   if (connectionStatus === 'connected' && !hasAnySensor) {
+    const detectedName = stats.port && stats.port !== 'Aucun' ? stats.port : 'Appareil Arduino'
+
     return (
-      <div className="p-6 max-w-lg mx-auto text-center flex flex-col gap-4 items-center mt-20">
-        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-950/30 text-slate-500 border border-slate-900 relative">
-          <span className="absolute inset-0 rounded-full border border-blue-500/10 animate-pulse" />
-          <CpuIcon size={20} className="animate-spin" style={{ animationDuration: '3s' }} />
+      <div className="p-6 max-w-2xl mx-auto flex flex-col gap-6 mt-10">
+        {/* Connection status notification */}
+        <div
+          className="rounded-lg border p-6 flex flex-col items-center text-center gap-4 relative overflow-hidden"
+          style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        >
+          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 relative">
+            <span className="absolute inset-0 rounded-full border border-emerald-500/20 animate-ping opacity-75" />
+            <CpuIcon size={20} className="animate-pulse" />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <h2 className="text-base font-bold text-slate-100 font-mono">
+              {detectedName} Détecté
+            </h2>
+            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              La connexion série est établie avec succès. Le système attend maintenant des trames de mesures physiques pour activer le tableau de bord.
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-300 font-mono">Télémétrie Active — En attente de signaux</h2>
-          <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
-            Arduino connecté avec succès. En attente de trames de capteurs valides (JSON ou CSV) pour afficher les indicateurs de suivi.
-          </p>
+
+        {/* Live Serial Terminal */}
+        <div
+          className="rounded-lg border overflow-hidden flex flex-col"
+          style={{ backgroundColor: '#090d16', borderColor: '#1f2937' }}
+        >
+          {/* Terminal Header */}
+          <div
+            className="flex items-center justify-between px-4 py-2 border-b"
+            style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}
+          >
+            <div className="flex items-center gap-2">
+              <TerminalIcon size={13} className="text-emerald-400" />
+              <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-300">
+                Console Série (9600 Baud)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 font-mono text-[9px] text-emerald-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>ACQUISITION EN COURS</span>
+            </div>
+          </div>
+
+          {/* Terminal Body */}
+          <div
+            className="p-3 h-48 overflow-y-auto font-mono text-[11px] flex flex-col gap-1 selection:bg-emerald-500/30 select-text"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
+          >
+            {rawLines.length > 0 ? (
+              rawLines.map((line, idx) => (
+                <div key={idx} className="truncate text-emerald-400/90 font-mono">
+                  <span className="text-emerald-600/70 select-none mr-2">&gt;</span>
+                  {line}
+                </div>
+              ))
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-1 font-mono text-center py-8">
+                <span className="animate-pulse text-xs">Aucune trame reçue pour le moment...</span>
+                <span className="text-[10px] text-slate-600">(Vérifiez que votre Arduino transmet des données via Serial.print)</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Troubleshooting & Sample Code section */}
+        <div className="grid md:grid-cols-2 gap-4 text-xs">
+          {/* Troubleshooting checklist */}
+          <div
+            className="rounded-lg border p-4 flex flex-col gap-3"
+            style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+          >
+            <div className="flex items-center gap-2 text-amber-500 font-semibold uppercase tracking-wider text-[10px]">
+              <AlertTriangleIcon size={12} />
+              Aide à la Connexion / Résolution
+            </div>
+            <ul className="list-disc pl-4 flex flex-col gap-2 text-slate-400 font-medium font-sans">
+              <li>
+                <span className="text-slate-300">Format de données attendu :</span> Le banc attend des messages CSV ou JSON contenant les champs clés (ex: <code className="text-emerald-400 font-mono text-[10px]">rpm</code>, <code className="text-emerald-400 font-mono text-[10px]">vitesse</code>, etc.).
+              </li>
+              <li>
+                <span className="text-slate-300">Vitesse du Port Série :</span> Configurez votre Arduino à <code className="text-emerald-400 font-mono text-[10px]">9600 bauds</code> avec <code className="text-emerald-400 font-mono text-[10px]">Serial.begin(9600);</code>.
+              </li>
+              <li>
+                <span className="text-slate-300">Accès exclusif :</span> Fermez le moniteur série de l&apos;IDE Arduino ou toute autre application connectée au même port.
+              </li>
+              <li>
+                <span className="text-slate-300">Câblage USB :</span> Assurez-vous que le câble USB est bien connecté et qu&apos;aucun court-circuit n&apos;est présent sur le shield de la carte.
+              </li>
+            </ul>
+          </div>
+
+          {/* Quick Arduino Code Preview */}
+          <div
+            className="rounded-lg border p-4 flex flex-col gap-3 justify-between"
+            style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+          >
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-blue-400 font-semibold uppercase tracking-wider text-[10px]">
+                <FileCode2Icon size={12} />
+                Exemple de code Arduino
+              </div>
+              <p className="text-slate-400 leading-relaxed text-[11px]">
+                Voici le format standard CSV attendu par le Tableau de Bord :
+              </p>
+              <pre className="p-2 rounded bg-black/40 text-[9px] text-emerald-400 font-mono border border-slate-900/60 leading-normal max-h-24 overflow-y-auto">
+{`// Envoyer CSV à 9600 bauds :
+// Temp_Carb, Temp_Echap, Temp_Adm, RPM, Vitesse, Vibration
+void loop() {
+  Serial.print(40.2);   Serial.print(",");
+  Serial.print(575.0);  Serial.print(",");
+  Serial.print(32.1);   Serial.print(",");
+  Serial.print(2800);   Serial.print(",");
+  Serial.print(10.5);   Serial.print(",");
+  Serial.println(0.60); // println final !
+  delay(1000);
+}`}
+              </pre>
+            </div>
+            <div className="flex gap-2 mt-1">
+              <Link
+                href="/systeme"
+                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-slate-200 border border-slate-700/80 hover:bg-slate-700/80 transition-colors w-full"
+              >
+                <InfoIcon size={10} />
+                Voir les Instructions
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     )
