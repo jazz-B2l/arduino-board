@@ -24,6 +24,7 @@ interface BenchContextValue {
   connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error'
   serialError:      string | null
   serialSupported:  boolean
+  rawLines:         string[]
 }
 
 const BenchContext = createContext<BenchContextValue | null>(null)
