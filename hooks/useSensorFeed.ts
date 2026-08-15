@@ -27,10 +27,12 @@ export interface SensorFeedResult {
   serialError:      string | null
   serialSupported:  boolean
   rawLines:         string[]
+  handshakeStatus:  'idle' | 'sending' | 'success' | 'error'
+  sendHandshake:    () => Promise<void>
 }
 
 function getBoardName(vendorId?: number, productId?: number): string {
-  if (!vendorId) return 'Port Série'
+  if (!vendorId) return 'Serial Port'
 
   const vid = vendorId
   const pid = productId || 0
@@ -75,10 +77,10 @@ function getBoardName(vendorId?: number, productId?: number): string {
   // Qinheng Electronics (CH340/CH341 clones - 0x1a86 / 6790)
   if (vid === 0x1a86 || vid === 6790) {
     if (pid === 0x7523 || pid === 29987) {
-      return 'Arduino Uno/Mega (Clone CH340)'
+      return 'Arduino Uno/Mega (CH340 Clone)'
     }
     if (pid === 0x5523 || pid === 21795) {
-      return 'Interface CH341'
+      return 'CH341 Interface'
     }
   }
 
@@ -98,12 +100,12 @@ function getBoardName(vendorId?: number, productId?: number): string {
 
   // Adafruit (0x239a)
   if (vid === 0x239a) {
-    return 'Carte Adafruit'
+    return 'Adafruit Board'
   }
 
   // SparkFun (0x1b4f)
   if (vid === 0x1b4f) {
-    return 'Carte SparkFun'
+    return 'SparkFun Board'
   }
 
   // Teensy (0x16c0)
@@ -122,7 +124,7 @@ export function useSensorFeed(): SensorFeedResult {
     totalFrames:   0,
     invalidFrames: 0,
     mode:          'serial',
-    port:          'Aucun',
+    port:          'None',
     startTime:     Date.now(),
   })
 
@@ -133,15 +135,18 @@ export function useSensorFeed(): SensorFeedResult {
 
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected')
   const [serialError, setSerialError] = useState<string | null>(null)
-  const [portName, setPortName] = useState<string>('Aucun')
+  const [portName, setPortName] = useState<string>('None')
   const [serialSupported, setSerialSupported] = useState(false)
   const [rawLines, setRawLines] = useState<string[]>([])
+  const [handshakeStatus, setHandshakeStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
 
   const portRef = useRef<any | null>(null)
   const readerRef = useRef<any | null>(null)
+  const writerRef = useRef<any | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
-  const portNameRef = useRef<string>('Aucun')
+  const portNameRef = useRef<string>('None')
   const rawLinesRef = useRef<string[]>([])
+  const handshakeTimeoutRef = useRef<any>(null)
 
   useEffect(() => {
     setSerialSupported(typeof window !== 'undefined' && 'serial' in navigator)
@@ -153,6 +158,10 @@ export function useSensorFeed(): SensorFeedResult {
   const restart  = useCallback(() => {
     bufferRef.current    = []
     rawLinesRef.current  = []
+    if (handshakeTimeoutRef.current) {
+      clearTimeout(handshakeTimeoutRef.current)
+      handshakeTimeoutRef.current = null
+    }
     statsRef.current     = {
       ...statsRef.current,
       totalFrames:   0,
@@ -162,13 +171,24 @@ export function useSensorFeed(): SensorFeedResult {
     setLatest(null)
     setHistory([])
     setRawLines([])
+    setHandshakeStatus('idle')
     setStats({ ...statsRef.current })
   }, [])
 
   const disconnect = useCallback(async () => {
+    if (handshakeTimeoutRef.current) {
+      clearTimeout(handshakeTimeoutRef.current)
+      handshakeTimeoutRef.current = null
+    }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
+    }
+    if (writerRef.current) {
+      try {
+        writerRef.current.releaseLock()
+      } catch (e) {}
+      writerRef.current = null
     }
     if (readerRef.current) {
       try {
@@ -182,16 +202,30 @@ export function useSensorFeed(): SensorFeedResult {
       } catch (e) {}
       portRef.current = null
     }
-    portNameRef.current = 'Aucun'
-    setPortName('Aucun')
-    statsRef.current.port = 'Aucun'
+    portNameRef.current = 'None'
+    setPortName('None')
+    statsRef.current.port = 'None'
     rawLinesRef.current = []
     setRawLines([])
+    setHandshakeStatus('idle')
     setStats({ ...statsRef.current })
     setConnectionStatus('disconnected')
   }, [])
 
   const processTelemetryLine = useCallback((line: string) => {
+    // Intercept Handshake response (case-insensitive and robust matches)
+    const upper = line.toUpperCase()
+    if (upper.includes('ARDUINO,READY') || upper.includes('READY') || upper.includes('ARDUINO')) {
+      setHandshakeStatus('success')
+      if (handshakeTimeoutRef.current) {
+        clearTimeout(handshakeTimeoutRef.current)
+        handshakeTimeoutRef.current = null
+      }
+      // Reset back to idle after 5 seconds so they can test it again
+      setTimeout(() => setHandshakeStatus('idle'), 5000)
+      return
+    }
+
     statsRef.current.totalFrames++
     try {
       let parsed: Partial<SensorReading> = {}
@@ -270,6 +304,12 @@ export function useSensorFeed(): SensorFeedResult {
     try {
       reader = port.readable.getReader()
       readerRef.current = reader
+
+      // Catch reader.closed promise rejection to prevent unhandled rejection crashes (Next.js error overlay)
+      reader.closed.catch((err: any) => {
+        console.warn('Flux de lecture série fermé/déconnecté:', err?.message)
+      })
+
       const decoder = new TextDecoder()
 
       let buffer = ''
@@ -278,7 +318,21 @@ export function useSensorFeed(): SensorFeedResult {
         if (done) break
 
         if (value) {
-          buffer += decoder.decode(value, { stream: true })
+          const decoded = decoder.decode(value, { stream: true })
+          
+          // Debug incoming raw serial bytes inside the live console window
+          const rawTrimmed = decoded.trim()
+          if (rawTrimmed) {
+            const debugLogLine = `[RAW RX]: ${rawTrimmed}`
+            const nextLines = [...rawLinesRef.current, debugLogLine]
+            if (nextLines.length > 15) {
+              nextLines.splice(0, nextLines.length - 15)
+            }
+            rawLinesRef.current = nextLines
+            setRawLines(nextLines)
+          }
+
+          buffer += decoded
           const lines = buffer.split('\n')
           buffer = lines.pop() || ''
 
@@ -299,10 +353,15 @@ export function useSensorFeed(): SensorFeedResult {
           }
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       if (!signal.aborted) {
         console.error('Error reading from serial port:', err)
-        setSerialError('Erreur de lecture du port série')
+        const errMsg = err?.message || 'Error reading from serial port'
+        if (errMsg.includes('lost') || errMsg.includes('disconnected') || err?.name === 'NetworkError') {
+          setSerialError('The device has been disconnected (connection lost).')
+        } else {
+          setSerialError(`Read error: ${errMsg}`)
+        }
         setConnectionStatus('error')
       }
     } finally {
@@ -317,7 +376,7 @@ export function useSensorFeed(): SensorFeedResult {
 
   const connect = useCallback(async () => {
     if (typeof window === 'undefined' || !('serial' in navigator)) {
-      setSerialError("L'API Web Serial n'est pas supportée par ce navigateur.")
+      setSerialError("Web Serial API is not supported by this browser.")
       setConnectionStatus('error')
       return
     }
@@ -356,17 +415,62 @@ export function useSensorFeed(): SensorFeedResult {
 
       setConnectionStatus('connected')
 
-      // Start asynchronous read loop
-      readLoop(port, abortController.signal)
+      // Cache writable stream writer to prevent toggling DTR line and resetting Arduino on writes
+      try {
+        writerRef.current = port.writable.getWriter()
+      } catch (writeLockErr) {
+        console.warn('Failed to lock writable stream:', writeLockErr)
+      }
+
+      // Start asynchronous read loop and catch any unhandled promise rejections
+      readLoop(port, abortController.signal).catch((err) => {
+        console.error('Unhandled readLoop error:', err)
+      })
     } catch (err: any) {
       console.error(err)
-      setSerialError(err?.message || 'Erreur de connexion série')
+      setSerialError(err?.message || 'Serial connection error')
       setConnectionStatus('error')
       try {
         await disconnect()
       } catch {}
     }
   }, [disconnect, processTelemetryLine])
+
+  const sendHandshake = useCallback(async () => {
+    if (!portRef.current || connectionStatus !== 'connected') {
+      setSerialError('Cannot send handshake: device not connected.')
+
+      return
+    }
+
+    try {
+      setHandshakeStatus('sending')
+      if (handshakeTimeoutRef.current) {
+        clearTimeout(handshakeTimeoutRef.current)
+      }
+
+      // Set timeout for handshake response (3.0 seconds) to accommodate potential boot timings safely
+      handshakeTimeoutRef.current = setTimeout(() => {
+        setHandshakeStatus(prev => prev === 'sending' ? 'error' : prev)
+      }, 3000)
+
+      let writer = writerRef.current
+      if (!writer) {
+        writer = portRef.current.writable.getWriter()
+        writerRef.current = writer
+      }
+
+      const encoder = new TextEncoder()
+      await writer.write(encoder.encode("HANDSHAKE\r\n"))
+    } catch (err: any) {
+      console.error('Failed to write handshake:', err)
+      setHandshakeStatus('error')
+      if (handshakeTimeoutRef.current) {
+        clearTimeout(handshakeTimeoutRef.current)
+        handshakeTimeoutRef.current = null
+      }
+    }
+  }, [connectionStatus])
 
   useEffect(() => {
     const handleDisconnect = (event: any) => {
@@ -401,5 +505,7 @@ export function useSensorFeed(): SensorFeedResult {
     serialError,
     serialSupported,
     rawLines,
+    handshakeStatus,
+    sendHandshake,
   }
 }

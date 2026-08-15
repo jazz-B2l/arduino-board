@@ -55,7 +55,7 @@ export default function LandingPage() {
     setMounted(true)
   }, [])
 
-  const arduinoJsonCode = `// Format JSON
+  const arduinoJsonCode = `// JSON Format
 #include <Arduino.h>
 
 void setup() {
@@ -63,7 +63,7 @@ void setup() {
 }
 
 void loop() {
-  // Vos lectures de capteurs
+  // Your sensor readings
   float tempCarb = analogRead(A0) * 0.12; 
   float tempEch  = analogRead(A1) * 0.98;
   float tempAdm  = analogRead(A2) * 0.08;
@@ -71,7 +71,7 @@ void loop() {
   float vitesse  = analogRead(A3) * 0.03;
   float vib      = analogRead(A4) * 0.004;
 
-  // Envoi de la trame JSON
+  // Sending JSON frame
   Serial.print("{\\"temp_carburant\\": ");
   Serial.print(tempCarb);
   Serial.print(", \\"temp_echap\\": ");
@@ -89,7 +89,7 @@ void loop() {
   delay(1000); // 1 Hz
 }`
 
-  const arduinoCsvCode = `// Format CSV (Ordre strict)
+  const arduinoCsvCode = `// CSV Format (Strict order)
 #include <Arduino.h>
 
 void setup() {
@@ -97,7 +97,7 @@ void setup() {
 }
 
 void loop() {
-  // Vos lectures de capteurs
+  // Your sensor readings
   float tempCarb = 42.5; 
   float tempEch  = 580.2;
   float tempAdm  = 31.8;
@@ -105,13 +105,13 @@ void loop() {
   float vitesse  = 12.4;
   float vib      = 0.58;
 
-  // Envoi séparé par des virgules
+  // Send separated by commas
   Serial.print(tempCarb);    Serial.print(",");
   Serial.print(tempEch);     Serial.print(",");
   Serial.print(tempAdm);     Serial.print(",");
   Serial.print(rpm);         Serial.print(",");
   Serial.print(vitesse);     Serial.print(",");
-  Serial.println(vib);       // Saut de ligne final
+  Serial.println(vib);       // Final newline
 
   delay(1000); // 1 Hz
 }`
@@ -145,10 +145,10 @@ void loop() {
         </div>
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400" style={{ borderColor: '#1f2937', color: '#94a3b8' }}>
-            Accès Direct
+            Direct Access
           </Link>
           <Link href="/dashboard" className="px-4 py-1.5 rounded text-xs font-mono font-semibold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]" style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}>
-            Lancer la Console
+            Launch Console
           </Link>
         </div>
       </header>
@@ -161,18 +161,18 @@ void loop() {
           <div className="lg:col-span-7 flex flex-col gap-6 text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[11px] font-mono font-medium self-start bg-blue-950/20 text-blue-400 border-blue-800/40">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
-              Télémétrie Série Web v1.0
+              Web Serial Telemetry v1.0
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
-              Le tableau de bord de télémétrie <br />
+              The telemetry dashboard for <br />
               <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
                 Arduino#board
               </span>
             </h1>
 
             <p className="text-sm md:text-base text-slate-400 leading-relaxed max-w-xl">
-              Visualisez, analysez et enregistrez les signaux physiques de votre banc d&apos;essai mécanique ou thermique en temps réel. Connexion directe sans aucun logiciel tiers grâce à l&apos;API standard Web Serial.
+              Visualize, analyze, and record physical signals from your mechanical or thermal test bench in real time. Direct connection without any third-party software, thanks to the standard Web Serial API.
             </p>
 
             <div className="flex flex-wrap gap-4 mt-2">
@@ -181,7 +181,7 @@ void loop() {
                 className="flex items-center gap-2 px-6 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(59,130,246,0.35)]"
                 style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
               >
-                Ouvrir la Console
+                Open Console
                 <ArrowRightIcon size={15} />
               </Link>
               <a
@@ -189,7 +189,7 @@ void loop() {
                 className="flex items-center gap-2 px-6 py-3.5 rounded border text-sm font-mono font-bold transition-all hover:bg-slate-800/30"
                 style={{ borderColor: '#1f2937', color: '#94a3b8' }}
               >
-                Découvrir
+                Discover
               </a>
             </div>
           </div>
@@ -214,15 +214,15 @@ void loop() {
               {/* Simulated Metrics */}
               <div className="flex flex-col gap-3.5">
                 <div className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded border" style={{ borderColor: 'rgba(31,41,55,0.4)' }}>
-                  <span className="text-xs text-slate-400">Régime Moteur</span>
+                  <span className="text-xs text-slate-400">Engine Speed</span>
                   <div className="flex flex-col items-end">
-                    <span className="text-sm font-mono font-bold text-blue-400">{preview.rpm.toLocaleString('fr-FR')}</span>
-                    <span className="text-[9px] text-slate-500 font-mono">tr/min</span>
+                    <span className="text-sm font-mono font-bold text-blue-400">{preview.rpm.toLocaleString('en-US')}</span>
+                    <span className="text-[9px] text-slate-500 font-mono">rpm</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded border" style={{ borderColor: 'rgba(31,41,55,0.4)' }}>
-                  <span className="text-xs text-slate-400">Temp. Échappement</span>
+                  <span className="text-xs text-slate-400">Exhaust Temp</span>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-mono font-bold text-amber-500">{preview.temp_echap.toFixed(1)}</span>
                     <span className="text-[9px] text-slate-500 font-mono">°C</span>
@@ -230,7 +230,7 @@ void loop() {
                 </div>
 
                 <div className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded border" style={{ borderColor: 'rgba(31,41,55,0.4)' }}>
-                  <span className="text-xs text-slate-400">Vibrations G-Force</span>
+                  <span className="text-xs text-slate-400">Vibration G-Force</span>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-mono font-bold text-red-400">{preview.vibration.toFixed(2)}</span>
                     <span className="text-[9px] text-slate-500 font-mono">m/s²</span>
@@ -240,7 +240,7 @@ void loop() {
 
               {/* Dynamic waveform visualizer */}
               <div className="h-14 rounded flex items-end gap-[3px] p-2 bg-black/40 overflow-hidden relative">
-                <span className="absolute top-2 left-2 text-[9px] font-mono text-slate-600">FRÉQUENCE DU FLUX — 1 HZ</span>
+                <span className="absolute top-2 left-2 text-[9px] font-mono text-slate-600">STREAM RATE — 1 HZ</span>
                 {Array.from({ length: 28 }).map((_, i) => {
                   const h = mounted
                     ? 15 + Math.sin((preview.timestamp / 1000) + i * 0.4) * 12 + Math.random() * 8
@@ -265,10 +265,10 @@ void loop() {
         <section id="features" className="flex flex-col gap-12">
           <div className="flex flex-col gap-2 items-center text-center">
             <h2 className="text-[11px] font-mono uppercase tracking-widest text-blue-400 font-semibold">
-              Fonctionnalités Clés
+              Key Features
             </h2>
             <h3 className="text-2xl md:text-4xl font-bold tracking-tight">
-              Une station de travail complète dans votre navigateur
+              A complete workstation in your browser
             </h3>
           </div>
 
@@ -276,38 +276,38 @@ void loop() {
             {[
               {
                 icon: UsbIcon,
-                title: "Web Serial Natif",
-                desc: "Connectez votre Arduino directement via USB. Aucun démon, plugin ou driver tiers requis.",
+                title: "Native Web Serial",
+                desc: "Connect your Arduino directly via USB. No third-party daemons, plugins, or drivers required.",
                 color: "#3b82f6"
               },
               {
                 icon: ActivityIcon,
-                title: "Télémétrie en Direct",
-                desc: "Rendu instantané des indicateurs cruciaux (tours/minute, vitesses, vibrations et 3 capteurs thermiques).",
+                title: "Live Telemetry",
+                desc: "Instant rendering of crucial indicators (RPM, speeds, vibrations, and 3 thermal sensors).",
                 color: "#10b981"
               },
               {
                 icon: AlertTriangleIcon,
-                title: "Surveillance des Seuils",
-                desc: "Définissez des seuils Warning et Danger avec des alarmes automatiques et réactives.",
+                title: "Threshold Monitoring",
+                desc: "Set Warning and Danger thresholds with automatic, responsive alarms.",
                 color: "#ef4444"
               },
               {
                 icon: LineChartIcon,
-                title: "Graphiques Temporels",
-                desc: "Générez des graphiques de tendances fluides avec des outils de zoom et d'analyse temporelle.",
+                title: "Time-Series Charts",
+                desc: "Generate smooth trend charts with zoom and time-analysis tools.",
                 color: "#8b5cf6"
               },
               {
                 icon: DownloadIcon,
-                title: "Rapports & Export CSV",
-                desc: "Conservez l'historique complet de vos sessions de test et exportez-les d'un clic au format Excel/CSV.",
+                title: "Reports & CSV Export",
+                desc: "Keep the full history of your test sessions and export them with a click in Excel/CSV format.",
                 color: "#f59e0b"
               },
               {
                 icon: SettingsIcon,
-                title: "Ajustement des Paramètres",
-                desc: "Ajustez le diamètre moteur, étalonnez les coefficients physiques et sauvegardez vos configurations.",
+                title: "Parameter Tuning",
+                desc: "Adjust engine diameter, calibrate physical coefficients, and save your configurations.",
                 color: "#06b6d4"
               }
             ].map((f, i) => (
@@ -330,34 +330,34 @@ void loop() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 flex flex-col gap-6 text-left">
             <h2 className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-semibold">
-              Comment ça marche ?
+              How it works?
             </h2>
             <h3 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Simplicité d&apos;intégration logicielle
+              Software Integration Simplicity
             </h3>
             
             <div className="flex flex-col gap-4 text-xs">
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-slate-900 border flex items-center justify-center font-mono font-bold text-slate-400" style={{ borderColor: '#1f2937' }}>1</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-200">Programmez votre Arduino</p>
-                  <p className="text-slate-400 mt-0.5">Écrivez les variables lues sur le port série sous format JSON ou CSV.</p>
+                  <p className="font-semibold text-slate-200">Program your Arduino</p>
+                  <p className="text-slate-400 mt-0.5">Write variables read on the serial port in JSON or CSV format.</p>
                 </div>
               </div>
               
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-slate-900 border flex items-center justify-center font-mono font-bold text-slate-400" style={{ borderColor: '#1f2937' }}>2</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-200">Connectez l&apos;appareil USB</p>
-                  <p className="text-slate-400 mt-0.5">Branchez l&apos;Arduino et ouvrez la console sur un navigateur compatible desktop.</p>
+                  <p className="font-semibold text-slate-200">Connect the USB Device</p>
+                  <p className="text-slate-400 mt-0.5">Plug in the Arduino and open the console on a desktop-compatible browser.</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-slate-900 border flex items-center justify-center font-mono font-bold text-slate-400" style={{ borderColor: '#1f2937' }}>3</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-200">Monitorez instantanément</p>
-                  <p className="text-slate-400 mt-0.5">Appuyez sur connecter, sélectionnez le port COM/USB et observez les graphiques.</p>
+                  <p className="font-semibold text-slate-200">Monitor Instantly</p>
+                  <p className="text-slate-400 mt-0.5">Click connect, select the COM/USB port, and observe the charts.</p>
                 </div>
               </div>
             </div>
@@ -379,13 +379,13 @@ void loop() {
                   onClick={() => setActiveTab('json')}
                   className={`px-3 py-1 transition-all ${activeTab === 'json' ? 'bg-[#3b82f6] text-white' : 'text-slate-500 hover:text-slate-300'}`}
                 >
-                  Format JSON
+                  JSON Format
                 </button>
                 <button
                   onClick={() => setActiveTab('csv')}
                   className={`px-3 py-1 transition-all ${activeTab === 'csv' ? 'bg-[#3b82f6] text-white' : 'text-slate-500 hover:text-slate-300'}`}
                 >
-                  Format CSV
+                  CSV Format
                 </button>
               </div>
 
@@ -395,7 +395,7 @@ void loop() {
                 style={{ borderColor: '#1f2937' }}
               >
                 <FileCode2Icon size={11} />
-                {copied ? 'Copié !' : 'Copier'}
+                {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
 
@@ -417,17 +417,17 @@ void loop() {
           
           <CpuIcon size={40} className="text-blue-400 animate-pulse" />
           <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            Prêt à lancer l&apos;acquisition sur votre banc d&apos;essai ?
+            Ready to launch acquisition on your test bench?
           </h3>
           <p className="text-xs md:text-sm text-slate-400 max-w-lg leading-relaxed">
-            Pas de compte requis, pas d&apos;installation. Branchez votre Arduino et accédez directement à vos données physiques.
+            No account required, no installation. Plug in your Arduino and access your physical data directly.
           </p>
           <Link
             href="/dashboard"
             className="flex items-center gap-2 px-8 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] mt-2"
             style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
           >
-            Lancer Arduino#board
+            Launch Arduino#board
             <ArrowRightIcon size={14} />
           </Link>
         </section>
@@ -440,7 +440,7 @@ void loop() {
           <span>&copy; {new Date().getFullYear()} Arduino#board. Open Source Telemetry.</span>
           <span className="flex items-center gap-1.5">
             <TerminalIcon size={10} style={{ color: '#3b82f6' }} />
-            Construit pour l&apos;ingénierie mécanique et thermique
+            Built for mechanical and thermal engineering
           </span>
         </p>
       </footer>

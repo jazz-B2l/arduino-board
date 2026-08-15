@@ -6,11 +6,11 @@ import { useBench } from '../BenchContext'
 import { DEFAULT_THRESHOLDS, type Thresholds } from '@/lib/types'
 
 const METRIC_CONFIG = [
-  { key: 'temp_echap',     label: 'Température Échappement', unit: '°C',    step: 10,   min: 100,  max: 1200 },
-  { key: 'temp_carburant', label: 'Température Carburant',   unit: '°C',    step: 1,    min: 20,   max: 150  },
-  { key: 'rpm',            label: 'Régime moteur',           unit: 'tr/min', step: 100, min: 500,  max: 12000 },
-  { key: 'vibration',      label: 'Vibration',               unit: 'm/s²',  step: 0.1,  min: 0.1,  max: 10   },
-  { key: 'temp_admission', label: 'Température Admission',   unit: '°C',    step: 1,    min: 10,   max: 200  },
+  { key: 'temp_echap',     label: 'Exhaust Temperature', unit: '°C',    step: 10,   min: 100,  max: 1200 },
+  { key: 'temp_carburant', label: 'Fuel Temperature',   unit: '°C',    step: 1,    min: 20,   max: 150  },
+  { key: 'rpm',            label: 'Engine Speed',        unit: 'rpm',   step: 100,  min: 500,  max: 12000 },
+  { key: 'vibration',      label: 'Vibration',           unit: 'm/s²',  step: 0.1,  min: 0.1,  max: 10   },
+  { key: 'temp_admission', label: 'Intake Temperature',   unit: '°C',    step: 1,    min: 10,   max: 200  },
 ]
 
 export function Parametres() {
@@ -85,9 +85,9 @@ export function Parametres() {
           <UsbIcon size={20} className="animate-pulse" />
         </div>
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-300 font-mono">Configuration indisponible</h2>
+          <h2 className="text-sm font-semibold text-slate-300 font-mono">Configuration Unavailable</h2>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Veuillez brancher votre carte Arduino et lancer l&apos;acquisition depuis le tableau de bord pour configurer vos capteurs actifs.
+            Please connect your Arduino board and start acquisition from the dashboard to configure your active sensors.
           </p>
         </div>
       </div>
@@ -102,9 +102,9 @@ export function Parametres() {
           <CpuIcon size={20} className="animate-spin" style={{ animationDuration: '3s' }} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-300 font-mono">En attente de capteurs actifs</h2>
+          <h2 className="text-sm font-semibold text-slate-300 font-mono">Waiting for Active Sensors</h2>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Aucun capteur n&apos;a été détecté pour le moment. Transmettez des signaux de télémétrie depuis l&apos;Arduino pour pouvoir les configurer.
+            No sensors have been detected yet. Transmit telemetry signals from the Arduino to configure them.
           </p>
         </div>
       </div>
@@ -116,7 +116,7 @@ export function Parametres() {
     <div className="p-4 flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
-          Paramètres
+          Settings
         </h1>
         <div className="flex gap-2">
           <button
@@ -125,7 +125,7 @@ export function Parametres() {
             style={{ borderColor: '#1f2937', color: '#64748b', backgroundColor: '#111827' }}
           >
             <RotateCcwIcon size={12} />
-            Restaurer les valeurs par défaut
+            Restore Defaults
           </button>
           <button
             onClick={handleSave}
@@ -136,22 +136,22 @@ export function Parametres() {
               backgroundColor: saved ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)',
             }}
           >
-            {saved ? <><CheckIcon size={12} /> Sauvegardé</> : 'Sauvegarder'}
+            {saved ? <><CheckIcon size={12} /> Saved</> : 'Save'}
           </button>
         </div>
       </div>
 
-      {/* Motor diameter */}
+      {/* Engine diameter */}
       <div
         className="rounded-md border p-4 flex flex-col gap-3"
         style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
       >
         <div className="text-[10px] uppercase tracking-widest font-semibold mb-1" style={{ color: '#475569' }}>
-          Configuration moteur
+          Engine Configuration
         </div>
         <div className="flex items-center gap-3">
           <label className="text-xs font-medium w-36" style={{ color: '#94a3b8' }}>
-            Diamètre moteur
+            Engine Diameter
           </label>
           <input
             type="number"
@@ -167,6 +167,7 @@ export function Parametres() {
         </div>
       </div>
 
+
       {/* Threshold config */}
       <div
         className="rounded-md border"
@@ -176,7 +177,7 @@ export function Parametres() {
           className="px-4 py-2.5 border-b text-[10px] uppercase tracking-widest font-semibold"
           style={{ color: '#475569', borderColor: '#1f2937' }}
         >
-          Seuils d&apos;alarme pour capteurs actifs
+          Alarm Thresholds for Active Sensors
         </div>
 
         <div className="divide-y" style={{ borderColor: '#1f2937' }}>
@@ -194,7 +195,7 @@ export function Parametres() {
                   {/* Warning */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#f59e0b' }}>
-                      Seuil Warning
+                      Warning Threshold
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -217,7 +218,7 @@ export function Parametres() {
                   {/* Danger */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#ef4444' }}>
-                      Seuil Danger
+                      Danger Threshold
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -252,7 +253,7 @@ export function Parametres() {
           aria-live="polite"
         >
           <CheckIcon size={13} />
-          Paramètres sauvegardés avec succès
+          Settings successfully saved
         </div>
       )}
     </div>

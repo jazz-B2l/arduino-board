@@ -16,8 +16,8 @@ const jetBrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Banc d\'Essai – Monitoring Pro',
-  description: 'Outil de surveillance en temps réel pour bancs d\'essai moteur — R&D mécanique et thermique',
+  title: 'Test Bench – Pro Monitoring',
+  description: 'Real-time monitoring tool for engine test benches — Mechanical and thermal R&D',
   generator: 'v0.app',
 }
 
@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-[#0a0e1a]`}>
+    <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-[#0a0e1a]`}>
       <body className="antialiased font-sans min-h-screen">
         <BenchProvider>
           {children}

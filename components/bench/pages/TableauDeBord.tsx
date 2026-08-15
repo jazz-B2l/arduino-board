@@ -8,7 +8,7 @@ import { TempDisplay } from '../TempDisplay'
 import { Sparkline } from '../Sparkline'
 import { RecentAlarms } from '../RecentAlarms'
 import { getMetricState, type Thresholds } from '@/lib/types'
-import { CheckIcon, CpuIcon, RefreshCwIcon, UsbIcon, TerminalIcon, AlertTriangleIcon, InfoIcon, FileCode2Icon } from 'lucide-react'
+import { CheckIcon, CpuIcon, RefreshCwIcon, UsbIcon, TerminalIcon, AlertTriangleIcon, InfoIcon, FileCode2Icon, HelpCircleIcon } from 'lucide-react'
 
 const RPM_ZONES = [
   { from: 0,    to: 0.55,  color: '#3b82f6' },
@@ -42,15 +42,28 @@ export function TableauDeBord() {
     updateThresholds,
     rawLines,
     stats,
+    handshakeStatus,
+    sendHandshake,
+    selectedBoard,
+    setSelectedBoard,
+    boardName,
   } = useBench()
 
   const [draft, setDraft] = useState<Thresholds>(() => ({ ...thresholds }))
   const [saved, setSaved] = useState(false)
+  const [tempSelectedBoard, setTempSelectedBoard] = useState<string | null>(null)
 
   // Sync draft with thresholds when context changes
   useEffect(() => {
     setDraft({ ...thresholds })
   }, [thresholds])
+
+  // Reset local selection when selectedBoard is cleared (e.g. on disconnect)
+  useEffect(() => {
+    if (!selectedBoard) {
+      setTempSelectedBoard(null)
+    }
+  }, [selectedBoard])
 
   const handleChange = (metric: string, level: 'warning' | 'danger', value: string) => {
     const num = parseFloat(value)
@@ -141,9 +154,9 @@ export function TableauDeBord() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <h1 className="text-xl font-bold text-slate-100">Prêt pour l&apos;acquisition</h1>
+            <h1 className="text-xl font-bold text-slate-100">Ready for Acquisition</h1>
             <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Branchez votre carte Arduino par USB et lancez la connexion pour démarrer la télémétrie en temps réel.
+              Connect your Arduino board via USB and start the connection to launch real-time telemetry.
             </p>
           </div>
 
@@ -155,7 +168,7 @@ export function TableauDeBord() {
 
           {!serialSupported && (
             <div className="text-xs text-amber-500 font-semibold">
-              Attention : l&apos;API Web Serial n&apos;est pas supportée par votre navigateur actuel. Veuillez utiliser Chrome, Edge ou Opera sur desktop.
+              Warning: Web Serial API is not supported by your current browser. Please use Chrome, Edge, or Opera on desktop.
             </div>
           )}
 
@@ -169,7 +182,7 @@ export function TableauDeBord() {
               size={14}
               className={connectionStatus === 'connecting' ? 'animate-spin' : ''}
             />
-            {connectionStatus === 'connecting' ? 'Connexion en cours...' : 'Associer & Connecter l\'Arduino'}
+            {connectionStatus === 'connecting' ? 'Connecting...' : 'Pair & Connect Arduino'}
           </button>
         </div>
       </div>
@@ -184,6 +197,7 @@ export function TableauDeBord() {
   // 2. Connected but no active captures/sensors detected yet
   if (connectionStatus === 'connected' && !hasAnySensor) {
     const detectedName = stats.port && stats.port !== 'Aucun' ? stats.port : 'Appareil Arduino'
+    const isGeneric = stats.port.includes('Clone') || stats.port.includes('Serial Port') || stats.port === 'Arduino' || stats.port === 'Appareil Arduino'
 
     return (
       <div className="p-6 max-w-2xl mx-auto flex flex-col gap-6 mt-10">
@@ -192,18 +206,114 @@ export function TableauDeBord() {
           className="rounded-lg border p-6 flex flex-col items-center text-center gap-4 relative overflow-hidden"
           style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
         >
-          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 relative">
-            <span className="absolute inset-0 rounded-full border border-emerald-500/20 animate-ping opacity-75" />
-            <CpuIcon size={20} className="animate-pulse" />
-          </div>
+          <button
+            onClick={sendHandshake}
+            disabled={handshakeStatus === 'sending'}
+            className="w-14 h-14 rounded-full flex items-center justify-center border relative transition-all hover:scale-[1.05] disabled:opacity-80 disabled:cursor-not-allowed group focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            style={{
+              backgroundColor: handshakeStatus === 'success'
+                ? 'rgba(16, 185, 129, 0.2)'
+                : handshakeStatus === 'error'
+                  ? 'rgba(239, 68, 68, 0.2)'
+                  : 'rgba(6, 78, 59, 0.4)', // bg-emerald-950/40
+              borderColor: handshakeStatus === 'success'
+                ? '#10b981' // emerald-500
+                : handshakeStatus === 'error'
+                  ? '#ef4444' // red-500
+                  : 'rgba(16, 185, 129, 0.2)', // border-emerald-500/20
+              color: handshakeStatus === 'success'
+                ? '#34d399' // emerald-400
+                : handshakeStatus === 'error'
+                  ? '#f87171' // red-400
+                  : '#34d399', // emerald-400
+            }}
+            title="Test communication with Arduino (LED 13)"
+          >
+            {/* Pulsing ring */}
+            {handshakeStatus === 'idle' && (
+              <span className="absolute inset-0 rounded-full border border-emerald-500/20 animate-ping opacity-75" />
+            )}
 
-          <div className="flex flex-col gap-1">
+            {/* Spinning/pulsing CPU Icon or Status icon */}
+            {handshakeStatus === 'sending' ? (
+              <RefreshCwIcon size={20} className="animate-spin text-emerald-400" />
+            ) : handshakeStatus === 'success' ? (
+              <CheckIcon size={20} className="text-emerald-400 animate-bounce" />
+            ) : handshakeStatus === 'error' ? (
+              <AlertTriangleIcon size={20} className="text-red-400 animate-pulse" />
+            ) : (
+              <CpuIcon size={20} className="animate-pulse group-hover:rotate-12 transition-transform" />
+            )}
+          </button>
+
+          <div className="flex flex-col gap-1.5 items-center w-full">
             <h2 className="text-base font-bold text-slate-100 font-mono">
-              {detectedName} Détecté
+              {handshakeStatus === 'success' ? (
+                <span className="text-emerald-400">Arduino Communication Verified!</span>
+              ) : handshakeStatus === 'error' ? (
+                <span className="text-red-400">Communication Test Failed</span>
+              ) : handshakeStatus === 'sending' ? (
+                <span className="text-emerald-500 animate-pulse">Communication test in progress...</span>
+              ) : (
+                `${boardName} Connected`
+              )}
             </h2>
             <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              La connexion série est établie avec succès. Le système attend maintenant des trames de mesures physiques pour activer le tableau de bord.
+              {handshakeStatus === 'success' ? (
+                "The Arduino responded successfully (LED 13 verified). Waiting for your physical measurement frames..."
+              ) : handshakeStatus === 'error' ? (
+                <span>
+                  No response received. Please make sure the required sketch has been uploaded. You can find the code in the{" "}
+                  <Link href="/programmation" className="text-blue-400 underline hover:text-blue-300 font-semibold">
+                    Programming tab
+                  </Link>
+                  .
+                </span>
+              ) : handshakeStatus === 'sending' ? (
+                "Sending 'HANDSHAKE' signal and waiting for 'ARDUINO,READY' response..."
+              ) : (
+                <span>
+                  Serial connection established! <strong className="text-blue-400">First Time?</strong> Please upload the required sketch from the{" "}
+                  <Link href="/programmation" className="text-blue-400 underline hover:text-blue-300 font-semibold">
+                    Programming tab
+                  </Link>{" "}
+                  first. Then click the CPU icon above to test communication.
+                </span>
+              )}
             </p>
+
+            {isGeneric && !selectedBoard && (
+              <div className="mt-4 flex flex-col items-center gap-2 bg-[#1e293b]/50 p-4 rounded-lg border border-blue-500/30 w-full max-w-md shadow-xl animate-in fade-in slide-in-from-top-2">
+                <span className="text-xs font-semibold text-blue-400 font-mono flex items-center gap-1.5">
+                  <HelpCircleIcon size={14} /> Ambiguous Device Detected
+                </span>
+                <p className="text-[11px] text-slate-300 text-center leading-relaxed">
+                  The connected USB serial chip (CH340) is shared by multiple boards. Please select which microcontroller you are using for this session:
+                </p>
+                <div className="flex gap-3 mt-1">
+                  <button
+                    onClick={() => setTempSelectedBoard('Arduino Uno')}
+                    className={`px-4 py-1.5 rounded text-xs font-mono font-bold border transition-all ${tempSelectedBoard === 'Arduino Uno' ? 'bg-blue-600 text-white border-blue-400 shadow-lg shadow-blue-600/30' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-blue-500 hover:text-white'}`}
+                  >
+                    Arduino Uno
+                  </button>
+                  <button
+                    onClick={() => setTempSelectedBoard('Arduino Mega 2560')}
+                    className={`px-4 py-1.5 rounded text-xs font-mono font-bold border transition-all ${tempSelectedBoard === 'Arduino Mega 2560' ? 'bg-blue-600 text-white border-blue-400 shadow-lg shadow-blue-600/30' : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-blue-500 hover:text-white'}`}
+                  >
+                    Arduino Mega 2560
+                  </button>
+                </div>
+                {tempSelectedBoard && (
+                  <button
+                    onClick={() => setSelectedBoard(tempSelectedBoard)}
+                    className="mt-3 w-full px-4 py-2 rounded text-xs font-mono font-bold border transition-all bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-400 hover:border-emerald-300 shadow-lg shadow-emerald-600/20 animate-in fade-in slide-in-from-top-1"
+                  >
+                    Confirm Selection
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -220,12 +330,12 @@ export function TableauDeBord() {
             <div className="flex items-center gap-2">
               <TerminalIcon size={13} className="text-emerald-400" />
               <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-300">
-                Console Série (9600 Baud)
+                Serial Console (9600 Baud)
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-mono text-[9px] text-emerald-500">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>ACQUISITION EN COURS</span>
+              <span>ACQUISITION IN PROGRESS</span>
             </div>
           </div>
 
@@ -243,8 +353,8 @@ export function TableauDeBord() {
               ))
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-1 font-mono text-center py-8">
-                <span className="animate-pulse text-xs">Aucune trame reçue pour le moment...</span>
-                <span className="text-[10px] text-slate-600">(Vérifiez que votre Arduino transmet des données via Serial.print)</span>
+                <span className="animate-pulse text-xs">No frames received yet...</span>
+                <span className="text-[10px] text-slate-600">(Verify that your Arduino transmits data via Serial.print)</span>
               </div>
             )}
           </div>
@@ -259,20 +369,20 @@ export function TableauDeBord() {
           >
             <div className="flex items-center gap-2 text-amber-500 font-semibold uppercase tracking-wider text-[10px]">
               <AlertTriangleIcon size={12} />
-              Aide à la Connexion / Résolution
+              Connection & Troubleshooting Guide
             </div>
             <ul className="list-disc pl-4 flex flex-col gap-2 text-slate-400 font-medium font-sans">
               <li>
-                <span className="text-slate-300">Format de données attendu :</span> Le banc attend des messages CSV ou JSON contenant les champs clés (ex: <code className="text-emerald-400 font-mono text-[10px]">rpm</code>, <code className="text-emerald-400 font-mono text-[10px]">vitesse</code>, etc.).
+                <span className="text-slate-300">Expected Data Format:</span> The bench expects CSV or JSON messages containing key fields (e.g. <code className="text-emerald-400 font-mono text-[10px]">rpm</code>, <code className="text-emerald-400 font-mono text-[10px]">vitesse</code>, etc.).
               </li>
               <li>
-                <span className="text-slate-300">Vitesse du Port Série :</span> Configurez votre Arduino à <code className="text-emerald-400 font-mono text-[10px]">9600 bauds</code> avec <code className="text-emerald-400 font-mono text-[10px]">Serial.begin(9600);</code>.
+                <span className="text-slate-300">Baud Rate:</span> Configure your Arduino at <code className="text-emerald-400 font-mono text-[10px]">9600 baud</code> using <code className="text-emerald-400 font-mono text-[10px]">Serial.begin(9600);</code>.
               </li>
               <li>
-                <span className="text-slate-300">Accès exclusif :</span> Fermez le moniteur série de l&apos;IDE Arduino ou toute autre application connectée au même port.
+                <span className="text-slate-300">Exclusive Access:</span> Close the serial monitor in the Arduino IDE or any other application connected to the same port.
               </li>
               <li>
-                <span className="text-slate-300">Câblage USB :</span> Assurez-vous que le câble USB est bien connecté et qu&apos;aucun court-circuit n&apos;est présent sur le shield de la carte.
+                <span className="text-slate-300">USB Wiring:</span> Ensure that the USB cable is securely connected and that no short-circuits are present on the board shield.
               </li>
             </ul>
           </div>
@@ -285,13 +395,13 @@ export function TableauDeBord() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 text-blue-400 font-semibold uppercase tracking-wider text-[10px]">
                 <FileCode2Icon size={12} />
-                Exemple de code Arduino
+                Arduino Code Example
               </div>
               <p className="text-slate-400 leading-relaxed text-[11px]">
-                Voici le format standard CSV attendu par le Tableau de Bord :
+                Here is the standard CSV format expected by the Dashboard:
               </p>
               <pre className="p-2 rounded bg-black/40 text-[9px] text-emerald-400 font-mono border border-slate-900/60 leading-normal max-h-24 overflow-y-auto">
-{`// Envoyer CSV à 9600 bauds :
+{`// Send CSV at 9600 baud:
 // Temp_Carb, Temp_Echap, Temp_Adm, RPM, Vitesse, Vibration
 void loop() {
   Serial.print(40.2);   Serial.print(",");
@@ -299,7 +409,7 @@ void loop() {
   Serial.print(32.1);   Serial.print(",");
   Serial.print(2800);   Serial.print(",");
   Serial.print(10.5);   Serial.print(",");
-  Serial.println(0.60); // println final !
+  Serial.println(0.60); // final println!
   delay(1000);
 }`}
               </pre>
@@ -310,7 +420,7 @@ void loop() {
                 className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-slate-200 border border-slate-700/80 hover:bg-slate-700/80 transition-colors w-full"
               >
                 <InfoIcon size={10} />
-                Voir les Instructions
+                View Instructions
               </Link>
             </div>
           </div>
@@ -333,7 +443,7 @@ void loop() {
             className="text-[10px] uppercase tracking-widest mb-3 font-semibold"
             style={{ color: '#475569' }}
           >
-            Indicateurs principaux
+            Primary Indicators
           </h2>
           <div
             className="rounded-md border p-5 grid gap-6 place-items-center"
@@ -345,9 +455,9 @@ void loop() {
           >
             {activeSensors.rpm && (
               <AnalogGauge
-                label="Régime"
+                label="Engine Speed"
                 value={v?.rpm ?? 0}
-                unit="tr/min"
+                unit="rpm"
                 min={0}
                 max={9000}
                 state={rpmState}
@@ -357,7 +467,7 @@ void loop() {
             )}
             {activeSensors.vitesse && (
               <AnalogGauge
-                label="Vitesse"
+                label="Speed"
                 value={v?.vitesse ?? 0}
                 unit="m/s"
                 min={0}
@@ -391,7 +501,7 @@ void loop() {
             className="text-[10px] uppercase tracking-widest mb-3 font-semibold"
             style={{ color: '#475569' }}
           >
-            Températures
+            Temperatures
           </h2>
           <div
             className="grid gap-4"
@@ -401,7 +511,7 @@ void loop() {
           >
             {activeSensors.temp_carburant && (
               <TempDisplay
-                label="Carburant"
+                label="Fuel"
                 value={v?.temp_carburant ?? null}
                 unit="°C"
                 state={tcarbState}
@@ -412,7 +522,7 @@ void loop() {
             )}
             {activeSensors.temp_echap && (
               <TempDisplay
-                label="Échappement"
+                label="Exhaust"
                 value={v?.temp_echap ?? null}
                 unit="°C"
                 state={techapState}
@@ -423,7 +533,7 @@ void loop() {
             )}
             {activeSensors.temp_admission && (
               <TempDisplay
-                label="Admission"
+                label="Intake"
                 value={v?.temp_admission ?? null}
                 unit="°C"
                 state={tadmState}
@@ -444,14 +554,14 @@ void loop() {
             className="text-[10px] uppercase tracking-widest mb-3 font-semibold"
             style={{ color: '#475569' }}
           >
-            Tendances (60 derniers points)
+            Trends (last 60 points)
           </h2>
           <div className="flex gap-4 flex-wrap">
             {activeSensors.temp_carburant && (
               <div className="flex-1 min-w-[200px]">
                 <Sparkline
                   data={sparkData.temp_carburant}
-                  label="Carburant"
+                  label="Fuel"
                   unit="°C"
                   color="#3b82f6"
                   state={tcarbState}
@@ -464,7 +574,7 @@ void loop() {
               <div className="flex-1 min-w-[200px]">
                 <Sparkline
                   data={sparkData.temp_echap}
-                  label="Échappement"
+                  label="Exhaust"
                   unit="°C"
                   color="#3b82f6"
                   state={techapState}
@@ -477,7 +587,7 @@ void loop() {
               <div className="flex-1 min-w-[200px]">
                 <Sparkline
                   data={sparkData.temp_admission}
-                  label="Admission"
+                  label="Intake"
                   unit="°C"
                   color="#3b82f6"
                   state={tadmState}
@@ -501,7 +611,7 @@ void loop() {
               <div className="flex items-center gap-2">
                 <CpuIcon size={14} className="text-emerald-400" />
                 <span className="text-xs uppercase tracking-widest font-semibold text-slate-400">
-                  Configuration des Seuils de Télémétrie
+                  Telemetry Thresholds Configuration
                 </span>
               </div>
               <button
@@ -513,18 +623,18 @@ void loop() {
                   backgroundColor: saved ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)',
                 }}
               >
-                {saved ? <><CheckIcon size={12} /> Sauvegardé</> : 'Appliquer les Seuils'}
+                {saved ? <><CheckIcon size={12} /> Saved</> : 'Apply Thresholds'}
               </button>
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Configurez les seuils Warning / Danger pour chaque capteur actif. Ces valeurs contrôlent les alertes visuelles.
+              Configure Warning / Danger thresholds for each active sensor. These values control visual alerts.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               {activeSensors.rpm && (
                 <div className="p-3.5 rounded border flex flex-col gap-2.5 bg-slate-950/20" style={{ borderColor: 'rgba(31, 41, 55, 0.5)' }}>
-                  <span className="text-xs font-semibold text-slate-300">Régime Moteur (tr/min)</span>
+                  <span className="text-xs font-semibold text-slate-300">Engine Speed (rpm)</span>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-[10px] text-amber-500 uppercase tracking-wider">Warning</span>
@@ -592,7 +702,7 @@ void loop() {
 
               {activeSensors.temp_echap && (
                 <div className="p-3.5 rounded border flex flex-col gap-2.5 bg-slate-950/20" style={{ borderColor: 'rgba(31, 41, 55, 0.5)' }}>
-                  <span className="text-xs font-semibold text-slate-300">Temp. Échappement (°C)</span>
+                  <span className="text-xs font-semibold text-slate-300">Exhaust Temp (°C)</span>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-[10px] text-amber-500 uppercase tracking-wider">Warning</span>
@@ -626,7 +736,7 @@ void loop() {
 
               {activeSensors.temp_carburant && (
                 <div className="p-3.5 rounded border flex flex-col gap-2.5 bg-slate-950/20" style={{ borderColor: 'rgba(31, 41, 55, 0.5)' }}>
-                  <span className="text-xs font-semibold text-slate-300">Temp. Carburant (°C)</span>
+                  <span className="text-xs font-semibold text-slate-300">Fuel Temp (°C)</span>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-[10px] text-amber-500 uppercase tracking-wider">Warning</span>
@@ -660,7 +770,7 @@ void loop() {
 
               {activeSensors.temp_admission && (
                 <div className="p-3.5 rounded border flex flex-col gap-2.5 bg-slate-950/20" style={{ borderColor: 'rgba(31, 41, 55, 0.5)' }}>
-                  <span className="text-xs font-semibold text-slate-300">Temp. Admission (°C)</span>
+                  <span className="text-xs font-semibold text-slate-300">Intake Temp (°C)</span>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <span className="text-[10px] text-amber-500 uppercase tracking-wider">Warning</span>
@@ -703,7 +813,7 @@ void loop() {
           className="text-[10px] uppercase tracking-widest mb-3 font-semibold"
           style={{ color: '#475569' }}
         >
-          Historique des alarmes
+          Alarm History
         </h2>
         <RecentAlarms alarms={alarms} limit={10} />
       </section>

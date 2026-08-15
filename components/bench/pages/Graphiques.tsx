@@ -14,16 +14,16 @@ import {
 import { useBench } from '../BenchContext'
 
 const METRICS = [
-  { key: 'temp_carburant', label: 'Carburant (°C)',    color: '#3b82f6' },
-  { key: 'temp_echap',     label: 'Échappement (°C)',  color: '#f59e0b' },
-  { key: 'temp_admission', label: 'Admission (°C)',     color: '#8b5cf6' },
-  { key: 'rpm',            label: 'RPM (tr/min)',       color: '#10b981' },
-  { key: 'vitesse',        label: 'Vitesse (m/s)',      color: '#06b6d4' },
-  { key: 'vibration',      label: 'Vibration (m/s²)',   color: '#ef4444' },
+  { key: 'temp_carburant', label: 'Fuel (°C)',    color: '#3b82f6' },
+  { key: 'temp_echap',     label: 'Exhaust (°C)', color: '#f59e0b' },
+  { key: 'temp_admission', label: 'Intake (°C)',    color: '#8b5cf6' },
+  { key: 'rpm',            label: 'RPM (rpm)',       color: '#10b981' },
+  { key: 'vitesse',        label: 'Speed (m/s)',     color: '#06b6d4' },
+  { key: 'vibration',      label: 'Vibration (m/s²)', color: '#ef4444' },
 ]
 
 function formatTime(ts: number) {
-  return new Date(ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
 interface TooltipProps {
@@ -44,7 +44,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps) {
         <div key={p.name} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
           <span style={{ color: '#94a3b8' }}>{p.name}:</span>
-          <span style={{ color: '#e2e8f0' }}>{typeof p.value === 'number' ? p.value.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) : p.value}</span>
+          <span style={{ color: '#e2e8f0' }}>{typeof p.value === 'number' ? p.value.toLocaleString('en-US', { maximumFractionDigits: 2 }) : p.value}</span>
         </div>
       ))}
     </div>
@@ -93,7 +93,7 @@ export function Graphiques() {
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
-          Graphiques — dernières 10 minutes
+          Charts — Last 10 Minutes
         </h1>
         <span className="text-xs font-mono" style={{ color: '#475569' }}>
           {chartData.length} points
@@ -127,7 +127,7 @@ export function Graphiques() {
       >
         {chartData.length < 2 || activeMetrics.length === 0 ? (
           <div className="flex items-center justify-center h-64 text-sm" style={{ color: '#475569' }}>
-            En attente de données de capteurs actifs...
+            Waiting for active sensor data...
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={420}>

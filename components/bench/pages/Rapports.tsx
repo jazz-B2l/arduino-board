@@ -6,7 +6,7 @@ import { useBench } from '../BenchContext'
 import { METRIC_LABELS, METRIC_UNITS } from '@/lib/types'
 
 function formatDateTime(ts: number) {
-  return new Date(ts).toLocaleString('fr-FR')
+  return new Date(ts).toLocaleString('en-US')
 }
 
 function rowToCsv(r: Record<string, unknown>) {
@@ -28,12 +28,12 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
 
 function historyToRows(readings: ReturnType<typeof useBench>['history']) {
   return readings.map(r => ({
-    'Horodatage':         formatDateTime(r.timestamp),
-    'Temp. Carburant (°C)': r.temp_carburant.toFixed(1),
-    'Temp. Échap. (°C)':  r.temp_echap.toFixed(1),
-    'Temp. Admiss. (°C)': r.temp_admission.toFixed(1),
-    'Régime (tr/min)':    r.rpm.toString(),
-    'Vitesse (m/s)':      r.vitesse.toFixed(2),
+    'Timestamp':          formatDateTime(r.timestamp),
+    'Fuel Temp (°C)':     r.temp_carburant.toFixed(1),
+    'Exhaust Temp (°C)':  r.temp_echap.toFixed(1),
+    'Intake Temp (°C)':   r.temp_admission.toFixed(1),
+    'Engine Speed (rpm)': r.rpm.toString(),
+    'Speed (m/s)':        r.vitesse.toFixed(2),
     'Vibration (m/s²)':   r.vibration.toFixed(3),
   }))
 }
@@ -56,17 +56,17 @@ export function Rapports() {
     : '—'
 
   const alarmRows = useMemo(() => alarms.map(a => ({
-    'Horodatage': formatDateTime(a.timestamp),
-    'Métrique':   METRIC_LABELS[a.metric] ?? a.metric,
-    'Niveau':     a.level,
-    'Valeur':     a.metric === 'rpm' ? a.value.toLocaleString('fr-FR') : a.value.toFixed(2),
-    'Unité':      METRIC_UNITS[a.metric] ?? '',
+    'Timestamp': formatDateTime(a.timestamp),
+    'Metric':    METRIC_LABELS[a.metric] ?? a.metric,
+    'Level':     a.level,
+    'Value':     a.metric === 'rpm' ? a.value.toLocaleString('en-US') : a.value.toFixed(2),
+    'Unit':      METRIC_UNITS[a.metric] ?? '',
   })), [alarms])
 
   const exports = [
     {
       id:       'full',
-      title:    'Session complète',
+      title:    'Full Session',
       icon:     FileTextIcon,
       rows:     history.length,
       timeRange: totalTimeRange,
@@ -75,7 +75,7 @@ export function Rapports() {
     },
     {
       id:       '10min',
-      title:    'Dernières 10 minutes',
+      title:    'Last 10 Minutes',
       icon:     FileTextIcon,
       rows:     last10min.length,
       timeRange: last10TimeRange,
@@ -84,21 +84,21 @@ export function Rapports() {
     },
     {
       id:       'alarms',
-      title:    'Journal des alarmes',
+      title:    'Alarm Log',
       icon:     FileTextIcon,
       rows:     alarms.length,
       timeRange: alarms.length > 0
         ? `${formatDateTime(alarms[alarms.length - 1].timestamp)} → ${formatDateTime(alarms[0].timestamp)}`
         : '—',
       color:    '#f59e0b',
-      onDownload: () => downloadCsv(`bench_alarmes_${Date.now()}.csv`, alarmRows),
+      onDownload: () => downloadCsv(`bench_alarms_${Date.now()}.csv`, alarmRows),
     },
   ]
 
   return (
     <div className="p-4 flex flex-col gap-4">
       <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
-        Rapports &amp; Export CSV
+        Reports &amp; CSV Export
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -118,16 +118,16 @@ export function Rapports() {
             {/* Preview */}
             <div className="flex flex-col gap-2 text-xs font-mono">
               <div className="flex justify-between">
-                <span style={{ color: '#64748b' }}>Lignes</span>
-                <span style={{ color: '#94a3b8' }}>{exp.rows.toLocaleString('fr-FR')}</span>
+                <span style={{ color: '#64748b' }}>Rows</span>
+                <span style={{ color: '#94a3b8' }}>{exp.rows.toLocaleString('en-US')}</span>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span style={{ color: '#64748b' }}>Plage temporelle</span>
+                <span style={{ color: '#64748b' }}>Time Range</span>
                 <span className="text-[10px]" style={{ color: '#64748b' }}>{exp.timeRange}</span>
               </div>
               <div className="flex justify-between">
                 <span style={{ color: '#64748b' }}>Format</span>
-                <span style={{ color: '#94a3b8' }}>CSV (UTF-8, séparateur ;)</span>
+                <span style={{ color: '#94a3b8' }}>CSV (UTF-8, ; separator)</span>
               </div>
             </div>
 
@@ -142,7 +142,7 @@ export function Rapports() {
               }}
             >
               <DownloadIcon size={13} />
-              Télécharger ({exp.rows.toLocaleString('fr-FR')} lignes)
+              Download ({exp.rows.toLocaleString('en-US')} rows)
             </button>
           </div>
         ))}
@@ -157,14 +157,14 @@ export function Rapports() {
           className="text-[10px] uppercase tracking-widest mb-3 font-semibold"
           style={{ color: '#475569' }}
         >
-          Résumé de session
+          Session Summary
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Trames totales',   value: stats.totalFrames.toLocaleString('fr-FR') },
-            { label: 'Trames invalides', value: stats.invalidFrames.toString() },
-            { label: 'Alarmes total',    value: alarms.length.toString() },
-            { label: 'Source',           value: stats.port !== 'Aucun' ? `Port Série (${stats.port})` : 'Port Déconnecté' },
+            { label: 'Total Frames',   value: stats.totalFrames.toLocaleString('en-US') },
+            { label: 'Invalid Frames', value: stats.invalidFrames.toString() },
+            { label: 'Total Alarms',    value: alarms.length.toString() },
+            { label: 'Source',           value: stats.port !== 'None' ? `Serial Port (${stats.port})` : 'Port Disconnected' },
           ].map(item => (
             <div key={item.label} className="flex flex-col gap-0.5">
               <span style={{ color: '#475569' }}>{item.label}</span>

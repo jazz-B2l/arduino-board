@@ -10,13 +10,13 @@ type MetricFilter = 'ALL' | string
 
 function relativeTime(ts: number) {
   const diff = Math.floor((Date.now() - ts) / 1000)
-  if (diff < 60)   return `il y a ${diff}s`
-  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`
-  return `il y a ${Math.floor(diff / 3600)} h`
+  if (diff < 60)   return `${diff}s ago`
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
+  return `${Math.floor(diff / 3600)} h ago`
 }
 
 function formatDateTime(ts: number) {
-  return new Date(ts).toLocaleString('fr-FR', {
+  return new Date(ts).toLocaleString('en-US', {
     day: '2-digit', month: '2-digit', year: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   })
@@ -45,10 +45,10 @@ export function Alarmes() {
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
-          Historique des alarmes
+          Alarm History
         </h1>
         <span className="text-xs font-mono" style={{ color: '#475569' }}>
-          {filtered.length} / {alarms.length} alarmes
+          {filtered.length} / {alarms.length} alarms
         </span>
       </div>
 
@@ -73,7 +73,7 @@ export function Alarmes() {
                   : '#475569',
               }}
             >
-              {l === 'ALL' ? 'Tous' : l}
+              {l === 'ALL' ? 'All' : l}
             </button>
           ))}
         </div>
@@ -91,7 +91,7 @@ export function Alarmes() {
             color: '#94a3b8',
           }}
         >
-          <option value="ALL">Toutes les métriques</option>
+          <option value="ALL">All Metrics</option>
           {metricKeys.map(k => (
             <option key={k} value={k}>{METRIC_LABELS[k] ?? k}</option>
           ))}
@@ -105,7 +105,7 @@ export function Alarmes() {
           className="px-3 py-1 rounded border text-[11px] font-mono transition-colors"
           style={{ borderColor: '#1f2937', color: '#64748b', backgroundColor: '#111827' }}
         >
-          {sortDir === 'desc' ? '↓ Plus récent' : '↑ Plus ancien'}
+          {sortDir === 'desc' ? '↓ Newest' : '↑ Oldest'}
         </button>
       </div>
 
@@ -118,18 +118,18 @@ export function Alarmes() {
           <thead>
             <tr style={{ borderBottom: '1px solid #1f2937', backgroundColor: '#0d1220' }}>
               <th className="px-3 py-2.5 text-left w-8" />
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Horodatage</th>
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Métrique</th>
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Niveau</th>
-              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Valeur</th>
-              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Relatif</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Timestamp</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Metric</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Level</th>
+              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Value</th>
+              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Relative</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center" style={{ color: '#475569' }}>
-                  Aucune alarme correspondant aux filtres
+                  No alarms matching filters
                 </td>
               </tr>
             ) : (
@@ -166,7 +166,7 @@ export function Alarmes() {
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums" style={{ color: '#e2e8f0' }}>
                     {alarm.metric === 'rpm'
-                      ? alarm.value.toLocaleString('fr-FR')
+                      ? alarm.value.toLocaleString('en-US')
                       : alarm.value.toFixed(2)
                     }
                     {' '}

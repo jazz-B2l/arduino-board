@@ -11,17 +11,19 @@ import {
   MonitorIcon,
   SettingsIcon,
   TableIcon,
+  CodeIcon,
 } from 'lucide-react'
 import { useBench } from './BenchContext'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',  label: 'Tableau de bord', icon: LayoutDashboardIcon },
-  { href: '/graphiques', label: 'Graphiques',       icon: BarChart3Icon },
-  { href: '/donnees',    label: 'Données',           icon: TableIcon },
-  { href: '/alarmes',    label: 'Alarmes',           icon: AlertTriangleIcon },
-  { href: '/rapports',   label: 'Rapports',          icon: FileTextIcon },
-  { href: '/parametres', label: 'Paramètres',        icon: SettingsIcon },
-  { href: '/systeme',    label: 'Système',           icon: MonitorIcon },
+  { href: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboardIcon },
+  { href: '/programmation', label: 'Code',    icon: CodeIcon },
+  { href: '/graphiques', label: 'Charts',     icon: BarChart3Icon },
+  { href: '/donnees',    label: 'Data',       icon: TableIcon },
+  { href: '/alarmes',    label: 'Alarms',     icon: AlertTriangleIcon },
+  { href: '/rapports',   label: 'Reports',    icon: FileTextIcon },
+  { href: '/parametres', label: 'Settings',   icon: SettingsIcon },
+  { href: '/systeme',    label: 'System',     icon: MonitorIcon },
 ]
 
 export function AppNav() {
@@ -33,7 +35,7 @@ export function AppNav() {
     <nav
       className="flex-shrink-0 w-[52px] md:w-44 border-r flex flex-col py-3 gap-0.5"
       style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}
-      aria-label="Navigation principale"
+      aria-label="Main navigation"
     >
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
         const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)

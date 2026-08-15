@@ -40,21 +40,21 @@ export function AppFooter() {
           className="w-1.5 h-1.5 rounded-full"
           style={{ backgroundColor: hasActive ? '#f59e0b' : '#10b981' }}
         />
-        <span>{hasActive ? 'Alarmes actives' : 'Système nominal'}</span>
+        <span>{hasActive ? 'Active alarms' : 'System nominal'}</span>
       </div>
 
       <span className="opacity-30">|</span>
 
       {/* Elapsed */}
-      <span>Durée: <span style={{ color: '#94a3b8' }}>{formatDuration(elapsed)}</span></span>
+      <span>Duration: <span style={{ color: '#94a3b8' }}>{formatDuration(elapsed)}</span></span>
 
       <span className="opacity-30">|</span>
 
       {/* Last frame */}
       <span>
-        Dernier trame:{' '}
+        Last frame:{' '}
         <span style={{ color: '#94a3b8' }}>
-          {latest ? new Date(latest.timestamp).toLocaleTimeString('fr-FR') : '--'}
+          {latest ? new Date(latest.timestamp).toLocaleTimeString('en-US') : '--'}
         </span>
       </span>
 
@@ -84,12 +84,12 @@ export function AppFooter() {
 
       {/* Source */}
       <span style={{ color: '#475569' }}>
-        Source : {connectionStatus === 'connected' ? `Port Série (${stats.port})` : connectionStatus === 'connecting' ? 'Connexion...' : 'Port Déconnecté'}
+        Source: {connectionStatus === 'connected' ? `Serial Port (${stats.port})` : connectionStatus === 'connecting' ? 'Connecting...' : 'Port Disconnected'}
       </span>
 
       {/* Frame count */}
       <span className="ml-auto opacity-60">
-        {stats.totalFrames.toLocaleString('fr-FR')} trames
+        {stats.totalFrames.toLocaleString('en-US')} frames
       </span>
     </footer>
   )

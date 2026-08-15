@@ -14,20 +14,20 @@ export function EmergencyStop({ frozen, onFreeze, onResume }: EmergencyStopProps
   if (frozen && confirming) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-xs font-mono" style={{ color: '#f59e0b' }}>Confirmer la reprise ?</span>
+        <span className="text-xs font-mono" style={{ color: '#f59e0b' }}>Confirm resume?</span>
         <button
           onClick={() => { onResume(); setConfirming(false) }}
           className="px-3 py-1.5 rounded text-xs font-mono font-semibold border transition-colors"
           style={{ borderColor: '#10b981', color: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)' }}
         >
-          Reprendre
+          Resume
         </button>
         <button
           onClick={() => setConfirming(false)}
           className="px-3 py-1.5 rounded text-xs font-mono border transition-colors"
           style={{ borderColor: '#1f2937', color: '#64748b', backgroundColor: '#111827' }}
         >
-          Annuler
+          Cancel
         </button>
       </div>
     )
@@ -40,7 +40,7 @@ export function EmergencyStop({ frozen, onFreeze, onResume }: EmergencyStopProps
         className="px-4 py-2 rounded text-xs font-mono font-semibold border tracking-widest uppercase"
         style={{ borderColor: '#f59e0b', color: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)' }}
       >
-        Reprendre session
+        Resume session
       </button>
     )
   }

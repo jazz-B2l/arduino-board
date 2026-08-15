@@ -10,7 +10,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <AppHeader />
       <div className="flex flex-1 overflow-hidden">
         <AppNav />
-        <main className="flex-1 overflow-y-auto" id="main-content">
+        <main className="flex-1 overflow-y-auto relative" id="main-content">
           {children}
         </main>
       </div>

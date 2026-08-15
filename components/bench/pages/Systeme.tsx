@@ -41,14 +41,14 @@ export function Systeme() {
 
   const diagItems = [
     {
-      label: 'Statut connexion',
+      label: 'Connection status',
       value: connectionStatus === 'connected'
-        ? 'Port Connecté'
+        ? 'Port Connected'
         : connectionStatus === 'connecting'
-          ? 'Connexion en cours...'
+          ? 'Connecting...'
           : connectionStatus === 'error'
-            ? 'Erreur de connexion'
-            : 'Port Déconnecté',
+            ? 'Connection Error'
+            : 'Port Disconnected',
       color: connectionStatus === 'connected'
         ? '#10b981'
         : connectionStatus === 'connecting'
@@ -58,43 +58,43 @@ export function Systeme() {
             : '#64748b',
     },
     {
-      label: 'Port Série USB',
+      label: 'USB Serial Port',
       value: stats.port,
-      color: stats.port !== 'Aucun' ? '#3b82f6' : '#64748b',
+      color: stats.port !== 'None' ? '#3b82f6' : '#64748b',
     },
     {
-      label: 'Uptime acquisition',
+      label: 'Acquisition uptime',
       value: formatDuration(uptime),
       color: '#94a3b8',
     },
     {
-      label: 'Trames reçues',
-      value: stats.totalFrames.toLocaleString('fr-FR'),
+      label: 'Received frames',
+      value: stats.totalFrames.toLocaleString('en-US'),
       color: '#10b981',
     },
     {
-      label: 'Trames invalides',
+      label: 'Invalid frames',
       value: stats.invalidFrames.toString(),
       color: stats.invalidFrames > 0 ? '#f59e0b' : '#10b981',
     },
     {
-      label: 'Taux d\'invalidité',
+      label: 'Invalidity rate',
       value: `${(100 - signalQuality).toFixed(1)} %`,
       color: (100 - signalQuality) > 5 ? '#ef4444' : '#10b981',
     },
     {
-      label: 'Qualité signal',
+      label: 'Signal quality',
       value: `${signalQuality} %`,
       color: signalQuality >= 99 ? '#10b981' : signalQuality >= 90 ? '#f59e0b' : '#ef4444',
     },
     {
-      label: 'Taille du buffer',
-      value: '36 000 échantillons (10h)',
+      label: 'Buffer size',
+      value: '36,000 samples (10h)',
       color: '#94a3b8',
     },
     {
-      label: 'État de l\'acquisition',
-      value: frozen ? 'Suspendu (Arrêt d\'urgence)' : connectionStatus === 'connected' ? 'Actif' : 'En attente',
+      label: 'Acquisition state',
+      value: frozen ? 'Suspended (Emergency Stop)' : connectionStatus === 'connected' ? 'Active' : 'Waiting',
       color: frozen ? '#ef4444' : connectionStatus === 'connected' ? '#10b981' : '#64748b',
     },
   ]
@@ -119,7 +119,7 @@ export function Systeme() {
     <div className="p-4 flex flex-col gap-5 max-w-2xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
-          Système &amp; Diagnostics
+          System &amp; Diagnostics
         </h1>
         <div className="flex items-center gap-2">
           <span
@@ -132,12 +132,12 @@ export function Systeme() {
           >
             <WifiIcon size={11} />
             {connectionStatus === 'connected'
-              ? 'Télémétrie Active'
+              ? 'Active Telemetry'
               : connectionStatus === 'connecting'
-                ? 'Connexion...'
+                ? 'Connecting...'
                 : connectionStatus === 'error'
-                  ? 'Erreur Port'
-                  : 'Port Déconnecté'}
+                  ? 'Port Error'
+                  : 'Port Disconnected'}
           </span>
         </div>
       </div>
@@ -174,7 +174,7 @@ export function Systeme() {
         style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
       >
         <div className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#475569' }}>
-          Contrôle du Port Série
+          Serial Port Control
         </div>
 
         {serialError && (
@@ -185,13 +185,13 @@ export function Systeme() {
 
         <p className="text-xs" style={{ color: '#64748b' }}>
           {connectionStatus === 'connected'
-            ? `Connecté à ${stats.port}. Les données de télémétrie sont lues en temps réel.`
-            : "Connectez le banc d'essai Arduino via le port série USB pour recevoir les mesures physiques."}
+            ? `Connected to ${stats.port}. Telemetry data is read in real time.`
+            : "Connect the Arduino test bench via the USB serial port to receive physical measurements."}
         </p>
 
         {!serialSupported && (
           <div className="text-xs text-amber-500 font-mono font-semibold">
-            Attention : l&apos;API Web Serial n&apos;est pas supportée par votre navigateur actuel. Veuillez utiliser Chrome, Edge ou Opera sur desktop.
+            Warning: Web Serial API is not supported by your current browser. Please use Chrome, Edge, or Opera on desktop.
           </div>
         )}
 
@@ -211,7 +211,7 @@ export function Systeme() {
                 size={13}
                 className={connectionStatus === 'connecting' ? 'animate-spin' : ''}
               />
-              {connectionStatus === 'connecting' ? 'Connexion en cours...' : 'Connecter un appareil'}
+              {connectionStatus === 'connecting' ? 'Connecting...' : 'Connect Device'}
             </button>
           ) : (
             <button
@@ -223,7 +223,7 @@ export function Systeme() {
                 backgroundColor: 'rgba(239,68,68,0.1)',
               }}
             >
-              Déconnecter
+              Disconnect
             </button>
           )}
 
@@ -236,7 +236,7 @@ export function Systeme() {
               backgroundColor: 'rgba(100,116,139,0.1)',
             }}
           >
-            Effacer les données
+            Clear Data
           </button>
         </div>
       </div>
@@ -247,19 +247,19 @@ export function Systeme() {
         style={{ backgroundColor: '#0d1220', borderColor: '#1f2937', color: '#64748b' }}
       >
         <div className="font-semibold mb-1" style={{ color: '#94a3b8' }}>
-          Format de données attendu (Arduino / Port Série)
+          Expected Data Format (Arduino / Serial Port)
         </div>
-        Le banc d&apos;essai attend des messages JSON ou CSV envoyés ligne par ligne à une vitesse de 9600 bauds.
-        <div className="mt-2 font-semibold">Exemple JSON :</div>
+        The test bench expects JSON or CSV messages sent line by line at a baud rate of 9600.
+        <div className="mt-2 font-semibold">JSON Example:</div>
         <code className="block mt-1 p-2 rounded bg-black/40 text-[10px] text-emerald-400 font-mono">
           {"{\"temp_carburant\": 40.2, \"temp_echap\": 575.0, \"temp_admission\": 32.1, \"rpm\": 2800, \"vitesse\": 10.5, \"vibration\": 0.60}"}
         </code>
-        <div className="mt-2 font-semibold">Exemple CSV :</div>
+        <div className="mt-2 font-semibold">CSV Example:</div>
         <code className="block mt-1 p-2 rounded bg-black/40 text-[10px] text-emerald-400 font-mono">
           40.2,575.0,32.1,2800,10.5,0.60
         </code>
         <div className="mt-1 font-semibold text-[10px] text-slate-500">
-          Ordre des valeurs CSV : Temp. Carburant, Temp. Échappement, Temp. Admission, RPM, Vitesse, Vibration.
+          CSV values order: Fuel Temp, Exhaust Temp, Intake Temp, RPM, Speed, Vibration.
         </div>
       </div>
     </div>

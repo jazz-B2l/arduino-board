@@ -20,111 +20,109 @@ $$;
 
 -- 2. PUBLIC TABLES
 
--- Public User Profiles
-create table public.user_profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  full_name text not null,
+CREATE TABLE public.user_profiles (
+  id uuid NOT NULL,
+  full_name text NOT NULL,
   avatar_url text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
--- Public User Roles
-create table public.user_roles (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  role text not null,
-  created_at timestamptz not null default now(),
-  
-  constraint user_roles_user_id_role_key unique (user_id, role),
-  constraint user_roles_role_check check (role in ('user', 'admin'))
+CREATE TABLE public.user_roles (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  role text NOT NULL CHECK (role = ANY (ARRAY['user'::text, 'admin'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_roles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  CONSTRAINT user_roles_user_id_role_key UNIQUE (user_id, role)
 );
 
--- Public Devices (Arduino / USB Boards)
-create table public.devices (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  name text not null,
+CREATE TABLE public.devices (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  name text NOT NULL,
   device_identifier text,
   board_type text,
-  baud_rate integer not null default 9600,
-  protocol text not null default 'json',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  last_connected_at timestamptz,
-  
-  constraint devices_baud_rate_check check (baud_rate > 0),
-  constraint devices_protocol_check check (protocol in ('json', 'csv'))
+  baud_rate integer NOT NULL DEFAULT 9600 CHECK (baud_rate > 0),
+  protocol text NOT NULL DEFAULT 'json'::text CHECK (protocol = ANY (ARRAY['json'::text, 'csv'::text])),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  last_connected_at timestamp with time zone,
+  CONSTRAINT devices_pkey PRIMARY KEY (id),
+  CONSTRAINT devices_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
--- Public Telemetry Acquisition Sessions (Metadata only, no raw frames)
-create table public.telemetry_sessions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  device_id uuid not null references public.devices(id) on delete cascade,
+CREATE TABLE public.telemetry_sessions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  device_id uuid NOT NULL,
   name text,
-  started_at timestamptz not null default now(),
-  ended_at timestamptz,
-  status text not null default 'running',
-  protocol text not null,
+  started_at timestamp with time zone NOT NULL DEFAULT now(),
+  ended_at timestamp with time zone,
+  status text NOT NULL DEFAULT 'running'::text CHECK (status = ANY (ARRAY['running'::text, 'completed'::text, 'stopped'::text, 'disconnected'::text, 'emergency_stopped'::text])),
+  protocol text NOT NULL CHECK (protocol = ANY (ARRAY['json'::text, 'csv'::text])),
   sample_rate numeric,
-  total_frames bigint not null default 0,
-  invalid_frames bigint not null default 0,
-  created_at timestamptz not null default now(),
-  
-  constraint telemetry_sessions_status_check check (status in ('running', 'completed', 'stopped', 'disconnected', 'emergency_stopped')),
-  constraint telemetry_sessions_protocol_check check (protocol in ('json', 'csv'))
+  total_frames bigint NOT NULL DEFAULT 0,
+  invalid_frames bigint NOT NULL DEFAULT 0,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT telemetry_sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT telemetry_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  CONSTRAINT telemetry_sessions_device_id_fkey FOREIGN KEY (device_id) REFERENCES public.devices(id) ON DELETE CASCADE
 );
 
--- Public Alert Configurations (Threshold limits)
-create table public.alert_configs (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  device_id uuid not null references public.devices(id) on delete cascade,
-  session_id uuid references public.telemetry_sessions(id) on delete cascade,
-  sensor text not null,
+CREATE TABLE public.alert_configs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  device_id uuid NOT NULL,
+  session_id uuid,
+  sensor text NOT NULL CHECK (sensor = ANY (ARRAY['temp_carburant'::text, 'temp_echap'::text, 'temp_admission'::text, 'rpm'::text, 'vitesse'::text, 'vibration'::text])),
   warning_min numeric,
   warning_max numeric,
   danger_min numeric,
   danger_max numeric,
-  enabled boolean not null default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  
-  constraint alert_configs_sensor_check check (sensor in ('temp_carburant', 'temp_echap', 'temp_admission', 'rpm', 'vitesse', 'vibration'))
+  enabled boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT alert_configs_pkey PRIMARY KEY (id),
+  CONSTRAINT alert_configs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  CONSTRAINT alert_configs_device_id_fkey FOREIGN KEY (device_id) REFERENCES public.devices(id) ON DELETE CASCADE,
+  CONSTRAINT alert_configs_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.telemetry_sessions(id) ON DELETE CASCADE
 );
 
--- Public Alert Log Events (Edge-triggered anomalies)
-create table public.alerts (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  device_id uuid not null references public.devices(id) on delete cascade,
-  session_id uuid not null references public.telemetry_sessions(id) on delete cascade,
-  sensor text not null,
-  level text not null,
-  value numeric not null,
+CREATE TABLE public.alerts (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  device_id uuid NOT NULL,
+  session_id uuid NOT NULL,
+  sensor text NOT NULL CHECK (sensor = ANY (ARRAY['temp_carburant'::text, 'temp_echap'::text, 'temp_admission'::text, 'rpm'::text, 'vitesse'::text, 'vibration'::text])),
+  level text NOT NULL CHECK (level = ANY (ARRAY['warning'::text, 'danger'::text])),
+  value numeric NOT NULL,
   threshold numeric,
-  triggered_at timestamptz not null default now(),
-  resolved_at timestamptz,
+  triggered_at timestamp with time zone NOT NULL DEFAULT now(),
+  resolved_at timestamp with time zone,
   message text,
-  created_at timestamptz not null default now(),
-  
-  constraint alerts_sensor_check check (sensor in ('temp_carburant', 'temp_echap', 'temp_admission', 'rpm', 'vitesse', 'vibration')),
-  constraint alerts_level_check check (level in ('warning', 'danger'))
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT alerts_pkey PRIMARY KEY (id),
+  CONSTRAINT alerts_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  CONSTRAINT alerts_device_id_fkey FOREIGN KEY (device_id) REFERENCES public.devices(id) ON DELETE CASCADE,
+  CONSTRAINT alerts_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.telemetry_sessions(id) ON DELETE CASCADE
 );
 
--- Public Exports Metadata (CSV Storage pointer)
-create table public.exports (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  session_id uuid not null references public.telemetry_sessions(id) on delete cascade,
-  type text not null,
-  file_name text not null,
+CREATE TABLE public.exports (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  session_id uuid NOT NULL,
+  type text NOT NULL CHECK (type = ANY (ARRAY['full_session'::text, 'last_10_minutes'::text, 'alerts'::text])),
+  file_name text NOT NULL,
   storage_path text,
   file_size_bytes bigint,
-  created_at timestamptz not null default now(),
-  
-  constraint exports_type_check check (type in ('full_session', 'last_10_minutes', 'alerts'))
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT exports_pkey PRIMARY KEY (id),
+  CONSTRAINT exports_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  CONSTRAINT exports_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.telemetry_sessions(id) ON DELETE CASCADE
 );
 
 -- 3. TRIGGERS & IDEMPOTENT SIGNUP HANDLER

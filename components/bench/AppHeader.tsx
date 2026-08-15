@@ -9,35 +9,35 @@ export function AppHeader() {
 
   return (
     <>
-      {frozen && (
-        <div
-          className="w-full text-center py-2 text-sm font-mono font-bold tracking-widest uppercase z-50"
-          style={{ backgroundColor: '#ef4444', color: '#fff' }}
-          role="alert"
-        >
-          ⏹ ARRÊT D&apos;URGENCE ACTIVÉ — acquisition suspendue
-        </div>
-      )}
-      <header
-        className="sticky top-0 z-40 flex items-center justify-between px-4 py-2 border-b"
-        style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}
-      >
-        {/* Logo + title */}
-        <div className="flex items-center gap-3">
+        {frozen && (
           <div
-            className="w-8 h-8 rounded flex items-center justify-center font-mono font-bold text-sm"
-            style={{ backgroundColor: '#1f2937', color: '#3b82f6', border: '1px solid #3b82f6' }}
-            aria-hidden="true"
+            className="w-full text-center py-2 text-sm font-mono font-bold tracking-widest uppercase z-50"
+            style={{ backgroundColor: '#ef4444', color: '#fff' }}
+            role="alert"
           >
-            BE
+            ⏹ EMERGENCY STOP ACTIVATED — acquisition suspended
           </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#3b82f6' }}>
-              Banc d&apos;Essai
-            </span>
-            <span className="text-[10px]" style={{ color: '#64748b' }}>Monitoring Pro</span>
+        )}
+        <header
+          className="sticky top-0 z-40 flex items-center justify-between px-4 py-2 border-b"
+          style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}
+        >
+          {/* Logo + title */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded flex items-center justify-center font-mono font-bold text-sm"
+              style={{ backgroundColor: '#1f2937', color: '#3b82f6', border: '1px solid #3b82f6' }}
+              aria-hidden="true"
+            >
+              TB
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#3b82f6' }}>
+                Test Bench
+              </span>
+              <span className="text-[10px]" style={{ color: '#64748b' }}>Monitoring Pro</span>
+            </div>
           </div>
-        </div>
 
         {/* Center: status */}
         <div className="flex items-center gap-4">

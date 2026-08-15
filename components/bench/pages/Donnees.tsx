@@ -7,13 +7,13 @@ import { getMetricState } from '@/lib/types'
 const PAGE_SIZE = 50
 
 function fmtTime(ts: number) {
-  return new Date(ts).toLocaleTimeString('fr-FR', {
+  return new Date(ts).toLocaleTimeString('en-US', {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   })
 }
 
 function fmtDate(ts: number) {
-  return new Date(ts).toLocaleDateString('fr-FR', {
+  return new Date(ts).toLocaleDateString('en-US', {
     day: '2-digit', month: '2-digit',
   })
 }
@@ -51,12 +51,12 @@ export function Donnees() {
   // Build active columns dynamically
   const cols = useMemo(() => {
     const allCols = [
-      { key: 'timestamp',      label: 'Horodatage',       fmt: (v: number) => `${fmtDate(v)} ${fmtTime(v)}`, metric: null },
-      { key: 'temp_carburant', label: 'Carburant (°C)',   fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_carburant' },
-      { key: 'temp_echap',     label: 'Échapp. (°C)',     fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_echap' },
-      { key: 'temp_admission', label: 'Admiss. (°C)',     fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_admission' },
-      { key: 'rpm',            label: 'RPM',              fmt: (v: number) => v !== undefined ? v.toLocaleString('fr-FR') : '--',     metric: 'rpm' },
-      { key: 'vitesse',        label: 'Vitesse (m/s)',    fmt: (v: number) => v !== undefined ? v.toFixed(2) : '--',                  metric: null },
+      { key: 'timestamp',      label: 'Timestamp',       fmt: (v: number) => `${fmtDate(v)} ${fmtTime(v)}`, metric: null },
+      { key: 'temp_carburant', label: 'Fuel (°C)',       fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_carburant' },
+      { key: 'temp_echap',     label: 'Exhaust (°C)',    fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_echap' },
+      { key: 'temp_admission', label: 'Intake (°C)',     fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_admission' },
+      { key: 'rpm',            label: 'RPM',              fmt: (v: number) => v !== undefined ? v.toLocaleString('en-US') : '--',     metric: 'rpm' },
+      { key: 'vitesse',        label: 'Speed (m/s)',    fmt: (v: number) => v !== undefined ? v.toFixed(2) : '--',                  metric: null },
       { key: 'vibration',      label: 'Vibration (m/s²)', fmt: (v: number) => v !== undefined ? v.toFixed(3) : '--',                  metric: 'vibration' },
     ]
     return allCols.filter(col => {
@@ -69,10 +69,10 @@ export function Donnees() {
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
-          Données brutes
+          Raw Data
         </h1>
         <span className="text-xs font-mono" style={{ color: '#475569' }}>
-          {history.length.toLocaleString('fr-FR')} échantillons — page {page + 1}/{Math.max(1, totalPages)}
+          {history.length.toLocaleString('en-US')} samples — page {page + 1}/{Math.max(1, totalPages)}
         </span>
       </div>
 
@@ -102,7 +102,7 @@ export function Donnees() {
                   className="px-4 py-8 text-center"
                   style={{ color: '#475569' }}
                 >
-                  En attente de données de capteurs actifs...
+                  Waiting for active sensor data...
                 </td>
               </tr>
             ) : (
@@ -152,7 +152,7 @@ export function Donnees() {
           className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity"
           style={{ borderColor: '#1f2937', color: '#94a3b8', backgroundColor: '#111827' }}
         >
-          ‹ Préc.
+          ‹ Prev
         </button>
         <span className="text-xs font-mono px-2" style={{ color: '#64748b' }}>
           {page + 1} / {Math.max(1, totalPages)}
@@ -163,7 +163,7 @@ export function Donnees() {
           className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity"
           style={{ borderColor: '#1f2937', color: '#94a3b8', backgroundColor: '#111827' }}
         >
-          Suiv. ›
+          Next ›
         </button>
         <button
           onClick={() => setPage(Math.max(0, totalPages - 1))}

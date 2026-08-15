@@ -10,12 +10,12 @@ export function StatusPill({ frozen }: StatusPillProps) {
   const { connectionStatus } = useBench()
 
   const statusLabel = frozen
-    ? "Arrêt d'urgence"
+    ? "Emergency Stop"
     : connectionStatus === 'connected'
       ? 'Acquisition Active'
       : connectionStatus === 'connecting'
-        ? 'Connexion...'
-        : 'Déconnecté'
+        ? 'Connecting...'
+        : 'Disconnected'
 
   const activeColor = frozen
     ? '#ef4444'

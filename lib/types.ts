@@ -36,11 +36,11 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
 }
 
 export const METRIC_LABELS: Record<string, string> = {
-  temp_carburant: 'Temp. Carburant',
-  temp_echap:     'Temp. Échappement',
-  temp_admission: 'Temp. Admission',
-  rpm:            'Régime (RPM)',
-  vitesse:        'Vitesse',
+  temp_carburant: 'Fuel Temp',
+  temp_echap:     'Exhaust Temp',
+  temp_admission: 'Intake Temp',
+  rpm:            'Engine Speed (RPM)',
+  vitesse:        'Speed',
   vibration:      'Vibration',
 }
 
@@ -48,7 +48,7 @@ export const METRIC_UNITS: Record<string, string> = {
   temp_carburant: '°C',
   temp_echap:     '°C',
   temp_admission: '°C',
-  rpm:            'tr/min',
+  rpm:            'rpm',
   vitesse:        'm/s',
   vibration:      'm/s²',
 }
