@@ -210,22 +210,22 @@ void loop() {
         appendLog(`[Upload Error] ${data.error || 'Upload failed.'}`)
       } else {
         appendLog('[Uploader] Flash sequence complete!')
-        if (autoReconnect) {
-          appendLog('[Uploader] Delaying 2.0s for device reboot...')
-          await new Promise(resolve => setTimeout(resolve, 2000))
-          appendLog('[Uploader] Attempting to reconnect browser serial telemetry...')
-          try {
-            await connect()
-            appendLog('[Uploader] Browser telemetry reestablished!')
-          } catch (e) {
-            appendLog('[Uploader] Reconnection failed. Please manually pair in dashboard.')
-          }
-        }
       }
     } catch (err) {
       appendLog('[Upload Error] Service unreachable.')
     } finally {
       setIsUploading(false)
+      if (autoReconnect) {
+        appendLog('[Uploader] Delaying 2.0s for device reboot...')
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        appendLog('[Uploader] Attempting to reconnect browser serial telemetry...')
+        try {
+          await connect()
+          appendLog('[Uploader] Browser telemetry reestablished!')
+        } catch (e) {
+          appendLog('[Uploader] Reconnection failed. Please manually pair in dashboard.')
+        }
+      }
     }
   }
 
