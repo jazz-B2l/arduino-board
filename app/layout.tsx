@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { BenchProvider } from '@/components/bench/BenchContext'
+import { AuthProvider } from '@/components/auth/AuthContext'
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -34,9 +35,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-[#0a0e1a]`}>
       <body className="antialiased font-sans min-h-screen">
-        <BenchProvider>
-          {children}
-        </BenchProvider>
+        <AuthProvider>
+          <BenchProvider>
+            {children}
+          </BenchProvider>
+        </AuthProvider>
       </body>
     </html>
   )
