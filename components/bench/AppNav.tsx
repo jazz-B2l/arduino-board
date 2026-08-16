@@ -12,6 +12,7 @@ import {
   SettingsIcon,
   TableIcon,
   CodeIcon,
+  UserIcon,
 } from 'lucide-react'
 import { useBench } from './BenchContext'
 
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: '/rapports',   label: 'Reports',    icon: FileTextIcon },
   { href: '/parametres', label: 'Settings',   icon: SettingsIcon },
   { href: '/systeme',    label: 'System',     icon: MonitorIcon },
+  { href: '/account',    label: 'Account',    icon: UserIcon },
 ]
 
 export function AppNav() {
