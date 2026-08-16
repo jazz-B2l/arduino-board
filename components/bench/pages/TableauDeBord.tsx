@@ -13,7 +13,9 @@ import {
   type Thresholds,
   type SensorReading,
   type MetricState,
-  type MetricKey
+  type MetricKey,
+  BOARD_FQBNS,
+  resolveBoardProfile
 } from '@/lib/types'
 import {
   CheckIcon,
@@ -425,8 +427,20 @@ export function TableauDeBord() {
             {isConnected ? (
               <div className="flex flex-col gap-3 w-full border-t border-[#1f2937]/50 pt-4">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-500">Board Model:</span>
-                  <span className="text-blue-400 font-bold">{boardName}</span>
+                  <span className="text-slate-500">Detected USB:</span>
+                  <span className="text-slate-300 font-bold">{stats.port && stats.port !== 'None' ? stats.port : 'Unknown'}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-500">Board Profile:</span>
+                  <select
+                    value={resolveBoardProfile(selectedBoard || boardName)}
+                    onChange={e => setSelectedBoard(e.target.value)}
+                    className="rounded border border-[#1f2937] bg-slate-950 px-2 py-0.5 text-xs text-blue-400 font-bold outline-none focus:border-blue-500 font-mono"
+                  >
+                    {Object.keys(BOARD_FQBNS).map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="text-slate-500">Baud Rate:</span>
