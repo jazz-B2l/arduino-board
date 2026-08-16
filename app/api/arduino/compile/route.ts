@@ -7,9 +7,21 @@ import * as os from 'os'
 
 const execAsync = promisify(exec)
 
+const BOARD_FQBNS: Record<string, string> = {
+  'Arduino Uno': 'arduino:avr:uno',
+  'Arduino Mega 2560': 'arduino:avr:mega',
+  'Arduino Nano': 'arduino:avr:nano',
+  'Arduino Leonardo': 'arduino:avr:leonardo',
+  'Arduino Micro': 'arduino:avr:micro',
+  'Arduino Due': 'arduino:sam:arduino_due_x_dbg',
+  'Arduino Zero': 'arduino:samd:arduino_zero_native',
+  'ESP32 DevKit': 'esp32:esp32:esp32',
+  'Generic Serial Device': 'arduino:avr:uno' // default fallback
+}
+
 export async function POST(req: Request) {
   try {
-    const { code } = await req.json()
+    const { code, board } = await req.json()
 
     if (!code) {
       return NextResponse.json(
@@ -17,6 +29,9 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
+
+    const targetBoard = board || 'Arduino Uno'
+    const fqbn = BOARD_FQBNS[targetBoard] || 'arduino:avr:uno'
 
     const rootDir = process.cwd()
     const binPath = path.join(rootDir, 'bin', os.platform() === 'win32' ? 'arduino-cli.exe' : 'arduino-cli')
@@ -27,11 +42,10 @@ export async function POST(req: Request) {
       cliCmd = `"${binPath}"`
     } catch {}
 
-    // Try to run arduino-cli to check if it's installed
+    // Check version
     try {
       await execAsync(`${cliCmd} version`)
     } catch (err: any) {
-      // Graceful degradation when CLI is not installed (expected)
       return NextResponse.json({ 
         error: 'Arduino CLI is not configured on this system.',
         logs: [
@@ -43,7 +57,6 @@ export async function POST(req: Request) {
       }, { status: 503 })
     }
 
-    // If arduino-cli is installed, try real compilation
     const tmpDirBase = await fs.mkdtemp(path.join(os.tmpdir(), 'arduino-'))
     const sketchDir = path.join(tmpDirBase, 'sketch')
     await fs.mkdir(sketchDir)
@@ -52,12 +65,11 @@ export async function POST(req: Request) {
     await fs.writeFile(sketchPath, code)
 
     try {
-      // Default to uno, would be dynamic in production
-      const { stdout, stderr } = await execAsync(`${cliCmd} compile --fqbn arduino:avr:uno ${sketchPath}`)
+      const { stdout, stderr } = await execAsync(`${cliCmd} compile --fqbn ${fqbn} ${sketchPath}`)
       return NextResponse.json({
         success: true,
         logs: [
-          '[Compiler] Starting compilation for arduino:avr:uno...',
+          `[Compiler] Starting compilation for ${targetBoard} (${fqbn})...`,
           ...stdout.split('\n').filter(Boolean),
           ...stderr.split('\n').filter(Boolean),
           '[Compiler] Compilation successful.'
@@ -67,14 +79,13 @@ export async function POST(req: Request) {
       return NextResponse.json({
         error: 'Compilation failed',
         logs: [
-          '[Compiler] Starting compilation...',
+          `[Compiler] Starting compilation for ${targetBoard} (${fqbn})...`,
           ...(compileErr.stdout ? compileErr.stdout.split('\n').filter(Boolean) : []),
           ...(compileErr.stderr ? compileErr.stderr.split('\n').filter(Boolean) : []),
           `[Error] Compilation exited with error.`
         ]
       }, { status: 400 })
     } finally {
-      // Cleanup temp files
       await fs.rm(tmpDirBase, { recursive: true, force: true }).catch(() => {})
     }
 
