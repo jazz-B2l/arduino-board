@@ -385,8 +385,21 @@ export function useSensorFeed(): SensorFeedResult {
       setConnectionStatus('connecting')
       setSerialError(null)
 
-      // @ts-ignore
-      const port = await navigator.serial.requestPort()
+      let port = null
+      try {
+        // @ts-ignore
+        const approvedPorts = await navigator.serial.getPorts()
+        if (approvedPorts.length > 0) {
+          port = approvedPorts[0]
+        }
+      } catch (portsErr) {
+        console.warn('Failed to query pre-approved ports:', portsErr)
+      }
+
+      if (!port) {
+        // @ts-ignore
+        port = await navigator.serial.requestPort()
+      }
       
       // Prevent opening the port if it is already open or handles the error safely
       try {
