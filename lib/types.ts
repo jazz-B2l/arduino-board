@@ -64,3 +64,35 @@ export function getMetricState(
   if (value >= t.warning) return 'WARNING'
   return 'OK'
 }
+
+export const BOARD_FQBNS: Record<string, string> = {
+  'Arduino Uno': 'arduino:avr:uno',
+  'Arduino Mega 2560': 'arduino:avr:mega',
+  'Arduino Nano': 'arduino:avr:nano',
+  'Arduino Leonardo': 'arduino:avr:leonardo',
+  'Arduino Micro': 'arduino:avr:micro',
+  'Arduino Due': 'arduino:sam:arduino_due_x_dbg',
+  'Arduino Zero': 'arduino:samd:arduino_zero_native',
+  'ESP32 DevKit': 'esp32:esp32:esp32',
+  'Generic Serial Device': 'arduino:avr:uno'
+}
+
+export function resolveBoardProfile(name: string | null): string {
+  if (!name) return 'Generic Serial Device'
+  
+  const keys = Object.keys(BOARD_FQBNS)
+  if (keys.includes(name)) return name
+  
+  const lower = name.toLowerCase()
+  if (lower.includes('uno')) return 'Arduino Uno'
+  if (lower.includes('mega') || lower.includes('2560')) return 'Arduino Mega 2560'
+  if (lower.includes('nano')) return 'Arduino Nano'
+  if (lower.includes('leonardo')) return 'Arduino Leonardo'
+  if (lower.includes('micro')) return 'Arduino Micro'
+  if (lower.includes('due')) return 'Arduino Due'
+  if (lower.includes('zero')) return 'Arduino Zero'
+  if (lower.includes('esp32')) return 'ESP32 DevKit'
+  
+  return 'Generic Serial Device'
+}
+
