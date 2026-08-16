@@ -15,11 +15,19 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id TEXT NOT NULL,
+    user_id TEXT,
     role TEXT NOT NULL,
     content TEXT NOT NULL,
     timestamp TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// Safe migration to add user_id column to pre-existing databases
+try {
+  db.exec('ALTER TABLE messages ADD COLUMN user_id TEXT');
+} catch (e) {
+  // Column already exists, ignore error
+}
 
 export default db;
