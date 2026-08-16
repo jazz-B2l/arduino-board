@@ -29,12 +29,12 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
 function historyToRows(readings: ReturnType<typeof useBench>['history']) {
   return readings.map(r => ({
     'Timestamp':          formatDateTime(r.timestamp),
-    'Fuel Temp (°C)':     r.temp_carburant.toFixed(1),
-    'Exhaust Temp (°C)':  r.temp_echap.toFixed(1),
-    'Intake Temp (°C)':   r.temp_admission.toFixed(1),
-    'Engine Speed (rpm)': r.rpm.toString(),
-    'Speed (m/s)':        r.vitesse.toFixed(2),
-    'Vibration (m/s²)':   r.vibration.toFixed(3),
+    'Fuel Temp (°C)':     r.temp_carburant !== undefined ? r.temp_carburant.toFixed(1) : '',
+    'Exhaust Temp (°C)':  r.temp_echap !== undefined ? r.temp_echap.toFixed(1) : '',
+    'Intake Temp (°C)':   r.temp_admission !== undefined ? r.temp_admission.toFixed(1) : '',
+    'Engine Speed (rpm)': r.rpm !== undefined ? r.rpm.toString() : '',
+    'Speed (m/s)':        r.vitesse !== undefined ? r.vitesse.toFixed(2) : '',
+    'Vibration (m/s²)':   r.vibration !== undefined ? r.vibration.toFixed(3) : '',
   }))
 }
 
