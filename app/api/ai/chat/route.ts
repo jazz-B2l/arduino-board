@@ -5,9 +5,16 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const sessionId = searchParams.get('sessionId') || 'default'
+    const userId = searchParams.get('userId')
 
-    const stmt = db.prepare('SELECT role, content, timestamp FROM messages WHERE session_id = ? ORDER BY id ASC')
-    const messages = stmt.all(sessionId)
+    let messages
+    if (userId) {
+      const stmt = db.prepare('SELECT role, content, timestamp FROM messages WHERE user_id = ? ORDER BY id ASC')
+      messages = stmt.all(userId)
+    } else {
+      const stmt = db.prepare('SELECT role, content, timestamp FROM messages WHERE session_id = ? ORDER BY id ASC')
+      messages = stmt.all(sessionId)
+    }
 
     return NextResponse.json({ messages })
   } catch (error: any) {
@@ -19,9 +26,15 @@ export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const sessionId = searchParams.get('sessionId') || 'default'
+    const userId = searchParams.get('userId')
 
-    const stmt = db.prepare('DELETE FROM messages WHERE session_id = ?')
-    stmt.run(sessionId)
+    if (userId) {
+      const stmt = db.prepare('DELETE FROM messages WHERE user_id = ?')
+      stmt.run(userId)
+    } else {
+      const stmt = db.prepare('DELETE FROM messages WHERE session_id = ?')
+      stmt.run(sessionId)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
@@ -31,7 +44,7 @@ export async function DELETE(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { message, provider, boardName, thresholds, currentCode, sessionId = 'default' } = await req.json()
+    const { message, provider, boardName, thresholds, currentCode, sessionId = 'default', userId } = await req.json()
 
     if (!message || typeof message !== 'object') {
       // For backwards compatibility, if they pass the old format
@@ -41,14 +54,37 @@ export async function POST(req: Request) {
     }
 
     const { role: userRole, content: userContent, timestamp: userTimestamp } = message
+    const MAX_MESSAGES_PER_USER = 100
+
+    // Prune oldest messages if the user reaches the history limit
+    if (userId) {
+      const pruneStmt = db.prepare(`
+        DELETE FROM messages 
+        WHERE user_id = ? 
+          AND id NOT IN (
+            SELECT id FROM messages 
+            WHERE user_id = ? 
+            ORDER BY id DESC 
+            LIMIT ?
+          )
+      `)
+      // Keep only top 99 messages so adding the user message makes exactly 100
+      pruneStmt.run(userId, userId, MAX_MESSAGES_PER_USER - 1)
+    }
 
     // Save user message to database
-    const insertStmt = db.prepare('INSERT INTO messages (session_id, role, content, timestamp) VALUES (?, ?, ?, ?)')
-    insertStmt.run(sessionId, userRole, userContent, userTimestamp)
+    const insertStmt = db.prepare('INSERT INTO messages (session_id, user_id, role, content, timestamp) VALUES (?, ?, ?, ?, ?)')
+    insertStmt.run(sessionId, userId || null, userRole, userContent, userTimestamp)
 
     // Fetch the full history to provide context to the AI
-    const getHistoryStmt = db.prepare('SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC')
-    const chatHistory = getHistoryStmt.all(sessionId) as {role: string, content: string}[]
+    let chatHistory: {role: string, content: string}[]
+    if (userId) {
+      const getHistoryStmt = db.prepare('SELECT role, content FROM messages WHERE user_id = ? ORDER BY id ASC')
+      chatHistory = getHistoryStmt.all(userId) as {role: string, content: string}[]
+    } else {
+      const getHistoryStmt = db.prepare('SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC')
+      chatHistory = getHistoryStmt.all(sessionId) as {role: string, content: string}[]
+    }
 
     const currentProvider = provider || 'gemini'
 
@@ -150,7 +186,23 @@ Keep responses concise, professional, and in English.`
 
     // Save AI response to database
     const aiTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    insertStmt.run(sessionId, 'assistant', aiContent, aiTimestamp)
+    
+    // Prune before inserting assistant response so total messages remains <= MAX_MESSAGES_PER_USER
+    if (userId) {
+      const pruneStmt = db.prepare(`
+        DELETE FROM messages 
+        WHERE user_id = ? 
+          AND id NOT IN (
+            SELECT id FROM messages 
+            WHERE user_id = ? 
+            ORDER BY id DESC 
+            LIMIT ?
+          )
+      `)
+      pruneStmt.run(userId, userId, MAX_MESSAGES_PER_USER - 1)
+    }
+
+    insertStmt.run(sessionId, userId || null, 'assistant', aiContent, aiTimestamp)
 
     return NextResponse.json({ content: aiContent, timestamp: aiTimestamp })
   } catch (error: any) {
