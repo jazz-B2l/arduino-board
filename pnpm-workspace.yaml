@@ -2,5 +2,6 @@ overrides:
   hono: "4.12.25"
 
 allowBuilds:
+  better-sqlite3: set this to true or false
   msw: true
   sharp: true
