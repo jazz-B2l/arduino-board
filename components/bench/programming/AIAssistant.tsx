@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { SparklesIcon, SendIcon, LoaderIcon, CodeIcon, CheckIcon, CopyIcon, WrenchIcon, BookOpenIcon, ChevronDownIcon, Trash2Icon } from 'lucide-react'
 import { useBench } from '../BenchContext'
+import { useAuth } from '@/components/auth/AuthContext'
+
 
 interface Message {
   role: 'user' | 'assistant'
@@ -23,6 +25,7 @@ const DEFAULT_MESSAGE: Message = {
 
 export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
   const { boardName, thresholds } = useBench()
+  const { user, loading } = useAuth()
   const [provider, setProvider] = useState<'gemini' | 'groq'>('gemini')
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -32,8 +35,10 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   useEffect(() => {
-    // Load history on mount
-    fetch('/api/ai/chat')
+    if (loading) return
+
+    const url = user ? `/api/ai/chat?userId=${user.id}` : '/api/ai/chat'
+    fetch(url)
       .then(res => res.json())
       .then(data => {
         if (data.messages && data.messages.length > 0) {
@@ -43,7 +48,7 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
         }
       })
       .catch(() => setMessages([DEFAULT_MESSAGE]))
-  }, [])
+  }, [user, loading])
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -62,7 +67,8 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
     
     setMessages([DEFAULT_MESSAGE])
     try {
-      await fetch('/api/ai/chat', { method: 'DELETE' })
+      const url = user ? `/api/ai/chat?userId=${user.id}` : '/api/ai/chat'
+      await fetch(url, { method: 'DELETE' })
     } catch (e) {
       console.error("Failed to clear chat", e)
     }
@@ -83,6 +89,7 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: user?.id,
           message: { role: userMessage.role, content: userMessage.content, timestamp: userMessage.timestamp },
           provider,
           boardName,
