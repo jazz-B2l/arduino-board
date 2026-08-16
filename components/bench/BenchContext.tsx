@@ -39,14 +39,27 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
   const { thresholds, update: updateThresholds, reset: resetThresholds } = useThresholds()
   const alarms     = useAlarms(feed.latest, thresholds)
 
-  const [selectedBoard, setSelectedBoard] = useState<string | null>(null)
+  const [selectedBoard, setSelectedBoardState] = useState<string | null>(null)
 
-  // Reset selected board whenever the connection is disconnected
   useEffect(() => {
-    if (feed.connectionStatus === 'disconnected') {
-      setSelectedBoard(null)
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('selectedBoard')
+      if (saved) {
+        setSelectedBoardState(saved)
+      }
     }
-  }, [feed.connectionStatus])
+  }, [])
+
+  const setSelectedBoard = (board: string | null) => {
+    setSelectedBoardState(board)
+    if (typeof window !== 'undefined') {
+      if (board) {
+        localStorage.setItem('selectedBoard', board)
+      } else {
+        localStorage.removeItem('selectedBoard')
+      }
+    }
+  }
 
   const boardName = useMemo(() => {
     if (selectedBoard) return selectedBoard
