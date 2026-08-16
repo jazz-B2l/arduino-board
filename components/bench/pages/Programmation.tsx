@@ -5,15 +5,27 @@ import { useBench } from '../BenchContext'
 import { CodeEditor } from '../programming/CodeEditor'
 import { AIAssistant } from '../programming/AIAssistant'
 import { CompilerTerminal } from '../programming/CompilerTerminal'
-import { CpuIcon, CodeIcon, PlayIcon, UploadIcon } from 'lucide-react'
+import { CpuIcon, CodeIcon, PlayIcon, UploadIcon, RefreshCwIcon } from 'lucide-react'
 
 const MIN_AI_WIDTH = 280
 const MIN_EDITOR_WIDTH = 400
 const MIN_OUTPUT_HEIGHT = 100
 const MIN_EDITOR_HEIGHT = 180
 
+const BOARD_FQBNS: Record<string, string> = {
+  'Arduino Uno': 'arduino:avr:uno',
+  'Arduino Mega 2560': 'arduino:avr:mega',
+  'Arduino Nano': 'arduino:avr:nano',
+  'Arduino Leonardo': 'arduino:avr:leonardo',
+  'Arduino Micro': 'arduino:avr:micro',
+  'Arduino Due': 'arduino:sam:arduino_due_x_dbg',
+  'Arduino Zero': 'arduino:samd:arduino_zero_native',
+  'ESP32 DevKit': 'esp32:esp32:esp32',
+  'Generic Serial Device': 'arduino:avr:uno'
+}
+
 export function Programmation() {
-  const { connectionStatus, boardName } = useBench()
+  const { connectionStatus, boardName, disconnect, connect } = useBench()
   
   const isConnected = connectionStatus === 'connected'
   const protocolVersion = '1.0'
@@ -110,6 +122,11 @@ void loop() {
   const [isUploading, setIsUploading] = useState(false)
   const [terminalOutput, setTerminalOutput] = useState<string[]>([])
 
+  const [ports, setPorts] = useState<{ address: string; label: string; protocol: string }[]>([])
+  const [selectedPort, setSelectedPort] = useState<string>('')
+  const [uploadBoard, setUploadBoard] = useState<string>('Arduino Uno')
+  const [isLoadingPorts, setIsLoadingPorts] = useState(false)
+
   const [aiWidth, setAiWidth] = useState(384)
   const [outputHeight, setOutputHeight] = useState(220)
   
@@ -119,6 +136,39 @@ void loop() {
   const containerRef = useRef<HTMLDivElement>(null)
   const dragVStartRef = useRef<{ clientX: number; width: number } | null>(null)
   const dragHStartRef = useRef<{ clientY: number; height: number } | null>(null)
+
+  // Sync selected board with context
+  useEffect(() => {
+    if (boardName && boardName !== 'Unknown Board' && boardName !== 'None') {
+      setUploadBoard(boardName)
+    }
+  }, [boardName])
+
+  // Fetch host ports
+  const fetchPorts = async () => {
+    setIsLoadingPorts(true)
+    try {
+      const res = await fetch('/api/arduino/ports')
+      const data = await res.json()
+      if (data.ports && data.ports.length > 0) {
+        setPorts(data.ports)
+        if (!selectedPort || !data.ports.some((p: any) => p.address === selectedPort)) {
+          setSelectedPort(data.ports[0].address)
+        }
+      } else {
+        setPorts([])
+        setSelectedPort('')
+      }
+    } catch (err) {
+      appendLog('[System Error] Failed to scan host ports.')
+    } finally {
+      setIsLoadingPorts(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPorts()
+  }, [])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -133,12 +183,12 @@ void loop() {
 
   const handleCompile = async () => {
     setIsCompiling(true)
-    appendLog('[Compiler] Verifying code...')
+    appendLog(`[Compiler] Verifying sketch structure for ${uploadBoard}...`)
     try {
       const res = await fetch('/api/arduino/compile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code, board: uploadBoard })
       })
       const data = await res.json()
       if (data.logs) setTerminalOutput(prev => [...prev, ...data.logs])
@@ -153,17 +203,43 @@ void loop() {
 
   const handleUpload = async () => {
     setIsUploading(true)
-    appendLog('[Uploader] Initiating upload sequence...')
+    
+    // Automatically disconnect browser Web Serial first to prevent locks on standard COM ports
+    let autoReconnect = false
+    if (isConnected) {
+      appendLog('[Uploader] Browser connection is active. Closing Web Serial to release port lock...')
+      await disconnect()
+      autoReconnect = true
+      // Short delay for OS to process resource release
+      await new Promise(resolve => setTimeout(resolve, 800))
+    }
+
+    appendLog(`[Uploader] Compiling and flashing sketch to ${uploadBoard} on port ${selectedPort || 'Auto'}...`)
     try {
       const res = await fetch('/api/arduino/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code, board: uploadBoard, port: selectedPort })
       })
       const data = await res.json()
       if (data.logs) setTerminalOutput(prev => [...prev, ...data.logs])
-      if (!res.ok) appendLog(`[Upload Error] ${data.error || 'Upload failed.'}`)
-      else appendLog('[Uploader] Upload successful.')
+      
+      if (!res.ok) {
+        appendLog(`[Upload Error] ${data.error || 'Upload failed.'}`)
+      } else {
+        appendLog('[Uploader] Flash sequence complete!')
+        if (autoReconnect) {
+          appendLog('[Uploader] Delaying 2.0s for device reboot...')
+          await new Promise(resolve => setTimeout(resolve, 2000))
+          appendLog('[Uploader] Attempting to reconnect browser serial telemetry...')
+          try {
+            await connect()
+            appendLog('[Uploader] Browser telemetry reestablished!')
+          } catch (e) {
+            appendLog('[Uploader] Reconnection failed. Please manually pair in dashboard.')
+          }
+        }
+      }
     } catch (err) {
       appendLog('[Upload Error] Service unreachable.')
     } finally {
@@ -229,12 +305,12 @@ void loop() {
   }, [isDraggingV, isDraggingH, aiWidth, outputHeight])
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-[#0b0f19] text-slate-300 select-none overflow-hidden">
+    <div className="absolute inset-0 flex flex-col bg-[#0b0f19] text-slate-300 select-none overflow-hidden font-sans">
       {(isDraggingV || isDraggingH) && (
         <div className="fixed inset-0 z-50 select-none" style={{ cursor: isDraggingV ? 'col-resize' : 'row-resize' }} />
       )}
 
-      <header className="flex flex-shrink-0 items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-[#0d1220] select-none">
+      <header className="flex flex-shrink-0 flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-[#0d1220] select-none gap-3 font-sans">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${isConnected ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-slate-900 text-slate-500 border-slate-800'}`}>
             <CpuIcon size={20} />
@@ -246,26 +322,90 @@ void loop() {
             <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
               <span className="flex items-center gap-1">
                 <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-600'}`}></span>
-                {isConnected ? 'Connected' : 'Disconnected'}
+                {isConnected ? 'Serial Connected' : 'Serial Standby'}
               </span>
               <span>•</span>
-              <span>{boardName || 'Unknown Board'}</span>
+              <span>Detected: {boardName || 'None'}</span>
               <span>•</span>
               <span>Protocol v{protocolVersion}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={handleCompile} disabled={isCompiling} className="flex items-center gap-2 px-4 py-2 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors border border-slate-700 text-sm font-medium disabled:opacity-50">
-            <PlayIcon size={16} /> Verify
-          </button>
-          <button onClick={handleUpload} disabled={!isConnected || isCompiling || isUploading} className="flex items-center gap-2 px-4 py-2 rounded bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 transition-colors border border-emerald-500/30 text-sm font-medium disabled:opacity-50">
-            <UploadIcon size={16} /> {isUploading ? 'Uploading...' : 'Upload'}
-          </button>
+
+        {/* Compiler Configuration Toolbar */}
+        <div className="flex flex-wrap items-center gap-4 text-xs">
+          {/* Target Board Select */}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] text-slate-500 font-mono">Board Profile</span>
+            <select
+              value={uploadBoard}
+              onChange={e => setUploadBoard(e.target.value)}
+              className="rounded border border-slate-800 bg-slate-900 px-2.5 py-1 text-slate-300 outline-none focus:border-blue-500 font-mono"
+            >
+              {Object.keys(BOARD_FQBNS).map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* COM Port Selector */}
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] text-slate-500 font-mono">Upload COM Port</span>
+            <div className="flex items-center gap-1.5">
+              <select
+                value={selectedPort}
+                onChange={e => setSelectedPort(e.target.value)}
+                className="rounded border border-slate-800 bg-slate-900 px-2 py-1 text-slate-300 outline-none focus:border-blue-500 min-w-[100px] font-mono"
+              >
+                {ports.length > 0 ? (
+                  ports.map(p => (
+                    <option key={p.address} value={p.address}>
+                      {p.address} {p.label ? `(${p.label})` : ''}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Auto-Detect</option>
+                )}
+              </select>
+              <button
+                onClick={fetchPorts}
+                disabled={isLoadingPorts}
+                className="p-1.5 rounded border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+                title="Rescan target serial ports"
+              >
+                <RefreshCwIcon size={12} className={isLoadingPorts ? 'animate-spin' : ''} />
+              </button>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-end gap-2 mt-3.5">
+            <button
+              onClick={handleCompile}
+              disabled={isCompiling || isUploading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors border border-slate-700 font-mono font-medium disabled:opacity-50"
+              title="Verify sketch syntax and compile binary"
+            >
+              <PlayIcon size={14} /> Verify
+            </button>
+            <button
+              onClick={handleUpload}
+              disabled={isCompiling || isUploading}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded font-mono font-bold border transition-colors disabled:opacity-50 ${
+                isConnected
+                  ? 'bg-amber-600/15 text-amber-400 hover:bg-amber-600/25 border-amber-500/35 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
+                  : 'bg-emerald-600/15 text-emerald-400 hover:bg-emerald-600/25 border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.05)]'
+              }`}
+              title={isConnected ? 'Closes active browser terminal session before uploading' : 'Compile and flash to microcontroller'}
+            >
+              <UploadIcon size={14} />
+              {isUploading ? 'Uploading...' : isConnected ? 'Disconnect & Upload' : 'Upload'}
+            </button>
+          </div>
         </div>
       </header>
 
-      <div ref={containerRef} className="flex flex-1 min-h-0 relative select-text">
+      <div ref={containerRef} className="flex flex-1 min-h-0 relative select-text font-sans">
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 min-h-0 relative">
             <CodeEditor code={code} onChange={setCode} />
