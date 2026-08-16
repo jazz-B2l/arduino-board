@@ -1,12 +1,54 @@
 import { NextResponse } from 'next/server'
+import db from '@/lib/db'
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const sessionId = searchParams.get('sessionId') || 'default'
+
+    const stmt = db.prepare('SELECT role, content, timestamp FROM messages WHERE session_id = ? ORDER BY id ASC')
+    const messages = stmt.all(sessionId)
+
+    return NextResponse.json({ messages })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const sessionId = searchParams.get('sessionId') || 'default'
+
+    const stmt = db.prepare('DELETE FROM messages WHERE session_id = ?')
+    stmt.run(sessionId)
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
 
 export async function POST(req: Request) {
   try {
-    const { messages, provider, boardName, thresholds, currentCode } = await req.json()
+    const { message, provider, boardName, thresholds, currentCode, sessionId = 'default' } = await req.json()
 
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: 'Invalid messages array' }, { status: 400 })
+    if (!message || typeof message !== 'object') {
+      // For backwards compatibility, if they pass the old format
+      if (message === undefined && (req as any).body?.messages) {
+         return NextResponse.json({ error: 'Please update your client to send a single message object.' }, { status: 400 })
+      }
     }
+
+    const { role: userRole, content: userContent, timestamp: userTimestamp } = message
+
+    // Save user message to database
+    const insertStmt = db.prepare('INSERT INTO messages (session_id, role, content, timestamp) VALUES (?, ?, ?, ?)')
+    insertStmt.run(sessionId, userRole, userContent, userTimestamp)
+
+    // Fetch the full history to provide context to the AI
+    const getHistoryStmt = db.prepare('SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC')
+    const chatHistory = getHistoryStmt.all(sessionId) as {role: string, content: string}[]
 
     const currentProvider = provider || 'gemini'
 
@@ -31,6 +73,8 @@ Guidelines:
 
 Keep responses concise, professional, and in English.`
 
+    let aiContent = ''
+
     if (currentProvider === 'groq') {
       const apiKey = process.env.GROQ_API_KEY
       if (!apiKey) {
@@ -39,7 +83,7 @@ Keep responses concise, professional, and in English.`
 
       const groqMessages = [
         { role: 'system', content: systemPrompt },
-        ...messages.map(msg => ({
+        ...chatHistory.map(msg => ({
           role: msg.role === 'model' ? 'assistant' : msg.role,
           content: msg.content
         }))
@@ -63,9 +107,7 @@ Keep responses concise, professional, and in English.`
         return NextResponse.json({ error: data.error?.message || 'Groq API error' }, { status: response.status })
       }
 
-      return NextResponse.json({
-        content: data.choices[0]?.message?.content || ''
-      })
+      aiContent = data.choices[0]?.message?.content || ''
     } else {
       // Gemini provider
       const apiKey = process.env.GEMINI_API_KEY
@@ -73,13 +115,11 @@ Keep responses concise, professional, and in English.`
         return NextResponse.json({ error: 'Gemini API Key is not configured in .env.local' }, { status: 500 })
       }
 
-      // Map roles for Gemini: 'user' or 'model'
-      const contents = messages.map(msg => ({
+      const contents = chatHistory.map(msg => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }]
       }))
 
-      // If contents array starts with 'model', Gemini throws an error. It must start with 'user'.
       if (contents.length > 0 && contents[0].role === 'model') {
         contents.shift()
       }
@@ -105,10 +145,14 @@ Keep responses concise, professional, and in English.`
         return NextResponse.json({ error: data.error?.message || 'Gemini API error' }, { status: response.status })
       }
 
-      const content = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
-      return NextResponse.json({ content })
+      aiContent = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
     }
 
+    // Save AI response to database
+    const aiTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    insertStmt.run(sessionId, 'assistant', aiContent, aiTimestamp)
+
+    return NextResponse.json({ content: aiContent, timestamp: aiTimestamp })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
