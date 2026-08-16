@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { SparklesIcon, SendIcon, LoaderIcon, CodeIcon, MoreVerticalIcon, CheckIcon, CopyIcon, WrenchIcon, BookOpenIcon, ChevronDownIcon } from 'lucide-react'
+import { SparklesIcon, SendIcon, LoaderIcon, CodeIcon, CheckIcon, CopyIcon, WrenchIcon, BookOpenIcon, ChevronDownIcon, Trash2Icon } from 'lucide-react'
 import { useBench } from '../BenchContext'
-
-
 
 interface Message {
   role: 'user' | 'assistant'
@@ -17,21 +15,35 @@ interface AIAssistantProps {
   onCodeUpdate: (newCode: string) => void
 }
 
+const DEFAULT_MESSAGE: Message = {
+  role: 'assistant',
+  content: "Hello! I am your Arduino AI assistant. I have access to your active board and sensor thresholds. Ask me to write or edit your sketch!",
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
   const { boardName, thresholds } = useBench()
   const [provider, setProvider] = useState<'gemini' | 'groq'>('gemini')
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: "Hello! I am your Arduino AI assistant. I have access to your active board and sensor thresholds. Ask me to write or edit your sketch!",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Load history on mount
+    fetch('/api/ai/chat')
+      .then(res => res.json())
+      .then(data => {
+        if (data.messages && data.messages.length > 0) {
+          setMessages(data.messages)
+        } else {
+          setMessages([DEFAULT_MESSAGE])
+        }
+      })
+      .catch(() => setMessages([DEFAULT_MESSAGE]))
+  }, [])
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -45,6 +57,17 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
     }
   }, [input])
 
+  const handleClearChat = async () => {
+    if (!confirm("Are you sure you want to clear the chat history?")) return;
+    
+    setMessages([DEFAULT_MESSAGE])
+    try {
+      await fetch('/api/ai/chat', { method: 'DELETE' })
+    } catch (e) {
+      console.error("Failed to clear chat", e)
+    }
+  }
+
   const handleSend = async (textToSend?: string) => {
     const text = textToSend || input
     if (!text.trim() || isLoading) return
@@ -56,12 +79,11 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
     setIsLoading(true)
 
     try {
-      const chatHistory = [...messages, userMessage]
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: chatHistory.map(m => ({ role: m.role, content: m.content })),
+          message: { role: userMessage.role, content: userMessage.content, timestamp: userMessage.timestamp },
           provider,
           boardName,
           thresholds,
@@ -70,7 +92,7 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
       })
 
       const data = await res.json()
-      const respTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      const respTime = data.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       if (res.ok && data.content) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.content, timestamp: respTime }])
       } else {
@@ -164,16 +186,25 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
         </div>
         
         {/* Right Actions */}
-        <div className="relative flex items-center bg-slate-900/80 hover:bg-slate-800 border border-slate-700/50 rounded-md px-2 py-1 transition-colors cursor-pointer focus-within:border-purple-500/50">
-          <select 
-            value={provider} 
-            onChange={(e) => setProvider(e.target.value as 'gemini' | 'groq')}
-            className="bg-transparent text-xs text-slate-300 font-medium outline-none cursor-pointer appearance-none pr-5 z-10 w-full"
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center bg-slate-900/80 hover:bg-slate-800 border border-slate-700/50 rounded-md px-2 py-1 transition-colors cursor-pointer focus-within:border-purple-500/50">
+            <select 
+              value={provider} 
+              onChange={(e) => setProvider(e.target.value as 'gemini' | 'groq')}
+              className="bg-transparent text-xs text-slate-300 font-medium outline-none cursor-pointer appearance-none pr-5 z-10 w-full"
+            >
+              <option value="gemini" className="bg-slate-900">Gemini 1.5</option>
+              <option value="groq" className="bg-slate-900">Groq 8B</option>
+            </select>
+            <ChevronDownIcon size={14} className="text-slate-400 absolute right-2 pointer-events-none" />
+          </div>
+          <button 
+            onClick={handleClearChat}
+            className="p-1.5 rounded-md text-slate-400 hover:text-red-400 hover:bg-slate-800/50 transition-colors"
+            title="Clear Chat History"
           >
-            <option value="gemini" className="bg-slate-900">Gemini 1.5</option>
-            <option value="groq" className="bg-slate-900">Groq 8B</option>
-          </select>
-          <ChevronDownIcon size={14} className="text-slate-400 absolute right-2 pointer-events-none" />
+            <Trash2Icon size={16} />
+          </button>
         </div>
       </div>
 
@@ -285,4 +316,3 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
     </div>
   )
 }
-
