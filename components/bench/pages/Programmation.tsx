@@ -6,26 +6,16 @@ import { CodeEditor } from '../programming/CodeEditor'
 import { AIAssistant } from '../programming/AIAssistant'
 import { CompilerTerminal } from '../programming/CompilerTerminal'
 import { CpuIcon, CodeIcon, PlayIcon, UploadIcon, RefreshCwIcon } from 'lucide-react'
+import { BOARD_FQBNS, resolveBoardProfile } from '@/lib/types'
 
 const MIN_AI_WIDTH = 280
 const MIN_EDITOR_WIDTH = 400
 const MIN_OUTPUT_HEIGHT = 100
 const MIN_EDITOR_HEIGHT = 180
 
-const BOARD_FQBNS: Record<string, string> = {
-  'Arduino Uno': 'arduino:avr:uno',
-  'Arduino Mega 2560': 'arduino:avr:mega',
-  'Arduino Nano': 'arduino:avr:nano',
-  'Arduino Leonardo': 'arduino:avr:leonardo',
-  'Arduino Micro': 'arduino:avr:micro',
-  'Arduino Due': 'arduino:sam:arduino_due_x_dbg',
-  'Arduino Zero': 'arduino:samd:arduino_zero_native',
-  'ESP32 DevKit': 'esp32:esp32:esp32',
-  'Generic Serial Device': 'arduino:avr:uno'
-}
-
 export function Programmation() {
-  const { connectionStatus, boardName, disconnect, connect } = useBench()
+  const { connectionStatus, boardName, disconnect, connect, selectedBoard, setSelectedBoard } = useBench()
+  const effectiveBoard = resolveBoardProfile(boardName)
   
   const isConnected = connectionStatus === 'connected'
   const protocolVersion = '1.0'
@@ -124,7 +114,6 @@ void loop() {
 
   const [ports, setPorts] = useState<{ address: string; label: string; protocol: string }[]>([])
   const [selectedPort, setSelectedPort] = useState<string>('')
-  const [uploadBoard, setUploadBoard] = useState<string>('Arduino Uno')
   const [isLoadingPorts, setIsLoadingPorts] = useState(false)
 
   const [aiWidth, setAiWidth] = useState(384)
@@ -136,13 +125,6 @@ void loop() {
   const containerRef = useRef<HTMLDivElement>(null)
   const dragVStartRef = useRef<{ clientX: number; width: number } | null>(null)
   const dragHStartRef = useRef<{ clientY: number; height: number } | null>(null)
-
-  // Sync selected board with context
-  useEffect(() => {
-    if (boardName && boardName !== 'Unknown Board' && boardName !== 'None') {
-      setUploadBoard(boardName)
-    }
-  }, [boardName])
 
   // Fetch host ports
   const fetchPorts = async () => {
@@ -183,12 +165,12 @@ void loop() {
 
   const handleCompile = async () => {
     setIsCompiling(true)
-    appendLog(`[Compiler] Verifying sketch structure for ${uploadBoard}...`)
+    appendLog(`[Compiler] Verifying sketch structure for ${effectiveBoard}...`)
     try {
       const res = await fetch('/api/arduino/compile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, board: uploadBoard })
+        body: JSON.stringify({ code, board: effectiveBoard })
       })
       const data = await res.json()
       if (data.logs) setTerminalOutput(prev => [...prev, ...data.logs])
@@ -214,12 +196,12 @@ void loop() {
       await new Promise(resolve => setTimeout(resolve, 800))
     }
 
-    appendLog(`[Uploader] Compiling and flashing sketch to ${uploadBoard} on port ${selectedPort || 'Auto'}...`)
+    appendLog(`[Uploader] Compiling and flashing sketch to ${effectiveBoard} on port ${selectedPort || 'Auto'}...`)
     try {
       const res = await fetch('/api/arduino/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, board: uploadBoard, port: selectedPort })
+        body: JSON.stringify({ code, board: effectiveBoard, port: selectedPort })
       })
       const data = await res.json()
       if (data.logs) setTerminalOutput(prev => [...prev, ...data.logs])
@@ -338,8 +320,8 @@ void loop() {
           <div className="flex flex-col gap-0.5">
             <span className="text-[10px] text-slate-500 font-mono">Board Profile</span>
             <select
-              value={uploadBoard}
-              onChange={e => setUploadBoard(e.target.value)}
+              value={effectiveBoard}
+              onChange={e => setSelectedBoard(e.target.value)}
               className="rounded border border-slate-800 bg-slate-900 px-2.5 py-1 text-slate-300 outline-none focus:border-blue-500 font-mono"
             >
               {Object.keys(BOARD_FQBNS).map(name => (
