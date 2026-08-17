@@ -479,7 +479,7 @@ export function TableauDeBord() {
               </div>
             ) : (
               <button
-                onClick={connect}
+                onClick={() => connect({ forcePrompt: true })}
                 disabled={!serialSupported || connectionStatus === 'connecting'}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded text-xs font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
               >
@@ -754,7 +754,7 @@ export function TableauDeBord() {
           <div className="flex gap-2">
             {!isConnected ? (
               <button
-                onClick={connect}
+                onClick={() => connect({ forcePrompt: true })}
                 disabled={!serialSupported || connectionStatus === 'connecting'}
                 className="px-4 py-1.5 rounded text-xs font-mono font-bold bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 transition-colors"
               >
