@@ -198,7 +198,7 @@ export function Systeme() {
         <div className="flex gap-2">
           {connectionStatus !== 'connected' ? (
             <button
-              onClick={connect}
+              onClick={() => connect({ forcePrompt: true })}
               disabled={!serialSupported || connectionStatus === 'connecting'}
               className="flex items-center gap-2 px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity disabled:opacity-60"
               style={{
