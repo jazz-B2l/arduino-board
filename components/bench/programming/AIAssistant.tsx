@@ -10,6 +10,7 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp?: string
+  provider?: 'gemini' | 'groq'
 }
 
 interface AIAssistantProps {
@@ -20,7 +21,8 @@ interface AIAssistantProps {
 const DEFAULT_MESSAGE: Message = {
   role: 'assistant',
   content: "Hello! I am your Arduino AI assistant. I have access to your active board and sensor thresholds. Ask me to write or edit your sketch!",
-  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  provider: 'gemini'
 }
 
 export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
@@ -33,6 +35,16 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
   const chatEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [toast])
 
   useEffect(() => {
     if (loading) return
@@ -101,13 +113,13 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
       const data = await res.json()
       const respTime = data.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       if (res.ok && data.content) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.content, timestamp: respTime }])
+        setMessages(prev => [...prev, { role: 'assistant', content: data.content, timestamp: respTime, provider }])
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error || 'Failed to get response.'}`, timestamp: respTime }])
+        setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error || 'Failed to get response.'}`, timestamp: respTime, provider }])
       }
     } catch (err: any) {
       const respTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      setMessages(prev => [...prev, { role: 'assistant', content: `Error: Could not connect to AI service.`, timestamp: respTime }])
+      setMessages(prev => [...prev, { role: 'assistant', content: `Error: Could not connect to AI service.`, timestamp: respTime, provider }])
     } finally {
       setIsLoading(false)
     }
@@ -147,7 +159,7 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
                     <button 
                       onClick={() => {
                         onCodeUpdate(codeText)
-                        alert("Code snippet loaded into the editor!")
+                        setToast({ message: "Code snippet loaded into the editor!", type: "success" })
                       }}
                       className="text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1 font-bold ml-2"
                       title="Insert"
@@ -172,7 +184,7 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0d1220]">
+    <div className="flex flex-col h-full bg-[#0d1220] relative">
       {/* Sidebar Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/60 bg-[#0d1220]">
         <div className="flex items-center gap-3">
@@ -241,10 +253,10 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
               {!isUser && (
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="w-8 h-8 rounded-md overflow-hidden flex items-center justify-center shadow-sm flex-shrink-0">
-                    {provider === 'gemini' ? (
-                      <img src="/gemini-logo.png" alt="Gemini" className="w-full h-full object-cover" />
-                    ) : (
+                    {msg.provider === 'groq' ? (
                       <img src="/groq-logo.png" alt="Groq" className="w-full h-full object-cover" />
+                    ) : (
+                      <img src="/gemini-logo.png" alt="Gemini" className="w-full h-full object-cover" />
                     )}
                   </div>
                   <span className="text-xs font-medium text-slate-400">Copilot</span>
@@ -320,6 +332,20 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
           </form>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="absolute bottom-20 left-4 right-4 z-50 p-3 rounded-lg border flex items-center gap-2 bg-[#090d16]/95 backdrop-blur text-emerald-400 border-emerald-500/30 shadow-[0_4px_12px_rgba(16,185,129,0.15)] animate-in fade-in slide-in-from-bottom-2 duration-300 font-sans text-xs">
+          <CheckIcon size={16} className="text-emerald-400 flex-shrink-0" />
+          <span className="flex-1 font-medium">{toast.message}</span>
+          <button 
+            onClick={() => setToast(null)} 
+            className="hover:text-emerald-300 transition-colors text-emerald-500 ml-1 font-bold text-sm cursor-pointer"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   )
 }
