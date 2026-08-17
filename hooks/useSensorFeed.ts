@@ -21,7 +21,7 @@ export interface SensorFeedResult {
   freeze:           () => void
   unfreeze:         () => void
   restart:          () => void
-  connect:          () => Promise<void>
+  connect:          (options?: { forcePrompt?: boolean }) => Promise<void>
   disconnect:       () => Promise<void>
   connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error'
   serialError:      string | null
@@ -29,6 +29,7 @@ export interface SensorFeedResult {
   rawLines:         string[]
   handshakeStatus:  'idle' | 'sending' | 'success' | 'error'
   sendHandshake:    () => Promise<void>
+  connectedUsbInfo: { usbVendorId?: number; usbProductId?: number } | null
 }
 
 function getBoardName(vendorId?: number, productId?: number): string {
@@ -139,6 +140,7 @@ export function useSensorFeed(): SensorFeedResult {
   const [serialSupported, setSerialSupported] = useState(false)
   const [rawLines, setRawLines] = useState<string[]>([])
   const [handshakeStatus, setHandshakeStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [connectedUsbInfo, setConnectedUsbInfo] = useState<{ usbVendorId?: number; usbProductId?: number } | null>(null)
 
   const portRef = useRef<any | null>(null)
   const readerRef = useRef<any | null>(null)
@@ -208,6 +210,7 @@ export function useSensorFeed(): SensorFeedResult {
     rawLinesRef.current = []
     setRawLines([])
     setHandshakeStatus('idle')
+    setConnectedUsbInfo(null)
     setStats({ ...statsRef.current })
     setConnectionStatus('disconnected')
   }, [])
@@ -355,7 +358,7 @@ export function useSensorFeed(): SensorFeedResult {
       }
     } catch (err: any) {
       if (!signal.aborted) {
-        console.error('Error reading from serial port:', err)
+        console.warn('Error reading from serial port:', err?.message || err)
         const errMsg = err?.message || 'Error reading from serial port'
         if (errMsg.includes('lost') || errMsg.includes('disconnected') || err?.name === 'NetworkError') {
           setSerialError('The device has been disconnected (connection lost).')
@@ -374,7 +377,8 @@ export function useSensorFeed(): SensorFeedResult {
     }
   }
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (options?: { forcePrompt?: boolean }) => {
+    const forcePrompt = options?.forcePrompt ?? false
     if (typeof window === 'undefined' || !('serial' in navigator)) {
       setSerialError("Web Serial API is not supported by this browser.")
       setConnectionStatus('error')
@@ -386,14 +390,16 @@ export function useSensorFeed(): SensorFeedResult {
       setSerialError(null)
 
       let port = null
-      try {
-        // @ts-ignore
-        const approvedPorts = await navigator.serial.getPorts()
-        if (approvedPorts.length > 0) {
-          port = approvedPorts[0]
+      if (!forcePrompt) {
+        try {
+          // @ts-ignore
+          const approvedPorts = await navigator.serial.getPorts()
+          if (approvedPorts.length > 0) {
+            port = approvedPorts[0]
+          }
+        } catch (portsErr) {
+          console.warn('Failed to query pre-approved ports:', portsErr)
         }
-      } catch (portsErr) {
-        console.warn('Failed to query pre-approved ports:', portsErr)
       }
 
       if (!port) {
@@ -418,6 +424,8 @@ export function useSensorFeed(): SensorFeedResult {
       const info = port.getInfo()
       const name = getBoardName(info.usbVendorId, info.usbProductId)
       
+      setConnectedUsbInfo({ usbVendorId: info.usbVendorId, usbProductId: info.usbProductId })
+
       portNameRef.current = name
       setPortName(name)
       statsRef.current.port = name
@@ -437,10 +445,10 @@ export function useSensorFeed(): SensorFeedResult {
 
       // Start asynchronous read loop and catch any unhandled promise rejections
       readLoop(port, abortController.signal).catch((err) => {
-        console.error('Unhandled readLoop error:', err)
+        console.warn('Unhandled readLoop error:', err?.message || err)
       })
     } catch (err: any) {
-      console.error(err)
+      console.warn('Serial connection error:', err?.message || err)
       setSerialError(err?.message || 'Serial connection error')
       setConnectionStatus('error')
       try {
@@ -476,7 +484,7 @@ export function useSensorFeed(): SensorFeedResult {
       const encoder = new TextEncoder()
       await writer.write(encoder.encode("HANDSHAKE\r\n"))
     } catch (err: any) {
-      console.error('Failed to write handshake:', err)
+      console.warn('Failed to write handshake:', err?.message || err)
       setHandshakeStatus('error')
       if (handshakeTimeoutRef.current) {
         clearTimeout(handshakeTimeoutRef.current)
@@ -520,5 +528,6 @@ export function useSensorFeed(): SensorFeedResult {
     rawLines,
     handshakeStatus,
     sendHandshake,
+    connectedUsbInfo,
   }
 }
