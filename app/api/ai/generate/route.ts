@@ -14,7 +14,13 @@ export async function POST(req: Request) {
 // Protocol: v${protocolVersion || '1.0'}
 // Generated based on active thresholds and sensors
 
-#define PIN_LED 13
+// Potential LED pins to use for connection test (blinking)
+const int LED_TEST_PINS[] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3};
+const int NUM_LED_TEST_PINS = 11;
+
+// Define occupied pins in your circuit
+const int OCCUPIED_PINS[] = {2}; // PIN_RPM is occupied
+const int NUM_OCCUPIED_PINS = 1;
 
 // Sensor Pins
 #define PIN_TEMP_ECHAP A0
@@ -23,11 +29,21 @@ export async function POST(req: Request) {
 #define PIN_VIBRATION A2
 #define PIN_TEMP_ADMISSION A3
 
+bool isPinOccupied(int pin) {
+  for (int i = 0; i < NUM_OCCUPIED_PINS; i++) {
+    if (OCCUPIED_PINS[i] == pin) return true;
+  }
+  return false;
+}
+
 void setup() {
   Serial.begin(9600);
   while (!Serial) { ; } // Wait for serial port
   
-  pinMode(PIN_LED, OUTPUT);
+  // Initialize default LED pin if not occupied
+  if (!isPinOccupied(13)) {
+    pinMode(13, OUTPUT);
+  }
   
   // Initialize sensors
   // (Simulated initialization based on config)
@@ -39,13 +55,27 @@ void loop() {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
     if (cmd == "HANDSHAKE") {
-      // Double blink confirmation
-      for (int i=0; i<2; i++) {
-        digitalWrite(PIN_LED, HIGH);
-        delay(150);
-        digitalWrite(PIN_LED, LOW);
-        delay(150);
+      // Find the first unoccupied LED pin to test/flash
+      int blinkPin = -1;
+      for (int i = 0; i < NUM_LED_TEST_PINS; i++) {
+        if (!isPinOccupied(LED_TEST_PINS[i])) {
+          blinkPin = LED_TEST_PINS[i];
+          break;
+        }
       }
+      
+      // Flash the LED if we found a free pin
+      if (blinkPin != -1) {
+        pinMode(blinkPin, OUTPUT);
+        for (int i = 0; i < 2; i++) {
+          digitalWrite(blinkPin, HIGH);
+          delay(150);
+          digitalWrite(blinkPin, LOW);
+          delay(150);
+        }
+      }
+      
+      // Always send handshake acknowledgment back to the web dashboard
       Serial.println("ARDUINO,READY");
     }
   }
