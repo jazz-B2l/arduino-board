@@ -16,8 +16,15 @@ const MIN_EDITOR_HEIGHT = 180
 const DEFAULT_SKETCH = `// AI-Powered Test Bench Telemetry Sketch
 // Compatible with Arduino Uno & Arduino Mega 2560
 
-const int LED_PIN = 13;      // Builtin LED (usually red/amber on Arduino Uno/Mega)
 const int BUTTON_PIN = 2;    // Optional physical button on pin 2
+
+// Define which pins are occupied by sensors/actuators in your circuit
+const int OCCUPIED_PINS[] = {BUTTON_PIN}; 
+const int NUM_OCCUPIED_PINS = 1;
+
+// Potential LED pins to use for connection test (blinking)
+const int LED_TEST_PINS[] = {13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3};
+const int NUM_LED_TEST_PINS = 11;
 
 unsigned long lastTelemetryTime = 0;
 const unsigned long telemetryInterval = 1000; // Send telemetry every 1 second
@@ -30,24 +37,39 @@ int rpm = 1200;
 float vitesse = 35.0;
 float vibration = 0.05;
 
+// Helper function to check if a pin is occupied by your circuit
+bool isPinOccupied(int pin) {
+  for (int i = 0; i < NUM_OCCUPIED_PINS; i++) {
+    if (OCCUPIED_PINS[i] == pin) return true;
+  }
+  return false;
+}
+
 void setup() {
   Serial.begin(9600);
-  pinMode(LED_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   
-  // Flash LED on startup to show it's active
-  digitalWrite(LED_PIN, HIGH);
-  delay(100);
-  digitalWrite(LED_PIN, LOW);
+  // Flash default LED (pin 13) on startup if it's not occupied to show it's active
+  if (!isPinOccupied(13)) {
+    pinMode(13, OUTPUT);
+    digitalWrite(13, HIGH);
+    delay(100);
+    digitalWrite(13, LOW);
+  }
 }
 
 void loop() {
   // 1. Check for physical button press to trigger LED and send ready signal
   if (digitalRead(BUTTON_PIN) == LOW) {
-    digitalWrite(LED_PIN, HIGH);
+    if (!isPinOccupied(13)) {
+      pinMode(13, OUTPUT);
+      digitalWrite(13, HIGH);
+    }
     Serial.println("ARDUINO,READY");
     delay(200); // Debounce / active state indicator
-    digitalWrite(LED_PIN, LOW);
+    if (!isPinOccupied(13)) {
+      digitalWrite(13, LOW);
+    }
   }
 
   // 2. Check for incoming Serial commands (like HANDSHAKE)
@@ -56,14 +78,27 @@ void loop() {
     command.trim();
     
     if (command.equalsIgnoreCase("HANDSHAKE")) {
-      // Flash LED twice to verify visual communication
-      for (int i = 0; i < 2; i++) {
-        digitalWrite(LED_PIN, HIGH);
-        delay(150);
-        digitalWrite(LED_PIN, LOW);
-        delay(150);
+      // Find the first unoccupied LED pin to test/flash
+      int blinkPin = -1;
+      for (int i = 0; i < NUM_LED_TEST_PINS; i++) {
+        if (!isPinOccupied(LED_TEST_PINS[i])) {
+          blinkPin = LED_TEST_PINS[i];
+          break;
+        }
       }
-      // Send handshake acknowledgment back to the web dashboard
+      
+      // Flash the LED if we found a free pin
+      if (blinkPin != -1) {
+        pinMode(blinkPin, OUTPUT);
+        for (int i = 0; i < 2; i++) {
+          digitalWrite(blinkPin, HIGH);
+          delay(150);
+          digitalWrite(blinkPin, LOW);
+          delay(150);
+        }
+      }
+      
+      // Always send handshake acknowledgment back to the web dashboard
       Serial.println("ARDUINO,READY");
     }
   }
@@ -401,12 +436,12 @@ export function Programmation() {
 
       <header className="flex flex-shrink-0 flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-2.5 border-b border-bench-border bg-bench-header-bg select-none gap-3 font-sans">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${isConnected ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-bench-surface text-bench-muted border-bench-border'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${isConnected ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-bench-surface text-bench-muted border-bench-border'}`}>
             <CpuIcon size={20} />
           </div>
           <div>
             <h1 className="text-lg font-semibold text-bench-text flex items-center gap-2">
-              <CodeIcon size={18} className="text-blue-400" /> Programming Workspace
+              <CodeIcon size={18} className="text-blue-600 dark:text-blue-400" /> Programming Workspace
             </h1>
             <div className="text-xs text-bench-muted flex items-center gap-2 mt-0.5">
               <span className="flex items-center gap-1">
@@ -474,10 +509,10 @@ export function Programmation() {
               onAnimationEnd={() => setShouldBlink(false)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded border transition-colors font-mono font-medium disabled:opacity-50 shadow-[0_0_10px_rgba(59,130,246,0.05)] cursor-pointer ${
                 isSavedVisual
-                  ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.1)] font-semibold'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-600/20 dark:text-emerald-400 dark:border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.1)] font-semibold'
                   : shouldBlink
-                  ? 'bg-blue-600/15 text-blue-400 hover:bg-blue-600/25 border-blue-500/35 animate-save-blink'
-                  : 'bg-blue-600/15 text-blue-400 hover:bg-blue-600/25 border-blue-500/35'
+                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 dark:bg-blue-600/15 dark:text-blue-400 dark:hover:bg-blue-600/25 dark:border-blue-500/35 animate-save-blink'
+                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 dark:bg-blue-600/15 dark:text-blue-400 dark:hover:bg-blue-600/25 dark:border-blue-500/35'
               }`}
               title="Save sketch to local storage"
             >
@@ -497,8 +532,8 @@ export function Programmation() {
               disabled={isCompiling || isUploading}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded font-mono font-bold border transition-colors disabled:opacity-50 ${
                 isConnected
-                  ? 'bg-amber-600/15 text-amber-400 hover:bg-amber-600/25 border-amber-500/35 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
-                  : 'bg-emerald-600/15 text-emerald-400 hover:bg-emerald-600/25 border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.05)]'
+                  ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200 dark:bg-amber-600/15 dark:text-amber-400 dark:hover:bg-amber-600/25 dark:border-amber-500/35 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
+                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-600/15 dark:text-emerald-400 dark:hover:bg-emerald-600/25 dark:border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.05)]'
               }`}
               title={isConnected ? 'Closes active browser terminal session before uploading' : 'Compile and flash to microcontroller'}
             >
