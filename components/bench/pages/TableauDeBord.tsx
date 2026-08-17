@@ -364,10 +364,10 @@ export function TableauDeBord() {
     return (
       <div className="p-6 max-w-5xl mx-auto flex flex-col gap-6 mt-6">
         <div className="text-center flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 dark:from-blue-400 dark:via-indigo-400 dark:to-emerald-400 bg-clip-text text-transparent">
             Arduino Device Connection
           </h1>
-          <p className="text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm text-bench-muted max-w-xl mx-auto leading-relaxed">
             Please connect your Arduino board via USB. Once the browser pairs with the serial device, we will validate the signal incoming stream.
           </p>
         </div>
@@ -403,20 +403,20 @@ export function TableauDeBord() {
             <div className="flex flex-col items-center gap-3 w-full">
               <div className={`w-14 h-14 rounded-full flex items-center justify-center border relative transition-all ${
                 isConnected
-                  ? 'bg-emerald-950/30 text-emerald-400 border-emerald-500/30'
-                  : 'bg-slate-900 text-slate-500 border-bench-border'
+                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/30'
+                  : 'bg-bench-subtle text-bench-muted border-bench-border dark:bg-slate-900 dark:text-slate-500'
               }`}>
                 {isConnected && (
-                  <span className="absolute inset-0 rounded-full border border-emerald-500/20 animate-ping opacity-75" />
+                  <span className="absolute inset-0 rounded-full border border-emerald-200 dark:border-emerald-500/20 animate-ping opacity-75" />
                 )}
                 <UsbIcon size={24} />
               </div>
 
               <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-bold text-slate-200">
+                <h3 className="text-sm font-bold text-bench-text">
                   {isConnected ? 'Device Connected Successfully' : 'Device Offline'}
                 </h3>
-                <p className="text-xs text-slate-400 leading-relaxed max-w-[240px] mx-auto">
+                <p className="text-xs text-bench-muted leading-relaxed max-w-[240px] mx-auto">
                   {isConnected
                     ? `Your ${boardName} was identified on the serial port interface.`
                     : 'Pair your board via USB serial link to stream physical sensors.'}
@@ -425,38 +425,38 @@ export function TableauDeBord() {
             </div>
 
             {isConnected ? (
-              <div className="flex flex-col gap-3 w-full border-t border-[#1f2937]/50 pt-4">
+              <div className="flex flex-col gap-3 w-full border-t border-[#1f2937]/30 dark:border-[#1f2937]/50 pt-4">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-500">Detected USB:</span>
-                  <span className="text-slate-300 font-bold">{stats.port && stats.port !== 'None' ? stats.port : 'Unknown'}</span>
+                  <span className="text-bench-muted">Detected USB:</span>
+                  <span className="text-bench-text font-bold">{stats.port && stats.port !== 'None' ? stats.port : 'Unknown'}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-500">Board Profile:</span>
+                  <span className="text-bench-muted">Board Profile:</span>
                   <select
                     value={resolveBoardProfile(selectedBoard || boardName)}
                     onChange={e => setSelectedBoard(e.target.value)}
-                    className="rounded border border-[#1f2937] bg-slate-950 px-2 py-0.5 text-xs text-blue-400 font-bold outline-none focus:border-blue-500 font-mono"
+                    className="rounded border border-bench-border bg-bench-bg px-2 py-0.5 text-xs text-blue-600 dark:text-blue-400 font-bold outline-none focus:border-blue-500 font-mono cursor-pointer"
                   >
                     {Object.keys(BOARD_FQBNS).map(name => (
-                      <option key={name} value={name}>{name}</option>
+                      <option key={name} value={name} className="bg-bench-surface text-bench-text">{name}</option>
                     ))}
                   </select>
                 </div>
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-500">Baud Rate:</span>
-                  <span className="text-slate-300">9600 bps</span>
+                  <span className="text-bench-muted">Baud Rate:</span>
+                  <span className="text-bench-text">9600 bps</span>
                 </div>
                 
                 <div className="flex gap-2.5 mt-2">
                   <button
                     onClick={sendHandshake}
                     disabled={handshakeStatus === 'sending'}
-                    className={`flex-1 py-2 rounded text-xs font-mono font-bold border transition-colors flex items-center justify-center gap-1.5 ${
+                    className={`flex-1 py-2 rounded text-xs font-mono font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                       handshakeStatus === 'success'
-                        ? 'bg-emerald-600/10 border-emerald-500 text-emerald-400'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-600/10 dark:border-emerald-500 dark:text-emerald-400'
                         : handshakeStatus === 'error'
-                          ? 'bg-red-600/10 border-red-500 text-red-400'
-                          : 'bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300'
+                          ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-600/10 dark:border-red-500 dark:text-red-400'
+                          : 'bg-bench-bg border-bench-border hover:border-bench-text/30 text-bench-text dark:bg-slate-950 dark:border-slate-800 dark:hover:border-slate-700 dark:text-slate-300'
                     }`}
                   >
                     {handshakeStatus === 'sending' ? (
@@ -471,7 +471,7 @@ export function TableauDeBord() {
                   
                   <button
                     onClick={disconnect}
-                    className="px-3.5 py-2 rounded border border-slate-800 text-xs font-mono text-slate-500 hover:text-red-400 hover:border-red-950/40 hover:bg-red-950/10 transition-colors"
+                    className="px-3.5 py-2 rounded border border-bench-border text-xs font-mono text-bench-muted hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-950/40 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors cursor-pointer"
                   >
                     Disconnect
                   </button>
@@ -495,22 +495,22 @@ export function TableauDeBord() {
           >
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-bench-border bg-bench-header-bg">
               <div className="flex items-center gap-2">
-                <TerminalIcon size={13} className={isConnected ? 'text-emerald-400 animate-pulse' : 'text-slate-500'} />
-                <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-300">
+                <TerminalIcon size={13} className={isConnected ? 'text-emerald-600 dark:text-emerald-400 animate-pulse' : 'text-bench-muted'} />
+                <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-bench-text">
                   Signal Stream Monitor (9600 Baud)
                 </span>
               </div>
               <span className={`text-[9px] font-mono border px-2 py-0.5 rounded-full flex items-center gap-1 ${
                 isConnected
-                  ? 'text-emerald-500 bg-emerald-950/20 border-emerald-800/40'
-                  : 'text-slate-500 bg-slate-900 border-slate-800'
+                  ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-500 dark:bg-emerald-950/20 dark:border-emerald-800/40'
+                  : 'text-bench-muted bg-bench-subtle border-bench-border dark:text-slate-500 dark:bg-slate-900 dark:border-slate-800'
               }`}>
-                {isConnected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                {isConnected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500 animate-pulse" />}
                 {isConnected ? 'ONLINE' : 'OFFLINE'}
               </span>
             </div>
 
-            <div className="p-4 flex-1 overflow-y-auto font-mono text-[10px] flex flex-col gap-0.5 bg-black/40 text-emerald-400 select-text min-h-[160px]">
+            <div className="p-4 flex-1 overflow-y-auto font-mono text-[10px] flex flex-col gap-0.5 bg-slate-950 text-emerald-400 select-text min-h-[160px] rounded-b-xl border-t border-bench-border">
               {isConnected ? (
                 rawLines.length > 0 ? (
                   rawLines.map((line, idx) => (
@@ -520,15 +520,15 @@ export function TableauDeBord() {
                     </div>
                   ))
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-1 py-8 text-center">
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-1 py-8 text-center">
                     <span className="animate-pulse">Waiting for serial stream telemetry...</span>
-                    <span className="text-[9px] max-w-[260px] leading-relaxed">(Make sure your Arduino code transmits values via Serial.print CSV or JSON formats)</span>
+                    <span className="text-[9px] max-w-[260px] leading-relaxed text-slate-500">(Make sure your Arduino code transmits values via Serial.print CSV or JSON formats)</span>
                   </div>
                 )
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-1.5 py-8 text-center">
-                  <span>Connect the device to watch real-time coordinate logs.</span>
-                  <span className="text-[9px] max-w-[280px] leading-relaxed">Ensure no other monitor window (such as the Arduino IDE Serial Monitor) is open.</span>
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 py-8 text-center font-mono">
+                  <span>DISCONNECTED</span>
+                  <span className="text-[9px] text-slate-500 mt-1">Connect your device to view raw data stream</span>
                 </div>
               )}
             </div>
