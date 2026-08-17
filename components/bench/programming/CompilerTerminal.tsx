@@ -37,12 +37,12 @@ export function CompilerTerminal({ logs, onClear }: CompilerTerminalProps) {
         className="flex-1 p-4 overflow-y-auto font-mono text-[13px] leading-relaxed select-text"
       >
         {logs.length === 0 ? (
-          <div className="text-bench-muted/60 italic font-mono">No output. Ready to compile.</div>
+          <div className="text-bench-muted italic font-mono">No output. Ready to compile.</div>
         ) : (
           <div className="space-y-1">
             {logs.map((log, i) => {
               // Colorize based on content
-              let colorClass = 'text-slate-700 dark:text-slate-300'
+              let colorClass = 'text-bench-text'
               if (log.includes('[Error]') || log.includes('error:')) colorClass = 'text-red-600 dark:text-red-400'
               else if (log.includes('[AI]')) colorClass = 'text-violet-600 dark:text-violet-400'
               else if (log.includes('[Compiler]')) colorClass = 'text-blue-600 dark:text-blue-400'
