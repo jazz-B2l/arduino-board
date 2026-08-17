@@ -19,7 +19,7 @@ interface BenchContextValue {
   resetThresholds:  () => void
   alarms:       AlarmEvent[]
   stateOf:      (metric: string) => MetricState
-  connect:          () => Promise<void>
+  connect:          (options?: { forcePrompt?: boolean }) => Promise<void>
   disconnect:       () => Promise<void>
   connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'error'
   serialError:      string | null
@@ -30,6 +30,7 @@ interface BenchContextValue {
   selectedBoard:    string | null
   setSelectedBoard: (board: string | null) => void
   boardName:        string
+  connectedUsbInfo: { usbVendorId?: number; usbProductId?: number } | null
 }
 
 const BenchContext = createContext<BenchContextValue | null>(null)
