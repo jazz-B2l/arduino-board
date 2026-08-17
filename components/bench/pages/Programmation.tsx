@@ -5,7 +5,7 @@ import { useBench } from '../BenchContext'
 import { CodeEditor } from '../programming/CodeEditor'
 import { AIAssistant } from '../programming/AIAssistant'
 import { CompilerTerminal } from '../programming/CompilerTerminal'
-import { CpuIcon, CodeIcon, PlayIcon, UploadIcon, RefreshCwIcon } from 'lucide-react'
+import { CpuIcon, CodeIcon, PlayIcon, UploadIcon, RefreshCwIcon, SaveIcon, CheckIcon } from 'lucide-react'
 import { BOARD_FQBNS, resolveBoardProfile } from '@/lib/types'
 
 const MIN_AI_WIDTH = 280
@@ -13,14 +13,7 @@ const MIN_EDITOR_WIDTH = 400
 const MIN_OUTPUT_HEIGHT = 100
 const MIN_EDITOR_HEIGHT = 180
 
-export function Programmation() {
-  const { connectionStatus, boardName, disconnect, connect, selectedBoard, setSelectedBoard } = useBench()
-  const effectiveBoard = resolveBoardProfile(boardName)
-  
-  const isConnected = connectionStatus === 'connected'
-  const protocolVersion = '1.0'
-  
-  const [code, setCode] = useState<string>(`// AI-Powered Test Bench Telemetry Sketch
+const DEFAULT_SKETCH = `// AI-Powered Test Bench Telemetry Sketch
 // Compatible with Arduino Uno & Arduino Mega 2560
 
 const int LED_PIN = 13;      // Builtin LED (usually red/amber on Arduino Uno/Mega)
@@ -107,7 +100,74 @@ void loop() {
     Serial.print(",");
     Serial.println(vibration, 2);
   }
-}`)
+}`
+
+export function Programmation() {
+  const { connectionStatus, boardName, disconnect, connect, selectedBoard, setSelectedBoard, connectedUsbInfo } = useBench()
+  const effectiveBoard = resolveBoardProfile(boardName)
+  
+  const isConnected = connectionStatus === 'connected'
+  const protocolVersion = '1.0'
+  
+  const [code, setCode] = useState<string>(DEFAULT_SKETCH)
+
+  // Load code from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCode = localStorage.getItem('bench_arduino_code')
+      if (savedCode) {
+        setCode(savedCode)
+      }
+    }
+  }, [])
+
+  const [isSavedVisual, setIsSavedVisual] = useState(false)
+  const [shouldBlink, setShouldBlink] = useState(false)
+  const blinkTimerRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (isSavedVisual) {
+      const timer = setTimeout(() => {
+        setIsSavedVisual(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [isSavedVisual])
+
+  useEffect(() => {
+    return () => {
+      if (blinkTimerRef.current) {
+        clearTimeout(blinkTimerRef.current)
+      }
+    }
+  }, [])
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode)
+    
+    if (blinkTimerRef.current) {
+      clearTimeout(blinkTimerRef.current)
+    }
+    
+    setShouldBlink(false)
+    
+    blinkTimerRef.current = setTimeout(() => {
+      setShouldBlink(true)
+    }, 1000)
+  }
+
+  const handleSave = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bench_arduino_code', code)
+      setIsSavedVisual(true)
+      setShouldBlink(false)
+      if (blinkTimerRef.current) {
+        clearTimeout(blinkTimerRef.current)
+        blinkTimerRef.current = null
+      }
+    }
+  }
+
   const [isCompiling, setIsCompiling] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [terminalOutput, setTerminalOutput] = useState<string[]>([])
@@ -134,7 +194,31 @@ void loop() {
       const data = await res.json()
       if (data.ports && data.ports.length > 0) {
         setPorts(data.ports)
-        if (!selectedPort || !data.ports.some((p: any) => p.address === selectedPort)) {
+        
+        let matchedAddress = ''
+        if (connectedUsbInfo) {
+          const matched = data.ports.find((p: any) => {
+            const cliVid = String(p.vid || '').toLowerCase()
+            const cliPid = String(p.pid || '').toLowerCase()
+            
+            const targetVidHex = `0x${connectedUsbInfo.usbVendorId?.toString(16).toLowerCase()}`
+            const targetPidHex = `0x${connectedUsbInfo.usbProductId?.toString(16).toLowerCase()}`
+            const targetVidDec = String(connectedUsbInfo.usbVendorId)
+            const targetPidDec = String(connectedUsbInfo.usbProductId)
+            
+            const isVidMatch = cliVid.includes(targetVidHex) || cliVid.includes(targetVidDec)
+            const isPidMatch = cliPid.includes(targetPidHex) || cliPid.includes(targetPidDec)
+            
+            return isVidMatch && isPidMatch
+          })
+          if (matched) {
+            matchedAddress = matched.address
+          }
+        }
+
+        if (matchedAddress) {
+          setSelectedPort(matchedAddress)
+        } else if (!selectedPort || !data.ports.some((p: any) => p.address === selectedPort)) {
           setSelectedPort(data.ports[0].address)
         }
       } else {
@@ -150,7 +234,7 @@ void loop() {
 
   useEffect(() => {
     fetchPorts()
-  }, [])
+  }, [connectedUsbInfo])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -288,6 +372,29 @@ void loop() {
 
   return (
     <div className="absolute inset-0 flex flex-col bg-[#0b0f19] text-slate-300 select-none overflow-hidden font-sans">
+      <style>{`
+        @keyframes save-btn-blink {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          25%, 75% {
+            opacity: 0.5;
+            background-color: rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+            transform: scale(1.05);
+            color: rgb(16, 185, 129);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-save-blink {
+          animation: save-btn-blink 0.6s ease-in-out 2;
+        }
+      `}</style>
       {(isDraggingV || isDraggingH) && (
         <div className="fixed inset-0 z-50 select-none" style={{ cursor: isDraggingV ? 'col-resize' : 'row-resize' }} />
       )}
@@ -363,6 +470,21 @@ void loop() {
           {/* Action buttons */}
           <div className="flex items-end gap-2 mt-3.5">
             <button
+              onClick={handleSave}
+              onAnimationEnd={() => setShouldBlink(false)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded border transition-colors font-mono font-medium disabled:opacity-50 shadow-[0_0_10px_rgba(59,130,246,0.05)] cursor-pointer ${
+                isSavedVisual
+                  ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.1)] font-semibold'
+                  : shouldBlink
+                  ? 'bg-blue-600/15 text-blue-400 hover:bg-blue-600/25 border-blue-500/35 animate-save-blink'
+                  : 'bg-blue-600/15 text-blue-400 hover:bg-blue-600/25 border-blue-500/35'
+              }`}
+              title="Save sketch to local storage"
+            >
+              {isSavedVisual ? <CheckIcon size={14} /> : <SaveIcon size={14} />}
+              {isSavedVisual ? 'Saved' : 'Save'}
+            </button>
+            <button
               onClick={handleCompile}
               disabled={isCompiling || isUploading}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors border border-slate-700 font-mono font-medium disabled:opacity-50"
@@ -390,7 +512,7 @@ void loop() {
       <div ref={containerRef} className="flex flex-1 min-h-0 relative select-text font-sans">
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex-1 min-h-0 relative">
-            <CodeEditor code={code} onChange={setCode} />
+            <CodeEditor code={code} onChange={handleCodeChange} />
           </div>
           <div onMouseDown={handleHMouseDown} className={`h-1.5 flex-shrink-0 cursor-row-resize transition-colors ${isDraggingH ? 'bg-blue-500' : 'bg-slate-800/80 hover:bg-blue-500/50'}`} title="Resize terminal output panel" />
           <div className="flex-shrink-0 bg-[#0a0e17] overflow-hidden" style={{ height: `${outputHeight}px` }}>
@@ -399,9 +521,10 @@ void loop() {
         </div>
         <div onMouseDown={handleVMouseDown} className={`w-1.5 flex-shrink-0 cursor-col-resize transition-colors ${isDraggingV ? 'bg-blue-500' : 'bg-slate-800/80 hover:bg-blue-500/50'}`} title="Resize AI Chatbot panel" />
         <div className="flex-shrink-0 bg-[#0d1220] flex flex-col overflow-hidden" style={{ width: `${aiWidth}px` }}>
-          <AIAssistant code={code} onCodeUpdate={setCode} />
+          <AIAssistant code={code} onCodeUpdate={handleCodeChange} />
         </div>
       </div>
+
     </div>
   )
 }
