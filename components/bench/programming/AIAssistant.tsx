@@ -184,7 +184,7 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-bench-bg relative">
+    <div className="flex flex-col h-full bg-bench-surface relative">
       {/* Sidebar Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-bench-border bg-bench-header-bg">
         <div className="flex items-center gap-3">
@@ -212,8 +212,8 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
               onChange={(e) => setProvider(e.target.value as 'gemini' | 'groq')}
               className="bg-transparent text-xs text-bench-text font-medium outline-none cursor-pointer appearance-none pr-5 z-10 w-full"
             >
-              <option value="gemini" className="bg-bench-bg">Gemini 1.5</option>
-              <option value="groq" className="bg-bench-bg">Groq 8B</option>
+              <option value="gemini" className="bg-bench-surface text-bench-text">Gemini 1.5</option>
+              <option value="groq" className="bg-bench-surface text-bench-text">Groq 8B</option>
             </select>
             <ChevronDownIcon size={14} className="text-bench-muted absolute right-2 pointer-events-none" />
           </div>
@@ -244,7 +244,7 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
       </div>
 
       {/* Chat Messages Panel */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5 select-text bg-bench-bg scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto p-4 space-y-5 select-text bg-bench-surface scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
         {messages.map((msg, index) => {
           const isUser = msg.role === 'user'
 
