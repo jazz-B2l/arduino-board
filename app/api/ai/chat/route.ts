@@ -9,10 +9,10 @@ export async function GET(req: Request) {
 
     let messages
     if (userId) {
-      const stmt = db.prepare('SELECT role, content, timestamp FROM messages WHERE user_id = ? ORDER BY id ASC')
+      const stmt = db.prepare('SELECT role, content, timestamp, provider FROM messages WHERE user_id = ? ORDER BY id ASC')
       messages = stmt.all(userId)
     } else {
-      const stmt = db.prepare('SELECT role, content, timestamp FROM messages WHERE session_id = ? ORDER BY id ASC')
+      const stmt = db.prepare('SELECT role, content, timestamp, provider FROM messages WHERE session_id = ? ORDER BY id ASC')
       messages = stmt.all(sessionId)
     }
 
@@ -73,8 +73,8 @@ export async function POST(req: Request) {
     }
 
     // Save user message to database
-    const insertStmt = db.prepare('INSERT INTO messages (session_id, user_id, role, content, timestamp) VALUES (?, ?, ?, ?, ?)')
-    insertStmt.run(sessionId, userId || null, userRole, userContent, userTimestamp)
+    const insertStmt = db.prepare('INSERT INTO messages (session_id, user_id, role, content, timestamp, provider) VALUES (?, ?, ?, ?, ?, ?)')
+    insertStmt.run(sessionId, userId || null, userRole, userContent, userTimestamp, null)
 
     // Fetch the full history to provide context to the AI
     let chatHistory: {role: string, content: string}[]
@@ -202,7 +202,7 @@ Keep responses concise, professional, and in English.`
       pruneStmt.run(userId, userId, MAX_MESSAGES_PER_USER - 1)
     }
 
-    insertStmt.run(sessionId, userId || null, 'assistant', aiContent, aiTimestamp)
+    insertStmt.run(sessionId, userId || null, 'assistant', aiContent, aiTimestamp, currentProvider)
 
     return NextResponse.json({ content: aiContent, timestamp: aiTimestamp })
   } catch (error: any) {
