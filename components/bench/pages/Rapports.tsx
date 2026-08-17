@@ -97,7 +97,7 @@ export function Rapports() {
 
   return (
     <div className="p-4 flex flex-col gap-4">
-      <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+      <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
         Reports &amp; CSV Export
       </h1>
 
@@ -106,11 +106,11 @@ export function Rapports() {
           <div
             key={exp.id}
             className="rounded-md border flex flex-col gap-4 p-5"
-            style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+            style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
           >
             <div className="flex items-center gap-2">
               <exp.icon size={16} style={{ color: exp.color }} />
-              <span className="text-sm font-semibold" style={{ color: '#e2e8f0' }}>
+              <span className="text-sm font-semibold" style={{ color: 'var(--bench-text)' }}>
                 {exp.title}
               </span>
             </div>
@@ -118,23 +118,23 @@ export function Rapports() {
             {/* Preview */}
             <div className="flex flex-col gap-2 text-xs font-mono">
               <div className="flex justify-between">
-                <span style={{ color: '#64748b' }}>Rows</span>
-                <span style={{ color: '#94a3b8' }}>{exp.rows.toLocaleString('en-US')}</span>
+                <span style={{ color: 'var(--bench-muted)' }}>Rows</span>
+                <span style={{ color: 'var(--bench-text)' }}>{exp.rows.toLocaleString('en-US')}</span>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span style={{ color: '#64748b' }}>Time Range</span>
-                <span className="text-[10px]" style={{ color: '#64748b' }}>{exp.timeRange}</span>
+                <span style={{ color: 'var(--bench-muted)' }}>Time Range</span>
+                <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{exp.timeRange}</span>
               </div>
               <div className="flex justify-between">
-                <span style={{ color: '#64748b' }}>Format</span>
-                <span style={{ color: '#94a3b8' }}>CSV (UTF-8, ; separator)</span>
+                <span style={{ color: 'var(--bench-muted)' }}>Format</span>
+                <span style={{ color: 'var(--bench-text)' }}>CSV (UTF-8, ; separator)</span>
               </div>
             </div>
 
             <button
               onClick={exp.onDownload}
               disabled={exp.rows === 0}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity disabled:opacity-30"
+              className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity disabled:opacity-30 cursor-pointer"
               style={{
                 borderColor:     exp.color,
                 color:           exp.color,
@@ -151,11 +151,11 @@ export function Rapports() {
       {/* Session summary */}
       <div
         className="rounded-md border p-4 text-xs font-mono"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
         <div
           className="text-[10px] uppercase tracking-widest mb-3 font-semibold"
-          style={{ color: '#475569' }}
+          style={{ color: 'var(--bench-muted)' }}
         >
           Session Summary
         </div>
@@ -167,8 +167,8 @@ export function Rapports() {
             { label: 'Source',           value: stats.port !== 'None' ? `Serial Port (${stats.port})` : 'Port Disconnected' },
           ].map(item => (
             <div key={item.label} className="flex flex-col gap-0.5">
-              <span style={{ color: '#475569' }}>{item.label}</span>
-              <span style={{ color: '#94a3b8' }}>{item.value}</span>
+              <span style={{ color: 'var(--bench-muted)' }}>{item.label}</span>
+              <span style={{ color: 'var(--bench-text)' }}>{item.value}</span>
             </div>
           ))}
         </div>

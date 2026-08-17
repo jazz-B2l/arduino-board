@@ -32,7 +32,7 @@ export function AppFooter() {
   return (
     <footer
       className="border-t px-4 py-1.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] font-mono"
-      style={{ backgroundColor: '#0d1220', borderColor: '#1f2937', color: '#64748b' }}
+      style={{ backgroundColor: 'var(--bench-header-bg)', borderColor: 'var(--bench-border)', color: 'var(--bench-muted)' }}
     >
       {/* System status */}
       <div className="flex items-center gap-1.5">
@@ -46,14 +46,14 @@ export function AppFooter() {
       <span className="opacity-30">|</span>
 
       {/* Elapsed */}
-      <span>Duration: <span style={{ color: '#94a3b8' }}>{formatDuration(elapsed)}</span></span>
+      <span>Duration: <span style={{ color: 'var(--bench-text)' }}>{formatDuration(elapsed)}</span></span>
 
       <span className="opacity-30">|</span>
 
       {/* Last frame */}
       <span>
         Last frame:{' '}
-        <span style={{ color: '#94a3b8' }}>
+        <span style={{ color: 'var(--bench-text)' }}>
           {latest ? new Date(latest.timestamp).toLocaleTimeString('en-US') : '--'}
         </span>
       </span>
@@ -72,18 +72,18 @@ export function AppFooter() {
                 height: `${6 + i * 2}px`,
                 backgroundColor: i < Math.ceil(signalQuality / 20)
                   ? '#10b981'
-                  : '#1f2937',
+                  : 'var(--bench-border)',
               }}
             />
           ))}
         </div>
-        <span style={{ color: '#94a3b8' }}>{signalQuality}%</span>
+        <span style={{ color: 'var(--bench-text)' }}>{signalQuality}%</span>
       </div>
 
       <span className="opacity-30">|</span>
 
       {/* Source */}
-      <span style={{ color: '#475569' }}>
+      <span style={{ color: 'var(--bench-muted)' }}>
         Source: {connectionStatus === 'connected' ? `Serial Port (${stats.port})` : connectionStatus === 'connecting' ? 'Connecting...' : 'Port Disconnected'}
       </span>
 

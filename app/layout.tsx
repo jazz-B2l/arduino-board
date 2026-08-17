@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { BenchProvider } from '@/components/bench/BenchContext'
 import { AuthProvider } from '@/components/auth/AuthContext'
+import { ThemeProvider } from '@/components/bench/ThemeContext'
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -23,7 +24,6 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'dark',
   themeColor: '#0a0e1a',
 }
 
@@ -33,12 +33,29 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-[#0a0e1a]`}>
-      <body className="antialiased font-sans min-h-screen">
+    <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-bench-bg`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.getItem('bench_theme') === 'light') {
+                  document.documentElement.classList.add('light');
+                } else {
+                  document.documentElement.classList.remove('light');
+                }
+              } catch (_) {}
+            `
+          }}
+        />
+      </head>
+      <body className="antialiased font-sans min-h-screen text-bench-text">
         <AuthProvider>
-          <BenchProvider>
-            {children}
-          </BenchProvider>
+          <ThemeProvider>
+            <BenchProvider>
+              {children}
+            </BenchProvider>
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

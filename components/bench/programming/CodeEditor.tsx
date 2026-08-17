@@ -1,6 +1,7 @@
 'use client'
 
 import Editor from '@monaco-editor/react'
+import { useTheme } from '../ThemeContext'
 
 interface CodeEditorProps {
   code: string
@@ -8,11 +9,13 @@ interface CodeEditorProps {
 }
 
 export function CodeEditor({ code, onChange }: CodeEditorProps) {
+  const { theme } = useTheme()
+
   return (
     <Editor
       height="100%"
       language="cpp"
-      theme="vs-dark"
+      theme={theme === 'light' ? 'vs' : 'vs-dark'}
       value={code}
       onChange={(value) => onChange(value || '')}
       options={{
@@ -26,7 +29,7 @@ export function CodeEditor({ code, onChange }: CodeEditorProps) {
         glyphMargin: false,
         folding: true,
       }}
-      loading={<div className="flex items-center justify-center h-full text-slate-500 text-sm">Loading Editor...</div>}
+      loading={<div className="flex items-center justify-center h-full text-bench-muted text-sm">Loading Editor...</div>}
     />
   )
 }

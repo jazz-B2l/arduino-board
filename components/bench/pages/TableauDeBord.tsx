@@ -396,7 +396,7 @@ export function TableauDeBord() {
           
           {/* Left panel: Connection control & handshake */}
           <div
-            className="md:col-span-5 rounded-xl border p-6 flex flex-col items-center text-center justify-between gap-5 relative overflow-hidden bg-[#111827] border-[#1f2937]"
+            className="md:col-span-5 rounded-xl border p-6 flex flex-col items-center text-center justify-between gap-5 relative overflow-hidden bg-bench-surface border-bench-border"
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
             
@@ -404,7 +404,7 @@ export function TableauDeBord() {
               <div className={`w-14 h-14 rounded-full flex items-center justify-center border relative transition-all ${
                 isConnected
                   ? 'bg-emerald-950/30 text-emerald-400 border-emerald-500/30'
-                  : 'bg-slate-900 text-slate-500 border-slate-800'
+                  : 'bg-slate-900 text-slate-500 border-bench-border'
               }`}>
                 {isConnected && (
                   <span className="absolute inset-0 rounded-full border border-emerald-500/20 animate-ping opacity-75" />
@@ -491,9 +491,9 @@ export function TableauDeBord() {
 
           {/* Right panel: Live signal log verification */}
           <div
-            className="md:col-span-7 border border-[#1f2937] rounded-xl overflow-hidden flex flex-col bg-[#090d16]"
+            className="md:col-span-7 border border-bench-border rounded-xl overflow-hidden flex flex-col bg-bench-panel-bg"
           >
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1f2937] bg-[#0d1220]">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-bench-border bg-bench-header-bg">
               <div className="flex items-center gap-2">
                 <TerminalIcon size={13} className={isConnected ? 'text-emerald-400 animate-pulse' : 'text-slate-500'} />
                 <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-300">
@@ -587,8 +587,8 @@ export function TableauDeBord() {
                 onClick={() => toggleChartSelect(chart.id)}
                 className={`flex flex-col gap-4 p-5 rounded-lg border text-left cursor-pointer transition-all ${
                   isSelected
-                    ? 'bg-[#151c2c] border-blue-500/50 shadow-[0_4px_15px_rgba(59,130,246,0.1)]'
-                    : 'bg-[#111827] border-[#1f2937] hover:border-slate-800'
+                    ? 'bg-bench-nav-active border-blue-500/50 shadow-[0_4px_15px_rgba(59,130,246,0.1)]'
+                    : 'bg-bench-surface border-bench-border hover:border-bench-muted/30'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -603,7 +603,7 @@ export function TableauDeBord() {
                       {chart.name}
                     </span>
                   </div>
-                  <span className="text-[9px] font-mono uppercase bg-[#1f2937]/50 px-2 py-0.5 rounded text-slate-500">
+                  <span className="text-[9px] font-mono uppercase bg-bench-border/50 px-2 py-0.5 rounded text-bench-muted">
                     {chart.id}
                   </span>
                 </div>
@@ -732,7 +732,7 @@ export function TableauDeBord() {
       {/* Main Connection Status Header Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch font-sans">
         <div
-          className="rounded-lg border p-4 flex items-center justify-between gap-4 relative overflow-hidden bg-[#111827] border-[#1f2937]"
+          className="rounded-lg border p-4 flex items-center justify-between gap-4 relative overflow-hidden bg-bench-surface border-bench-border"
         >
           <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-full blur-lg pointer-events-none" />
           <div className="flex items-center gap-3">
@@ -839,10 +839,10 @@ export function TableauDeBord() {
               return (
                 <div
                   key={w.id}
-                  className={`rounded-lg border bg-[#111827] border-[#1f2937] p-4 flex flex-col gap-3 shadow-md transition-all hover:border-[#3b82f6]/30 ${cardSpan}`}
+                  className={`rounded-lg border bg-bench-surface border-bench-border p-4 flex flex-col gap-3 shadow-md transition-all hover:border-[#3b82f6]/30 ${cardSpan}`}
                 >
                   {/* Widget Card Header */}
-                  <div className="flex items-center justify-between border-b border-[#1f2937]/50 pb-2">
+                  <div className="flex items-center justify-between border-b border-bench-border pb-2">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-xs font-bold text-slate-200">{chartName}</span>
                       <span className="text-[10px] font-mono text-slate-500">{metricLabel}</span>
@@ -897,8 +897,8 @@ export function TableauDeBord() {
       {isConnected && !demoMode && (
         <section aria-labelledby="live-console-heading" className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Live Terminal logs */}
-          <div className="lg:col-span-2 border border-[#1f2937] rounded-lg overflow-hidden flex flex-col bg-[#090d16]">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-[#1f2937] bg-[#0d1220]">
+          <div className="lg:col-span-2 border border-bench-border rounded-lg overflow-hidden flex flex-col bg-bench-panel-bg">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-bench-border bg-bench-header-bg">
               <div className="flex items-center gap-2">
                 <TerminalIcon size={13} className="text-emerald-400 animate-pulse" />
                 <span id="live-console-heading" className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-300">
@@ -928,7 +928,7 @@ export function TableauDeBord() {
           </div>
 
           {/* Quick Arduino Code Helper */}
-          <div className="border border-[#1f2937] rounded-lg p-4 bg-[#111827] flex flex-col gap-2 justify-between">
+          <div className="border border-bench-border rounded-lg p-4 bg-bench-surface flex flex-col gap-2 justify-between">
             <div className="flex flex-col gap-1.5">
               <span className="text-blue-400 font-semibold uppercase tracking-wider text-[9px] flex items-center gap-1.5">
                 <FileCode2Icon size={12} />
@@ -964,9 +964,9 @@ export function TableauDeBord() {
       {(activeSensors.rpm || activeSensors.vitesse || activeSensors.vibration || activeSensors.temp_carburant || activeSensors.temp_echap || activeSensors.temp_admission) && (
         <section aria-labelledby="thresholds-heading">
           <div
-            className="rounded-lg border p-5 flex flex-col gap-4 bg-[#111827] border-[#1f2937] shadow-lg"
+            className="rounded-lg border p-5 flex flex-col gap-4 bg-bench-surface border-bench-border shadow-lg"
           >
-            <div className="flex items-center justify-between border-b border-[#1f2937] pb-3">
+            <div className="flex items-center justify-between border-b border-bench-border pb-3">
               <div className="flex items-center gap-2">
                 <SlidersHorizontalIcon size={14} className="text-emerald-400" />
                 <span id="thresholds-heading" className="text-xs uppercase tracking-widest font-semibold text-slate-400">
@@ -1040,7 +1040,7 @@ export function TableauDeBord() {
       {/* ADD WIDGET MODAL DIALOG */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#111827] border border-[#1f2937] rounded-xl w-full max-w-md p-6 flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-200 font-sans">
+          <div className="bg-bench-surface border border-bench-border rounded-xl w-full max-w-md p-6 flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-200 font-sans">
             <button
               onClick={() => setIsAddModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-200"
@@ -1166,9 +1166,9 @@ function EmptyWidgetState() {
 function CustomMiniTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded border border-slate-800 bg-[#0d1220] p-2 text-[10px] font-mono leading-none">
-      <span className="text-slate-400">{payload[0].name}: </span>
-      <span className="text-slate-100 font-bold">{payload[0].value.toFixed(1)}</span>
+    <div className="rounded border border-bench-border bg-bench-header-bg p-2 text-[10px] font-mono leading-none">
+      <span className="text-bench-muted">{payload[0].name}: </span>
+      <span className="text-bench-text font-bold">{payload[0].value.toFixed(1)}</span>
     </div>
   )
 }
@@ -1480,9 +1480,9 @@ function WidgetKPICard({ metric, latest, history }: { metric: string; latest: an
 
   return (
     <div className="flex flex-col justify-center items-center h-44 gap-1 select-none font-sans font-mono">
-      <div className="flex items-baseline gap-1 bg-[#1e293b]/20 px-6 py-2.5 rounded-lg border border-slate-800/40">
-        <span className="text-3xl font-mono font-extrabold text-slate-100 tracking-tight">{val.toFixed(1)}</span>
-        <span className="text-xs font-mono text-slate-400 font-bold">{unit}</span>
+      <div className="flex items-baseline gap-1 bg-bench-subtle px-6 py-2.5 rounded-lg border border-bench-border">
+        <span className="text-3xl font-mono font-extrabold text-bench-text tracking-tight">{val.toFixed(1)}</span>
+        <span className="text-xs font-mono text-bench-muted font-bold">{unit}</span>
       </div>
 
       <div className="flex gap-4 mt-3 text-[10px] font-mono">

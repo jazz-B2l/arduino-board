@@ -36,7 +36,7 @@ export function AppNav() {
   return (
     <nav
       className="flex-shrink-0 w-[52px] md:w-44 border-r flex flex-col py-3 gap-0.5"
-      style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}
+      style={{ backgroundColor: 'var(--bench-header-bg)', borderColor: 'var(--bench-border)' }}
       aria-label="Main navigation"
     >
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -49,15 +49,15 @@ export function AppNav() {
             href={href}
             className="flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded text-sm transition-colors relative"
             style={{
-              backgroundColor: isActive ? '#1e293b' : 'transparent',
-              color: isActive ? '#e2e8f0' : '#64748b',
-              borderLeft: isActive ? '2px solid #3b82f6' : '2px solid transparent',
+              backgroundColor: isActive ? 'var(--bench-nav-active)' : 'transparent',
+              color: isActive ? 'var(--bench-text)' : 'var(--bench-muted)',
+              borderLeft: isActive ? '2px solid var(--bench-info)' : '2px solid transparent',
             }}
             aria-current={isActive ? 'page' : undefined}
           >
             <Icon
               size={16}
-              style={{ color: isActive ? '#3b82f6' : '#64748b', flexShrink: 0 }}
+              style={{ color: isActive ? 'var(--bench-info)' : 'var(--bench-muted)', flexShrink: 0 }}
             />
             <span className="hidden md:block font-medium truncate">{label}</span>
 

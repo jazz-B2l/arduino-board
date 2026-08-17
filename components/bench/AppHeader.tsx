@@ -33,22 +33,22 @@ export function AppHeader() {
         )}
         <header
           className="sticky top-0 z-40 flex items-center justify-between px-4 py-2 border-b"
-          style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}
+          style={{ backgroundColor: 'var(--bench-header-bg)', borderColor: 'var(--bench-border)' }}
         >
           {/* Logo + title */}
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded flex items-center justify-center font-mono font-bold text-sm"
-              style={{ backgroundColor: '#1f2937', color: '#3b82f6', border: '1px solid #3b82f6' }}
+              style={{ backgroundColor: 'var(--bench-border)', color: 'var(--bench-info)', border: '1px solid var(--bench-info)' }}
               aria-hidden="true"
             >
               TB
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#3b82f6' }}>
+              <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--bench-info)' }}>
                 Test Bench
               </span>
-              <span className="text-[10px]" style={{ color: '#64748b' }}>Monitoring Pro</span>
+              <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>Monitoring Pro</span>
             </div>
           </div>
 
@@ -62,19 +62,19 @@ export function AppHeader() {
           <EmergencyStop frozen={frozen} onFreeze={freeze} onResume={unfreeze} />
           
           {user && (
-            <div className="flex items-center gap-2.5 border-l border-[#1f2937] pl-3">
+            <div className="flex items-center gap-2.5 border-l border-bench-border pl-3">
               <Link href="/account" className="flex items-center gap-2 hover:opacity-85 transition-all">
                 <div className="w-6.5 h-6.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[9px] font-bold border border-blue-400/20">
                   {initials}
                 </div>
-                <span className="text-[10px] font-mono text-slate-400 hover:text-slate-200 transition-colors hidden md:inline max-w-[80px] truncate">
+                <span className="text-[10px] font-mono text-bench-muted hover:text-bench-text transition-colors hidden md:inline max-w-[80px] truncate">
                   {profile?.full_name || user.email?.split('@')[0]}
                 </span>
               </Link>
               <button
                 onClick={signOut}
                 title="Sign Out of Workspace"
-                className="p-1.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-950/20 transition-colors"
+                className="p-1.5 rounded text-bench-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
               >
                 <LogOutIcon size={12} />
               </button>

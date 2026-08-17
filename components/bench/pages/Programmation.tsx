@@ -371,7 +371,7 @@ export function Programmation() {
   }, [isDraggingV, isDraggingH, aiWidth, outputHeight])
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-[#0b0f19] text-slate-300 select-none overflow-hidden font-sans">
+    <div className="absolute inset-0 flex flex-col bg-bench-bg text-bench-text select-none overflow-hidden font-sans">
       <style>{`
         @keyframes save-btn-blink {
           0%, 100% {
@@ -399,16 +399,16 @@ export function Programmation() {
         <div className="fixed inset-0 z-50 select-none" style={{ cursor: isDraggingV ? 'col-resize' : 'row-resize' }} />
       )}
 
-      <header className="flex flex-shrink-0 flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-[#0d1220] select-none gap-3 font-sans">
+      <header className="flex flex-shrink-0 flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-2.5 border-b border-bench-border bg-bench-header-bg select-none gap-3 font-sans">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${isConnected ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-slate-900 text-slate-500 border-slate-800'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${isConnected ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-bench-surface text-bench-muted border-bench-border'}`}>
             <CpuIcon size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-bench-text flex items-center gap-2">
               <CodeIcon size={18} className="text-blue-400" /> Programming Workspace
             </h1>
-            <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+            <div className="text-xs text-bench-muted flex items-center gap-2 mt-0.5">
               <span className="flex items-center gap-1">
                 <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-600'}`}></span>
                 {isConnected ? 'Serial Connected' : 'Serial Standby'}
@@ -425,11 +425,11 @@ export function Programmation() {
         <div className="flex flex-wrap items-center gap-4 text-xs">
           {/* Target Board Select */}
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-slate-500 font-mono">Board Profile</span>
+            <span className="text-[10px] text-bench-muted font-mono">Board Profile</span>
             <select
               value={effectiveBoard}
               onChange={e => setSelectedBoard(e.target.value)}
-              className="rounded border border-slate-800 bg-slate-900 px-2.5 py-1 text-slate-300 outline-none focus:border-blue-500 font-mono"
+              className="rounded border border-bench-border bg-bench-surface px-2.5 py-1 text-bench-text outline-none focus:border-blue-500 font-mono cursor-pointer"
             >
               {Object.keys(BOARD_FQBNS).map(name => (
                 <option key={name} value={name}>{name}</option>
@@ -439,12 +439,12 @@ export function Programmation() {
 
           {/* COM Port Selector */}
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-slate-500 font-mono">Upload COM Port</span>
+            <span className="text-[10px] text-bench-muted font-mono">Upload COM Port</span>
             <div className="flex items-center gap-1.5">
               <select
                 value={selectedPort}
                 onChange={e => setSelectedPort(e.target.value)}
-                className="rounded border border-slate-800 bg-slate-900 px-2 py-1 text-slate-300 outline-none focus:border-blue-500 min-w-[100px] font-mono"
+                className="rounded border border-bench-border bg-bench-surface px-2 py-1 text-bench-text outline-none focus:border-blue-500 min-w-[100px] font-mono cursor-pointer"
               >
                 {ports.length > 0 ? (
                   ports.map(p => (
@@ -459,7 +459,7 @@ export function Programmation() {
               <button
                 onClick={fetchPorts}
                 disabled={isLoadingPorts}
-                className="p-1.5 rounded border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+                className="p-1.5 rounded border border-bench-border hover:bg-bench-subtle text-bench-muted hover:text-bench-text transition-colors cursor-pointer"
                 title="Rescan target serial ports"
               >
                 <RefreshCwIcon size={12} className={isLoadingPorts ? 'animate-spin' : ''} />
@@ -487,7 +487,7 @@ export function Programmation() {
             <button
               onClick={handleCompile}
               disabled={isCompiling || isUploading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors border border-slate-700 font-mono font-medium disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-bench-surface text-bench-text hover:bg-bench-subtle transition-colors border border-bench-border font-mono font-medium disabled:opacity-50 cursor-pointer"
               title="Verify sketch syntax and compile binary"
             >
               <PlayIcon size={14} /> Verify
@@ -514,13 +514,13 @@ export function Programmation() {
           <div className="flex-1 min-h-0 relative">
             <CodeEditor code={code} onChange={handleCodeChange} />
           </div>
-          <div onMouseDown={handleHMouseDown} className={`h-1.5 flex-shrink-0 cursor-row-resize transition-colors ${isDraggingH ? 'bg-blue-500' : 'bg-slate-800/80 hover:bg-blue-500/50'}`} title="Resize terminal output panel" />
-          <div className="flex-shrink-0 bg-[#0a0e17] overflow-hidden" style={{ height: `${outputHeight}px` }}>
+          <div onMouseDown={handleHMouseDown} className={`h-1.5 flex-shrink-0 cursor-row-resize transition-colors ${isDraggingH ? 'bg-blue-500' : 'bg-bench-border hover:bg-blue-500/50'}`} title="Resize terminal output panel" />
+          <div className="flex-shrink-0 bg-bench-bg overflow-hidden" style={{ height: `${outputHeight}px` }}>
             <CompilerTerminal logs={terminalOutput} onClear={() => setTerminalOutput([])} />
           </div>
         </div>
-        <div onMouseDown={handleVMouseDown} className={`w-1.5 flex-shrink-0 cursor-col-resize transition-colors ${isDraggingV ? 'bg-blue-500' : 'bg-slate-800/80 hover:bg-blue-500/50'}`} title="Resize AI Chatbot panel" />
-        <div className="flex-shrink-0 bg-[#0d1220] flex flex-col overflow-hidden" style={{ width: `${aiWidth}px` }}>
+        <div onMouseDown={handleVMouseDown} className={`w-1.5 flex-shrink-0 cursor-col-resize transition-colors ${isDraggingV ? 'bg-blue-500' : 'bg-bench-border hover:bg-blue-500/50'}`} title="Resize AI Chatbot panel" />
+        <div className="flex-shrink-0 bg-bench-bg flex flex-col overflow-hidden" style={{ width: `${aiWidth}px` }}>
           <AIAssistant code={code} onCodeUpdate={handleCodeChange} />
         </div>
       </div>

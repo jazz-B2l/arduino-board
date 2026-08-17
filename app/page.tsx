@@ -124,27 +124,27 @@ void loop() {
   }
 
   return (
-    <div className="min-h-screen text-[#e2e8f0] relative overflow-hidden flex flex-col font-sans" style={{ backgroundColor: '#0a0e1a' }}>
+    <div className="min-h-screen text-bench-text relative overflow-hidden flex flex-col font-sans bg-bench-bg">
       
       {/* Dynamic Background Gradients */}
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full opacity-20 pointer-events-none blur-[140px]" style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 80%)' }} />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-20 pointer-events-none blur-[140px]" style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 80%)' }} />
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full opacity-10 dark:opacity-20 pointer-events-none blur-[140px]" style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 80%)' }} />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-10 dark:opacity-20 pointer-events-none blur-[140px]" style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 80%)' }} />
       
       {/* Animated subtle grid overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--bench-muted) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
       {/* Header */}
-      <header className="relative z-10 border-b flex items-center justify-between px-6 py-4 max-w-7xl w-full mx-auto" style={{ borderColor: 'rgba(31, 41, 55, 0.5)' }}>
+      <header className="relative z-10 border-b flex items-center justify-between px-6 py-4 max-w-7xl w-full mx-auto border-bench-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded flex items-center justify-center font-mono font-bold text-sm border transition-transform hover:rotate-12" style={{ backgroundColor: '#111827', color: '#3b82f6', borderColor: '#3b82f6' }}>
+          <div className="w-8 h-8 rounded flex items-center justify-center font-mono font-bold text-sm border transition-transform hover:rotate-12" style={{ backgroundColor: 'var(--bench-surface)', color: '#3b82f6', borderColor: '#3b82f6' }}>
             A#
           </div>
           <span className="text-base font-bold tracking-widest uppercase bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
             Arduino#board
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400" style={{ borderColor: '#1f2937', color: '#94a3b8' }}>
+        <div className="flex items-center gap-4 animate-fade-in">
+          <Link href="/dashboard" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400 border-bench-border text-bench-muted">
             Direct Access
           </Link>
           <Link href="/dashboard" className="px-4 py-1.5 rounded text-xs font-mono font-semibold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]" style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}>
@@ -166,12 +166,12 @@ void loop() {
             
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
               The telemetry dashboard for <br />
-              <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent animate-gradient-text">
                 Arduino#board
               </span>
             </h1>
 
-            <p className="text-sm md:text-base text-slate-400 leading-relaxed max-w-xl">
+            <p className="text-sm md:text-base text-bench-muted leading-relaxed max-w-xl">
               Visualize, analyze, and record physical signals from your mechanical or thermal test bench in real time. Direct connection without any third-party software, thanks to the standard Web Serial API.
             </p>
 
@@ -186,8 +186,7 @@ void loop() {
               </Link>
               <a
                 href="#features"
-                className="flex items-center gap-2 px-6 py-3.5 rounded border text-sm font-mono font-bold transition-all hover:bg-slate-800/30"
-                style={{ borderColor: '#1f2937', color: '#94a3b8' }}
+                className="flex items-center gap-2 px-6 py-3.5 rounded border text-sm font-mono font-bold transition-all hover:bg-bench-subtle border-bench-border text-bench-muted"
               >
                 Discover
               </a>
@@ -197,50 +196,49 @@ void loop() {
           {/* Interactive Simulated Preview Card */}
           <div className="lg:col-span-5 flex justify-center">
             <div
-              className="w-full max-w-sm rounded-lg border p-5 flex flex-col gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all hover:border-blue-500/50"
-              style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+              className="w-full max-w-sm rounded-lg border p-5 flex flex-col gap-4 shadow-xl transition-all hover:border-blue-500/50 bg-bench-surface border-bench-border"
             >
               {/* Card Header */}
-              <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: '#1f2937' }}>
+              <div className="flex items-center justify-between border-b pb-3 border-bench-border">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Live Preview</span>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-bench-muted">Live Preview</span>
                 </div>
-                <div className="text-[10px] font-mono text-emerald-400 bg-emerald-950/20 border border-emerald-800/40 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <div className="text-[10px] font-mono text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <WifiIcon size={10} /> 9600 bps
                 </div>
               </div>
 
               {/* Simulated Metrics */}
               <div className="flex flex-col gap-3.5">
-                <div className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded border" style={{ borderColor: 'rgba(31,41,55,0.4)' }}>
-                  <span className="text-xs text-slate-400">Engine Speed</span>
+                <div className="flex justify-between items-center bg-bench-bg p-2.5 rounded border border-bench-border">
+                  <span className="text-xs text-bench-muted">Engine Speed</span>
                   <div className="flex flex-col items-end">
-                    <span className="text-sm font-mono font-bold text-blue-400">{preview.rpm.toLocaleString('en-US')}</span>
-                    <span className="text-[9px] text-slate-500 font-mono">rpm</span>
+                    <span className="text-sm font-mono font-bold text-blue-500">{preview.rpm.toLocaleString('en-US')}</span>
+                    <span className="text-[9px] text-bench-muted font-mono">rpm</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded border" style={{ borderColor: 'rgba(31,41,55,0.4)' }}>
-                  <span className="text-xs text-slate-400">Exhaust Temp</span>
+                <div className="flex justify-between items-center bg-bench-bg p-2.5 rounded border border-bench-border">
+                  <span className="text-xs text-bench-muted">Exhaust Temp</span>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-mono font-bold text-amber-500">{preview.temp_echap.toFixed(1)}</span>
-                    <span className="text-[9px] text-slate-500 font-mono">°C</span>
+                    <span className="text-[9px] text-bench-muted font-mono">°C</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded border" style={{ borderColor: 'rgba(31,41,55,0.4)' }}>
-                  <span className="text-xs text-slate-400">Vibration G-Force</span>
+                <div className="flex justify-between items-center bg-bench-bg p-2.5 rounded border border-bench-border">
+                  <span className="text-xs text-bench-muted">Vibration G-Force</span>
                   <div className="flex flex-col items-end">
-                    <span className="text-sm font-mono font-bold text-red-400">{preview.vibration.toFixed(2)}</span>
-                    <span className="text-[9px] text-slate-500 font-mono">m/s²</span>
+                    <span className="text-sm font-mono font-bold text-red-500">{preview.vibration.toFixed(2)}</span>
+                    <span className="text-[9px] text-bench-muted font-mono">m/s²</span>
                   </div>
                 </div>
               </div>
 
               {/* Dynamic waveform visualizer */}
-              <div className="h-14 rounded flex items-end gap-[3px] p-2 bg-black/40 overflow-hidden relative">
-                <span className="absolute top-2 left-2 text-[9px] font-mono text-slate-600">STREAM RATE — 1 HZ</span>
+              <div className="h-14 rounded flex items-end gap-[3px] p-2 bg-black/5 dark:bg-black/40 overflow-hidden relative">
+                <span className="absolute top-2 left-2 text-[9px] font-mono text-bench-muted/60">STREAM RATE — 1 HZ</span>
                 {Array.from({ length: 28 }).map((_, i) => {
                   const h = mounted
                     ? 15 + Math.sin((preview.timestamp / 1000) + i * 0.4) * 12 + Math.random() * 8
@@ -262,12 +260,12 @@ void loop() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="flex flex-col gap-12">
+        <section id="features" className="flex flex-col gap-12 animate-fade-in">
           <div className="flex flex-col gap-2 items-center text-center">
-            <h2 className="text-[11px] font-mono uppercase tracking-widest text-blue-400 font-semibold">
+            <h2 className="text-[11px] font-mono uppercase tracking-widest text-blue-500 font-semibold">
               Key Features
             </h2>
-            <h3 className="text-2xl md:text-4xl font-bold tracking-tight">
+            <h3 className="text-2xl md:text-4xl font-bold tracking-tight text-bench-text">
               A complete workstation in your browser
             </h3>
           </div>
@@ -313,14 +311,13 @@ void loop() {
             ].map((f, i) => (
               <div
                 key={i}
-                className="rounded-lg border p-6 flex flex-col gap-3 group transition-all hover:scale-[1.01] hover:border-slate-700/60"
-                style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+                className="rounded-lg border p-6 flex flex-col gap-3 group transition-all hover:scale-[1.01] hover:border-bench-muted bg-bench-surface border-bench-border"
               >
                 <div className="w-10 h-10 rounded flex items-center justify-center mb-2 transition-transform group-hover:scale-110" style={{ backgroundColor: `${f.color}18`, color: f.color, border: `1px solid ${f.color}33` }}>
                   <f.icon size={18} />
                 </div>
-                <h4 className="text-sm font-bold text-slate-100">{f.title}</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">{f.desc}</p>
+                <h4 className="text-sm font-bold text-bench-text">{f.title}</h4>
+                <p className="text-xs text-bench-muted leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -329,44 +326,44 @@ void loop() {
         {/* Integration / Code Guide Section */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 flex flex-col gap-6 text-left">
-            <h2 className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-semibold">
+            <h2 className="text-[11px] font-mono uppercase tracking-widest text-emerald-500 font-semibold">
               How it works?
             </h2>
-            <h3 className="text-2xl md:text-3xl font-bold tracking-tight">
+            <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-bench-text">
               Software Integration Simplicity
             </h3>
             
             <div className="flex flex-col gap-4 text-xs">
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-slate-900 border flex items-center justify-center font-mono font-bold text-slate-400" style={{ borderColor: '#1f2937' }}>1</div>
+                <div className="w-6 h-6 rounded-full bg-bench-surface border flex items-center justify-center font-mono font-bold text-bench-muted border-bench-border">1</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-200">Program your Arduino</p>
-                  <p className="text-slate-400 mt-0.5">Write variables read on the serial port in JSON or CSV format.</p>
+                  <p className="font-semibold text-bench-text">Program your Arduino</p>
+                  <p className="text-bench-muted mt-0.5">Write variables read on the serial port in JSON or CSV format.</p>
                 </div>
               </div>
               
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-slate-900 border flex items-center justify-center font-mono font-bold text-slate-400" style={{ borderColor: '#1f2937' }}>2</div>
+                <div className="w-6 h-6 rounded-full bg-bench-surface border flex items-center justify-center font-mono font-bold text-bench-muted border-bench-border">2</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-200">Connect the USB Device</p>
-                  <p className="text-slate-400 mt-0.5">Plug in the Arduino and open the console on a desktop-compatible browser.</p>
+                  <p className="font-semibold text-bench-text">Connect the USB Device</p>
+                  <p className="text-bench-muted mt-0.5">Plug in the Arduino and open the console on a desktop-compatible browser.</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-slate-900 border flex items-center justify-center font-mono font-bold text-slate-400" style={{ borderColor: '#1f2937' }}>3</div>
+                <div className="w-6 h-6 rounded-full bg-bench-surface border flex items-center justify-center font-mono font-bold text-bench-muted border-bench-border">3</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-200">Monitor Instantly</p>
-                  <p className="text-slate-400 mt-0.5">Click connect, select the COM/USB port, and observe the charts.</p>
+                  <p className="font-semibold text-bench-text">Monitor Instantly</p>
+                  <p className="text-bench-muted mt-0.5">Click connect, select the COM/USB port, and observe the charts.</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Interactive Code Snippet Display */}
-          <div className="lg:col-span-7 w-full flex flex-col rounded-lg border overflow-hidden shadow-2xl" style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}>
+          <div className="lg:col-span-7 w-full flex flex-col rounded-lg border overflow-hidden shadow-2xl bg-bench-surface border-bench-border">
             {/* Terminal Header */}
-            <div className="flex items-center justify-between px-4 py-2 border-b bg-slate-950/60" style={{ borderColor: '#1f2937' }}>
+            <div className="flex items-center justify-between px-4 py-2 border-b bg-black/5 dark:bg-black/40 border-bench-border">
               <div className="flex gap-2">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
                 <div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]" />
@@ -374,16 +371,16 @@ void loop() {
               </div>
               
               {/* Tab Selector */}
-              <div className="flex rounded border bg-slate-900 overflow-hidden text-[10px] font-mono" style={{ borderColor: '#1f2937' }}>
+              <div className="flex rounded border bg-bench-bg overflow-hidden text-[10px] font-mono border-bench-border">
                 <button
                   onClick={() => setActiveTab('json')}
-                  className={`px-3 py-1 transition-all ${activeTab === 'json' ? 'bg-[#3b82f6] text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`px-3 py-1 transition-all cursor-pointer ${activeTab === 'json' ? 'bg-[#3b82f6] text-white' : 'text-bench-muted hover:text-bench-text'}`}
                 >
                   JSON Format
                 </button>
                 <button
                   onClick={() => setActiveTab('csv')}
-                  className={`px-3 py-1 transition-all ${activeTab === 'csv' ? 'bg-[#3b82f6] text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`px-3 py-1 transition-all cursor-pointer ${activeTab === 'csv' ? 'bg-[#3b82f6] text-white' : 'text-bench-muted hover:text-bench-text'}`}
                 >
                   CSV Format
                 </button>
@@ -391,8 +388,7 @@ void loop() {
 
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-slate-900 border text-slate-400 hover:text-slate-200 transition-colors"
-                style={{ borderColor: '#1f2937' }}
+                className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-bench-bg border text-bench-muted hover:text-bench-text transition-colors border-bench-border cursor-pointer"
               >
                 <FileCode2Icon size={11} />
                 {copied ? 'Copied!' : 'Copy'}
@@ -400,9 +396,9 @@ void loop() {
             </div>
 
             {/* Terminal Content */}
-            <div className="p-4 overflow-x-auto max-h-[300px] text-[11px] font-mono text-left leading-relaxed text-slate-300 select-text">
+            <div className="p-4 overflow-x-auto max-h-[300px] text-[11px] font-mono text-left leading-relaxed text-bench-text select-text bg-bench-bg">
               <pre>
-                <code>{activeTab === 'json' ? arduinoJsonCode : arduinoCsvCode}</code>
+                <code className="font-mono">{activeTab === 'json' ? arduinoJsonCode : arduinoCsvCode}</code>
               </pre>
             </div>
           </div>
@@ -410,16 +406,15 @@ void loop() {
 
         {/* CTA Area */}
         <section
-          className="rounded-xl border p-8 md:p-12 text-center flex flex-col gap-6 items-center relative overflow-hidden"
-          style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+          className="rounded-xl border p-8 md:p-12 text-center flex flex-col gap-6 items-center relative overflow-hidden bg-bench-surface border-bench-border"
         >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 opacity-10 blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)' }} />
           
           <CpuIcon size={40} className="text-blue-400 animate-pulse" />
-          <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+          <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight text-bench-text">
             Ready to launch acquisition on your test bench?
           </h3>
-          <p className="text-xs md:text-sm text-slate-400 max-w-lg leading-relaxed">
+          <p className="text-xs md:text-sm text-bench-muted max-w-lg leading-relaxed">
             No account required, no installation. Plug in your Arduino and access your physical data directly.
           </p>
           <Link
@@ -435,7 +430,7 @@ void loop() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t py-6 px-6 text-center text-[10px] font-mono text-slate-600 relative z-10" style={{ borderColor: 'rgba(31, 41, 55, 0.4)' }}>
+      <footer className="mt-auto border-t py-6 px-6 text-center text-[10px] font-mono text-bench-muted/60 relative z-10 border-bench-border">
         <p className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
           <span>&copy; {new Date().getFullYear()} Arduino#board. Open Source Telemetry.</span>
           <span className="flex items-center gap-1.5">

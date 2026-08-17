@@ -155,7 +155,7 @@ export function AnalogGauge({
         key={i}
         x1={p1.x} y1={p1.y}
         x2={p2.x} y2={p2.y}
-        stroke="#374151"
+        stroke="var(--bench-border)"
         strokeWidth={i % 5 === 0 ? 2 : 1}
       />
     )
@@ -176,7 +176,7 @@ export function AnalogGauge({
         <path
           d={describeArc(cx, cy, trackR, ARC_START_DEG, ARC_START_DEG + ARC_SWEEP)}
           fill="none"
-          stroke="#1f2937"
+          stroke="var(--bench-border)"
           strokeWidth={trackWidth}
           strokeLinecap="round"
         />
@@ -226,7 +226,7 @@ export function AnalogGauge({
 
         {/* Center cap */}
         <circle cx={cx} cy={cy} r={size * 0.035} fill={needleColor} />
-        <circle cx={cx} cy={cy} r={size * 0.018} fill="#0a0e1a" />
+        <circle cx={cx} cy={cy} r={size * 0.018} fill="var(--bench-bg)" />
 
         {/* Value text */}
         <text
@@ -248,7 +248,7 @@ export function AnalogGauge({
           textAnchor="middle"
           fontSize={size * 0.072}
           fontFamily="var(--font-mono)"
-          fill="#64748b"
+          fill="var(--bench-muted)"
         >
           {unit}
         </text>
@@ -256,7 +256,7 @@ export function AnalogGauge({
 
       <span
         className="text-xs font-medium tracking-widest uppercase text-center"
-        style={{ color: '#94a3b8', letterSpacing: '0.1em', fontFamily: 'var(--font-sans)' }}
+        style={{ color: 'var(--bench-text)', letterSpacing: '0.1em', fontFamily: 'var(--font-sans)' }}
       >
         {label}
       </span>

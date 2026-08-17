@@ -21,20 +21,20 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
 
   return (
     <div
-      className="rounded-md border flex flex-col"
-      style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+      className="rounded-md border flex flex-col shadow-sm"
+      style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
     >
       <div
         className="flex items-center gap-2 px-4 py-2 border-b"
-        style={{ borderColor: '#1f2937' }}
+        style={{ borderColor: 'var(--bench-border)' }}
       >
         <AlertTriangleIcon size={14} style={{ color: '#f59e0b' }} />
-        <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
-          Alarmes récentes
+        <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--bench-text)' }}>
+          Recent Alarms
         </span>
         {alarms.length > 0 && (
           <span
-            className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full"
+            className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full font-bold"
             style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444' }}
           >
             {alarms.length}
@@ -42,10 +42,10 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
         )}
       </div>
 
-      <div className="flex flex-col divide-y" style={{ borderColor: '#1f2937' }}>
+      <div className="flex flex-col divide-y" style={{ borderColor: 'var(--bench-border)' }}>
         {shown.length === 0 ? (
-          <div className="px-4 py-6 text-center text-xs" style={{ color: '#475569' }}>
-            Aucune alarme — système nominal
+          <div className="px-4 py-6 text-center text-xs" style={{ color: 'var(--bench-muted)' }}>
+            No active alarms — system nominal
           </div>
         ) : (
           shown.map(alarm => (
@@ -62,10 +62,10 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
               }
 
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium truncate" style={{ color: '#e2e8f0' }}>
+                <div className="text-xs font-semibold truncate" style={{ color: 'var(--bench-text)' }}>
                   {METRIC_LABELS[alarm.metric] ?? alarm.metric}
                 </div>
-                <div className="text-[10px] font-mono" style={{ color: '#64748b' }}>
+                <div className="text-[10px] font-mono" style={{ color: 'var(--bench-muted)' }}>
                   {alarm.value.toFixed(alarm.metric === 'rpm' ? 0 : 2)}{' '}
                   {METRIC_UNITS[alarm.metric] ?? ''}
                 </div>
@@ -81,7 +81,7 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
                 >
                   {alarm.level}
                 </span>
-                <span className="text-[10px]" style={{ color: '#475569' }}>{relativeTime(alarm.timestamp)}</span>
+                <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{relativeTime(alarm.timestamp)}</span>
               </div>
             </div>
           ))

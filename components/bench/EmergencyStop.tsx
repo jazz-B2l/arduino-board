@@ -17,15 +17,15 @@ export function EmergencyStop({ frozen, onFreeze, onResume }: EmergencyStopProps
         <span className="text-xs font-mono" style={{ color: '#f59e0b' }}>Confirm resume?</span>
         <button
           onClick={() => { onResume(); setConfirming(false) }}
-          className="px-3 py-1.5 rounded text-xs font-mono font-semibold border transition-colors"
+          className="px-3 py-1.5 rounded text-xs font-mono font-semibold border transition-colors cursor-pointer"
           style={{ borderColor: '#10b981', color: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)' }}
         >
           Resume
         </button>
         <button
           onClick={() => setConfirming(false)}
-          className="px-3 py-1.5 rounded text-xs font-mono border transition-colors"
-          style={{ borderColor: '#1f2937', color: '#64748b', backgroundColor: '#111827' }}
+          className="px-3 py-1.5 rounded text-xs font-mono border transition-colors cursor-pointer"
+          style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-muted)', backgroundColor: 'var(--bench-surface)' }}
         >
           Cancel
         </button>

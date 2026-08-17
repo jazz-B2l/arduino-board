@@ -139,21 +139,21 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
     const parts = content.split(/(```(?:cpp|arduino)?[\s\S]*?```)/g);
     
     return (
-      <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-slate-300">
+      <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-bench-text">
         {parts.map((part, idx) => {
           if (part.startsWith('```')) {
             const codeText = part.replace(/```(?:cpp|arduino)?\n?/, '').replace(/```$/, '').trim();
             return (
-              <div key={idx} className="flex flex-col rounded-md overflow-hidden bg-[#090d16] border border-slate-800 my-1">
-                <div className="flex items-center justify-between px-3 py-1.5 bg-[#0f1422] border-b border-slate-800 text-xs font-mono text-slate-400">
+              <div key={idx} className="flex flex-col rounded-md overflow-hidden bg-bench-bg border border-bench-border my-1 shadow-inner">
+                <div className="flex items-center justify-between px-3 py-1.5 bg-bench-header-bg border-b border-bench-border text-xs font-mono text-bench-muted">
                   <span className="flex items-center gap-1.5"><CodeIcon size={14} /> C++</span>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => copyToClipboard(codeText)}
-                      className="hover:text-slate-200 transition-colors flex items-center gap-1"
+                      className="hover:text-bench-text transition-colors flex items-center gap-1 cursor-pointer"
                       title="Copy"
                     >
-                      {copiedCode === codeText ? <CheckIcon size={14} className="text-emerald-400" /> : <CopyIcon size={14} />}
+                      {copiedCode === codeText ? <CheckIcon size={14} className="text-emerald-500" /> : <CopyIcon size={14} />}
                       {copiedCode === codeText ? 'Copied' : 'Copy'}
                     </button>
                     <button 
@@ -161,14 +161,14 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
                         onCodeUpdate(codeText)
                         setToast({ message: "Code snippet loaded into the editor!", type: "success" })
                       }}
-                      className="text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1 font-bold ml-2"
+                      className="text-purple-600 dark:text-purple-400 hover:text-purple-500 transition-colors flex items-center gap-1 font-bold ml-2 cursor-pointer"
                       title="Insert"
                     >
                       <SparklesIcon size={14} /> Insert
                     </button>
                   </div>
                 </div>
-                <pre className="p-3 overflow-x-auto text-[13px] font-mono text-slate-200 select-text">
+                <pre className="p-3 overflow-x-auto text-[13px] font-mono text-bench-text select-text bg-bench-bg">
                   <code>{codeText}</code>
                 </pre>
               </div>
@@ -184,9 +184,9 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0d1220] relative">
+    <div className="flex flex-col h-full bg-bench-bg relative">
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/60 bg-[#0d1220]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-bench-border bg-bench-header-bg">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg overflow-hidden shadow-sm shadow-purple-900/50 flex items-center justify-center flex-shrink-0">
             {provider === 'gemini' ? (
@@ -196,8 +196,8 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
             )}
           </div>
           <div className="flex flex-col">
-            <h2 className="text-sm font-semibold text-slate-200 leading-tight">Arduino Copilot</h2>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono mt-0.5">
+            <h2 className="text-sm font-semibold text-bench-text leading-tight">Arduino Copilot</h2>
+            <div className="flex items-center gap-1.5 text-xs text-bench-muted font-mono mt-0.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               {provider === 'gemini' ? 'Gemini 1.5' : 'Groq 8B'}
             </div>
@@ -206,20 +206,20 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
         
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          <div className="relative flex items-center bg-slate-900/80 hover:bg-slate-800 border border-slate-700/50 rounded-md px-2 py-1 transition-colors cursor-pointer focus-within:border-purple-500/50">
+          <div className="relative flex items-center bg-bench-bg hover:bg-bench-subtle border border-bench-border rounded-md px-2 py-1 transition-colors cursor-pointer focus-within:border-purple-500/50">
             <select 
               value={provider} 
               onChange={(e) => setProvider(e.target.value as 'gemini' | 'groq')}
-              className="bg-transparent text-xs text-slate-300 font-medium outline-none cursor-pointer appearance-none pr-5 z-10 w-full"
+              className="bg-transparent text-xs text-bench-text font-medium outline-none cursor-pointer appearance-none pr-5 z-10 w-full"
             >
-              <option value="gemini" className="bg-slate-900">Gemini 1.5</option>
-              <option value="groq" className="bg-slate-900">Groq 8B</option>
+              <option value="gemini" className="bg-bench-bg">Gemini 1.5</option>
+              <option value="groq" className="bg-bench-bg">Groq 8B</option>
             </select>
-            <ChevronDownIcon size={14} className="text-slate-400 absolute right-2 pointer-events-none" />
+            <ChevronDownIcon size={14} className="text-bench-muted absolute right-2 pointer-events-none" />
           </div>
           <button 
             onClick={handleClearChat}
-            className="p-1.5 rounded-md text-slate-400 hover:text-red-400 hover:bg-slate-800/50 transition-colors"
+            className="p-1.5 rounded-md text-bench-muted hover:text-red-500 hover:bg-bench-subtle transition-colors cursor-pointer"
             title="Clear Chat History"
           >
             <Trash2Icon size={16} />
@@ -228,23 +228,23 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
       </div>
 
       {/* Quick Actions Toolbar */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800/60 bg-[#0d1220]">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-bench-border bg-bench-header-bg">
         <button 
           onClick={() => handleSend("Explain the current code in the editor")}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-bench-muted hover:text-bench-text hover:bg-bench-subtle transition-colors cursor-pointer"
         >
           <BookOpenIcon size={16} /> Explain Code
         </button>
         <button 
           onClick={() => handleSend("Fix any potential errors in the current code")}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-bench-muted hover:text-bench-text hover:bg-bench-subtle transition-colors cursor-pointer"
         >
           <WrenchIcon size={16} /> Fix Errors
         </button>
       </div>
 
       {/* Chat Messages Panel */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5 select-text bg-[#0a0f18] scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto p-4 space-y-5 select-text bg-bench-bg scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
         {messages.map((msg, index) => {
           const isUser = msg.role === 'user'
 
@@ -259,19 +259,19 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
                       <img src="/gemini-logo.png" alt="Gemini" className="w-full h-full object-cover" />
                     )}
                   </div>
-                  <span className="text-xs font-medium text-slate-400">Copilot</span>
-                  {msg.timestamp && <span className="text-[10px] text-slate-600 ml-1">{msg.timestamp}</span>}
+                  <span className="text-xs font-medium text-bench-muted">Copilot</span>
+                  {msg.timestamp && <span className="text-[10px] text-bench-muted/60 ml-1">{msg.timestamp}</span>}
                 </div>
               )}
               
               <div 
-                className={`max-w-[90%] ${isUser ? 'bg-indigo-600/15 text-indigo-100 rounded-2xl rounded-tr-sm px-4 py-3 border border-indigo-500/20 shadow-sm' : 'text-slate-300 w-full'}`}
+                className={`max-w-[90%] ${isUser ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 rounded-2xl rounded-tr-sm px-4 py-3 border border-indigo-200 dark:border-indigo-500/20 shadow-sm' : 'text-bench-text w-full'}`}
               >
                 {renderContent(msg.content, isUser)}
               </div>
 
               {isUser && msg.timestamp && (
-                <span className="text-[10px] text-slate-600 mt-1">{msg.timestamp}</span>
+                <span className="text-[10px] text-bench-muted/60 mt-1">{msg.timestamp}</span>
               )}
             </div>
           )
@@ -287,10 +287,10 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
                   <img src="/groq-logo.png" alt="Groq" className="w-full h-full object-cover" />
                 )}
               </div>
-              <span className="text-xs font-medium text-slate-400">Copilot</span>
+              <span className="text-xs font-medium text-bench-muted">Copilot</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-500 text-sm px-2">
-              <LoaderIcon size={16} className="animate-spin" /> Thinking...
+            <div className="flex items-center gap-2 text-bench-muted text-sm px-2 font-mono">
+              <LoaderIcon size={16} className="animate-spin text-purple-500" /> Thinking...
             </div>
           </div>
         )}
@@ -298,14 +298,14 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
       </div>
 
       {/* Input Panel */}
-      <div className="p-4 border-t border-slate-800/80 bg-[#0d1220]">
+      <div className="p-4 border-t border-bench-border bg-bench-header-bg">
         <div className="relative">
           <form
             onSubmit={(e) => {
               e.preventDefault()
               handleSend()
             }}
-            className="flex items-end gap-3 bg-[#121826] rounded-xl border border-slate-700/50 focus-within:border-purple-500/50 focus-within:ring-1 focus-within:ring-purple-500/20 transition-all px-4 py-3"
+            className="flex items-end gap-3 bg-bench-input-bg rounded-xl border border-bench-border focus-within:border-purple-500/50 focus-within:ring-1 focus-within:ring-purple-500/20 transition-all px-4 py-3"
           >
             <textarea
               ref={textareaRef}
@@ -320,12 +320,12 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
               disabled={isLoading}
               placeholder="Ask Copilot anything..."
               rows={1}
-              className="flex-1 bg-transparent border-none outline-none text-[15px] text-slate-200 placeholder-slate-500 py-1 resize-none max-h-40 min-h-[28px] overflow-y-auto"
+              className="flex-1 bg-transparent border-none outline-none text-[15px] text-bench-text placeholder-bench-muted/60 py-1 resize-none max-h-40 min-h-[28px] overflow-y-auto"
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed mb-0.5 flex-shrink-0"
+              className="p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed mb-0.5 flex-shrink-0 cursor-pointer"
             >
               <SendIcon size={16} className="ml-0.5" />
             </button>
@@ -335,12 +335,12 @@ export function AIAssistant({ code, onCodeUpdate }: AIAssistantProps) {
 
       {/* Toast Notification */}
       {toast && (
-        <div className="absolute bottom-20 left-4 right-4 z-50 p-3 rounded-lg border flex items-center gap-2 bg-[#090d16]/95 backdrop-blur text-emerald-400 border-emerald-500/30 shadow-[0_4px_12px_rgba(16,185,129,0.15)] animate-in fade-in slide-in-from-bottom-2 duration-300 font-sans text-xs">
-          <CheckIcon size={16} className="text-emerald-400 flex-shrink-0" />
+        <div className="absolute bottom-20 left-4 right-4 z-50 p-3 rounded-lg border flex items-center gap-2 bg-bench-surface/95 backdrop-blur text-emerald-600 dark:text-emerald-400 border-emerald-500/30 shadow-[0_4px_12px_rgba(16,185,129,0.15)] animate-in fade-in slide-in-from-bottom-2 duration-300 font-sans text-xs">
+          <CheckIcon size={16} className="text-emerald-500 flex-shrink-0" />
           <span className="flex-1 font-medium">{toast.message}</span>
           <button 
             onClick={() => setToast(null)} 
-            className="hover:text-emerald-300 transition-colors text-emerald-500 ml-1 font-bold text-sm cursor-pointer"
+            className="hover:text-emerald-600 transition-colors text-emerald-500 ml-1 font-bold text-sm cursor-pointer"
           >
             ×
           </button>

@@ -36,15 +36,15 @@ function CustomTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null
   return (
     <div
-      className="rounded border p-3 text-xs font-mono flex flex-col gap-1"
-      style={{ backgroundColor: '#0d1220', borderColor: '#1f2937' }}
+      className="rounded border p-3 text-xs font-mono flex flex-col gap-1 shadow-md"
+      style={{ backgroundColor: 'var(--bench-header-bg)', borderColor: 'var(--bench-border)' }}
     >
-      <div className="mb-1" style={{ color: '#64748b' }}>{typeof label === 'number' ? formatTime(label) : label}</div>
+      <div className="mb-1" style={{ color: 'var(--bench-muted)' }}>{typeof label === 'number' ? formatTime(label) : label}</div>
       {payload.map(p => (
         <div key={p.name} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-          <span style={{ color: '#94a3b8' }}>{p.name}:</span>
-          <span style={{ color: '#e2e8f0' }}>{typeof p.value === 'number' ? p.value.toLocaleString('en-US', { maximumFractionDigits: 2 }) : p.value}</span>
+          <span style={{ color: 'var(--bench-text)' }}>{p.name}:</span>
+          <span className="font-semibold" style={{ color: 'var(--bench-text)' }}>{typeof p.value === 'number' ? p.value.toLocaleString('en-US', { maximumFractionDigits: 2 }) : p.value}</span>
         </div>
       ))}
     </div>
@@ -92,10 +92,10 @@ export function Graphiques() {
   return (
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+        <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
           Charts — Last 10 Minutes
         </h1>
-        <span className="text-xs font-mono" style={{ color: '#475569' }}>
+        <span className="text-xs font-mono text-bench-muted">
           {chartData.length} points
         </span>
       </div>
@@ -106,15 +106,15 @@ export function Graphiques() {
           <button
             key={m.key}
             onClick={() => toggle(m.key)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono border transition-opacity"
+            className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono border transition-opacity cursor-pointer"
             style={{
-              borderColor:     visible.has(m.key) ? m.color : '#1f2937',
+              borderColor:     visible.has(m.key) ? m.color : 'var(--bench-border)',
               backgroundColor: visible.has(m.key) ? `${m.color}18` : 'transparent',
-              color:           visible.has(m.key) ? m.color : '#475569',
+              color:           visible.has(m.key) ? m.color : 'var(--bench-muted)',
               opacity: 1,
             }}
           >
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: visible.has(m.key) ? m.color : '#1f2937' }} />
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: visible.has(m.key) ? m.color : 'var(--bench-border)' }} />
             {m.label}
           </button>
         ))}
@@ -122,27 +122,27 @@ export function Graphiques() {
 
       {/* Chart */}
       <div
-        className="rounded-md border p-4"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        className="rounded-md border p-4 shadow-sm"
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
         {chartData.length < 2 || activeMetrics.length === 0 ? (
-          <div className="flex items-center justify-center h-64 text-sm" style={{ color: '#475569' }}>
+          <div className="flex items-center justify-center h-64 text-sm text-bench-muted">
             Waiting for active sensor data...
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={420}>
             <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
-              <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" />
+              <CartesianGrid stroke="var(--bench-border)" strokeDasharray="3 3" />
               <XAxis
                 dataKey="timestamp"
                 tickFormatter={formatTime}
-                tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'var(--font-mono)' }}
-                stroke="#1f2937"
+                tick={{ fill: 'var(--bench-muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+                stroke="var(--bench-border)"
                 minTickGap={60}
               />
               <YAxis
-                tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'var(--font-mono)' }}
-                stroke="#1f2937"
+                tick={{ fill: 'var(--bench-muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+                stroke="var(--bench-border)"
                 width={48}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -150,8 +150,8 @@ export function Graphiques() {
                 dataKey="timestamp"
                 tickFormatter={formatTime}
                 height={24}
-                stroke="#1f2937"
-                fill="#0a0e1a"
+                stroke="var(--bench-border)"
+                fill="var(--bench-bg)"
                 travellerWidth={6}
                 style={{ fontSize: 10, fontFamily: 'var(--font-mono)' }}
               />

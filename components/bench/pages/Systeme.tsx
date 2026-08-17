@@ -118,7 +118,7 @@ export function Systeme() {
   return (
     <div className="p-4 flex flex-col gap-5 max-w-2xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+        <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
           System &amp; Diagnostics
         </h1>
         <div className="flex items-center gap-2">
@@ -145,21 +145,21 @@ export function Systeme() {
       {/* Diagnostics grid */}
       <div
         className="rounded-md border"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
         <div
           className="flex items-center gap-2 px-4 py-2.5 border-b"
-          style={{ borderColor: '#1f2937' }}
+          style={{ borderColor: 'var(--bench-border)' }}
         >
           <ActivityIcon size={13} style={{ color: '#3b82f6' }} />
-          <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#475569' }}>
+          <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--bench-muted)' }}>
             Diagnostics
           </span>
         </div>
-        <div className="divide-y" style={{ borderColor: '#1a2333' }}>
+        <div className="divide-y" style={{ borderColor: 'var(--bench-border)' }}>
           {diagItems.map(item => (
             <div key={item.label} className="flex items-center justify-between px-4 py-2.5">
-              <span className="text-xs" style={{ color: '#64748b' }}>{item.label}</span>
+              <span className="text-xs" style={{ color: 'var(--bench-muted)' }}>{item.label}</span>
               <span className="text-xs font-mono font-medium" style={{ color: item.color }}>
                 {item.value}
               </span>
@@ -171,9 +171,9 @@ export function Systeme() {
       {/* Port Control */}
       <div
         className="rounded-md border p-4 flex flex-col gap-3"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
-        <div className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#475569' }}>
+        <div className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--bench-muted)' }}>
           Serial Port Control
         </div>
 
@@ -183,7 +183,7 @@ export function Systeme() {
           </div>
         )}
 
-        <p className="text-xs" style={{ color: '#64748b' }}>
+        <p className="text-xs" style={{ color: 'var(--bench-muted)' }}>
           {connectionStatus === 'connected'
             ? `Connected to ${stats.port}. Telemetry data is read in real time.`
             : "Connect the Arduino test bench via the USB serial port to receive physical measurements."}
@@ -200,7 +200,7 @@ export function Systeme() {
             <button
               onClick={() => connect({ forcePrompt: true })}
               disabled={!serialSupported || connectionStatus === 'connecting'}
-              className="flex items-center gap-2 px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity disabled:opacity-60"
+              className="flex items-center gap-2 px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity disabled:opacity-60 cursor-pointer"
               style={{
                 borderColor:     '#10b981',
                 color:           '#10b981',
@@ -216,7 +216,7 @@ export function Systeme() {
           ) : (
             <button
               onClick={disconnect}
-              className="flex items-center gap-2 px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity"
+              className="flex items-center gap-2 px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity cursor-pointer"
               style={{
                 borderColor:     '#ef4444',
                 color:           '#ef4444',
@@ -229,11 +229,11 @@ export function Systeme() {
 
           <button
             onClick={restart}
-            className="flex items-center gap-2 px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity"
+            className="flex items-center gap-2 px-4 py-2 rounded border text-xs font-mono font-semibold transition-opacity cursor-pointer"
             style={{
-              borderColor:     '#64748b',
-              color:           '#64748b',
-              backgroundColor: 'rgba(100,116,139,0.1)',
+              borderColor:     'var(--bench-muted)',
+              color:           'var(--bench-muted)',
+              backgroundColor: 'var(--bench-subtle)',
             }}
           >
             Clear Data
@@ -244,9 +244,9 @@ export function Systeme() {
       {/* Arduino instructions */}
       <div
         className="rounded-md border p-4 text-xs"
-        style={{ backgroundColor: '#0d1220', borderColor: '#1f2937', color: '#64748b' }}
+        style={{ backgroundColor: 'var(--bench-header-bg)', borderColor: 'var(--bench-border)', color: 'var(--bench-muted)' }}
       >
-        <div className="font-semibold mb-1" style={{ color: '#94a3b8' }}>
+        <div className="font-semibold mb-1" style={{ color: 'var(--bench-text)' }}>
           Expected Data Format (Arduino / Serial Port)
         </div>
         The test bench expects JSON or CSV messages sent line by line at a baud rate of 9600.

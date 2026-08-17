@@ -14,21 +14,21 @@ interface TempDisplayProps {
 }
 
 const stateBorder: Record<MetricState, string> = {
-  OK:      '#1f2937',
+  OK:      'var(--bench-border)',
   WARNING: '#f59e0b',
   DANGER:  '#ef4444',
 }
 
 const stateText: Record<MetricState, string> = {
-  OK:      '#10b981',
+  OK:      'var(--bench-nominal)',
   WARNING: '#f59e0b',
   DANGER:  '#ef4444',
 }
 
 const stateBadge: Record<MetricState, string> = {
-  OK:      'bg-[#10b981]/10 text-[#10b981]',
-  WARNING: 'bg-[#f59e0b]/10 text-[#f59e0b]',
-  DANGER:  'bg-[#ef4444]/10 text-[#ef4444]',
+  OK:      'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  WARNING: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  DANGER:  'bg-red-500/10 text-red-600 dark:text-red-400',
 }
 
 export function TempDisplay({
@@ -50,15 +50,15 @@ export function TempDisplay({
 
   return (
     <div
-      className={`relative rounded-md border p-4 flex flex-col gap-2 transition-colors ${cardClass}`}
+      className={`relative rounded-md border p-4 flex flex-col gap-2 transition-colors shadow-sm ${cardClass}`}
       style={{
-        backgroundColor: '#111827',
+        backgroundColor: 'var(--bench-surface)',
         borderColor: stateBorder[state],
       }}
     >
       {/* State badge */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium tracking-widest uppercase" style={{ color: '#64748b' }}>
+        <span className="text-xs font-medium tracking-widest uppercase" style={{ color: 'var(--bench-muted)' }}>
           {label}
         </span>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-sm font-mono tracking-wider ${stateBadge[state]}`}>
@@ -74,15 +74,15 @@ export function TempDisplay({
         {value !== null && value !== undefined
           ? value.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
           : '--.-'}
-        <span className="text-base font-normal ml-1.5" style={{ color: '#64748b' }}>{unit}</span>
+        <span className="text-base font-normal ml-1.5" style={{ color: 'var(--bench-muted)' }}>{unit}</span>
       </div>
 
       {/* Min/Max row */}
       {(minVal !== null && minVal !== undefined && maxVal !== null && maxVal !== undefined) && (
-        <div className="flex items-center gap-3 text-[11px] font-mono" style={{ color: '#64748b' }}>
-          <span>Min <span style={{ color: '#94a3b8' }}>{minVal.toFixed(1)}</span></span>
+        <div className="flex items-center gap-3 text-[11px] font-mono" style={{ color: 'var(--bench-muted)' }}>
+          <span>Min <span style={{ color: 'var(--bench-text)' }}>{minVal.toFixed(1)}</span></span>
           <span className="opacity-40">|</span>
-          <span>Max <span style={{ color: '#94a3b8' }}>{maxVal.toFixed(1)}</span></span>
+          <span>Max <span style={{ color: 'var(--bench-text)' }}>{maxVal.toFixed(1)}</span></span>
         </div>
       )}
     </div>

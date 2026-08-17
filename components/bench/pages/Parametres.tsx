@@ -80,13 +80,13 @@ export function Parametres() {
   // 1. Disconnected State
   if (connectionStatus !== 'connected') {
     return (
-      <div className="p-6 max-w-md mx-auto text-center flex flex-col gap-4 items-center mt-20 bg-[#111827] rounded-lg border shadow-lg" style={{ borderColor: '#1f2937' }}>
-        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-950/30 text-slate-500 border border-slate-900">
+      <div className="p-6 max-w-md mx-auto text-center flex flex-col gap-4 items-center mt-20 bg-bench-surface rounded-lg border border-bench-border shadow-lg">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-bench-bg text-bench-muted border border-bench-border">
           <UsbIcon size={20} className="animate-pulse" />
         </div>
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-300 font-mono">Configuration Unavailable</h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <h2 className="text-sm font-semibold text-bench-text font-mono">Configuration Unavailable</h2>
+          <p className="text-xs text-bench-muted leading-relaxed">
             Please connect your Arduino board and start acquisition from the dashboard to configure your active sensors.
           </p>
         </div>
@@ -97,13 +97,13 @@ export function Parametres() {
   // 2. Connected but no active sensors detected yet
   if (connectionStatus === 'connected' && activeConfigs.length === 0) {
     return (
-      <div className="p-6 max-w-md mx-auto text-center flex flex-col gap-4 items-center mt-20 bg-[#111827] rounded-lg border shadow-lg" style={{ borderColor: '#1f2937' }}>
-        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-slate-950/30 text-emerald-500 border border-slate-900">
+      <div className="p-6 max-w-md mx-auto text-center flex flex-col gap-4 items-center mt-20 bg-bench-surface rounded-lg border border-bench-border shadow-lg">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-bench-bg text-emerald-500 border border-bench-border">
           <CpuIcon size={20} className="animate-spin" style={{ animationDuration: '3s' }} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-300 font-mono">Waiting for Active Sensors</h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <h2 className="text-sm font-semibold text-bench-text font-mono">Waiting for Active Sensors</h2>
+          <p className="text-xs text-bench-muted leading-relaxed">
             No sensors have been detected yet. Transmit telemetry signals from the Arduino to configure them.
           </p>
         </div>
@@ -115,24 +115,24 @@ export function Parametres() {
   return (
     <div className="p-4 flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+        <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-muted">
           Settings
         </h1>
         <div className="flex gap-2">
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs font-mono transition-colors"
-            style={{ borderColor: '#1f2937', color: '#64748b', backgroundColor: '#111827' }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded border text-xs font-mono transition-colors cursor-pointer"
+            style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-muted)', backgroundColor: 'var(--bench-surface)' }}
           >
             <RotateCcwIcon size={12} />
             Restore Defaults
           </button>
           <button
             onClick={handleSave}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-colors cursor-pointer"
             style={{
-              borderColor:     saved ? '#10b981' : '#3b82f6',
-              color:           saved ? '#10b981' : '#3b82f6',
+              borderColor:     saved ? '#10b981' : 'var(--bench-info)',
+              color:           saved ? '#10b981' : 'var(--bench-info)',
               backgroundColor: saved ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)',
             }}
           >
@@ -144,13 +144,13 @@ export function Parametres() {
       {/* Engine diameter */}
       <div
         className="rounded-md border p-4 flex flex-col gap-3"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
-        <div className="text-[10px] uppercase tracking-widest font-semibold mb-1" style={{ color: '#475569' }}>
+        <div className="text-[10px] uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--bench-muted)' }}>
           Engine Configuration
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-xs font-medium w-36" style={{ color: '#94a3b8' }}>
+          <label className="text-xs font-medium w-36" style={{ color: 'var(--bench-text)' }}>
             Engine Diameter
           </label>
           <input
@@ -158,12 +158,12 @@ export function Parametres() {
             value={diameter}
             onChange={e => setDiameter(e.target.value)}
             className="w-24 rounded px-2.5 py-1.5 text-xs font-mono border outline-none"
-            style={{ backgroundColor: '#0d1220', borderColor: '#1f2937', color: '#e2e8f0' }}
+            style={{ backgroundColor: 'var(--bench-input-bg)', borderColor: 'var(--bench-border)', color: 'var(--bench-text)' }}
             min="10"
             max="500"
             step="1"
           />
-          <span className="text-xs font-mono" style={{ color: '#64748b' }}>mm</span>
+          <span className="text-xs font-mono" style={{ color: 'var(--bench-muted)' }}>mm</span>
         </div>
       </div>
 
@@ -171,30 +171,30 @@ export function Parametres() {
       {/* Threshold config */}
       <div
         className="rounded-md border"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
         <div
           className="px-4 py-2.5 border-b text-[10px] uppercase tracking-widest font-semibold"
-          style={{ color: '#475569', borderColor: '#1f2937' }}
+          style={{ color: 'var(--bench-muted)', borderColor: 'var(--bench-border)' }}
         >
           Alarm Thresholds for Active Sensors
         </div>
 
-        <div className="divide-y" style={{ borderColor: '#1f2937' }}>
+        <div className="divide-y" style={{ borderColor: 'var(--bench-border)' }}>
           {activeConfigs.map(cfg => {
             const t = draft[cfg.key as keyof Thresholds]
             return (
               <div key={cfg.key} className="px-4 py-4 flex flex-col gap-3">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-xs font-semibold" style={{ color: '#e2e8f0' }}>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--bench-text)' }}>
                     {cfg.label}
                   </span>
-                  <span className="text-[10px] font-mono" style={{ color: '#475569' }}>{cfg.unit}</span>
+                  <span className="text-[10px] font-mono" style={{ color: 'var(--bench-muted)' }}>{cfg.unit}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Warning */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#f59e0b' }}>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--bench-warning)' }}>
                       Warning Threshold
                     </label>
                     <div className="flex items-center gap-2">
@@ -205,19 +205,19 @@ export function Parametres() {
                         step={cfg.step}
                         min={cfg.min}
                         max={cfg.max}
-                        className="flex-1 rounded px-2.5 py-1 text-xs font-mono border outline-none"
+                        className="flex-1 rounded px-2.5 py-1 text-xs font-mono border outline-none font-semibold"
                         style={{
-                          backgroundColor: '#0d1220',
-                          borderColor: '#f59e0b40',
-                          color: '#f59e0b',
+                          backgroundColor: 'var(--bench-input-bg)',
+                          borderColor: 'var(--bench-warning)',
+                          color: 'var(--bench-warning)',
                         }}
                       />
-                      <span className="text-[10px]" style={{ color: '#475569' }}>{cfg.unit}</span>
+                      <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{cfg.unit}</span>
                     </div>
                   </div>
                   {/* Danger */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#ef4444' }}>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--bench-danger)' }}>
                       Danger Threshold
                     </label>
                     <div className="flex items-center gap-2">
@@ -228,14 +228,14 @@ export function Parametres() {
                         step={cfg.step}
                         min={cfg.min}
                         max={cfg.max}
-                        className="flex-1 rounded px-2.5 py-1 text-xs font-mono border outline-none"
+                        className="flex-1 rounded px-2.5 py-1 text-xs font-mono border outline-none font-semibold"
                         style={{
-                          backgroundColor: '#0d1220',
-                          borderColor: '#ef444440',
-                          color: '#ef4444',
+                          backgroundColor: 'var(--bench-input-bg)',
+                          borderColor: 'var(--bench-danger)',
+                          color: 'var(--bench-danger)',
                         }}
                       />
-                      <span className="text-[10px]" style={{ color: '#475569' }}>{cfg.unit}</span>
+                      <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{cfg.unit}</span>
                     </div>
                   </div>
                 </div>

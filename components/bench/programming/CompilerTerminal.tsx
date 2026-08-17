@@ -18,14 +18,14 @@ export function CompilerTerminal({ logs, onClear }: CompilerTerminalProps) {
   }, [logs])
 
   return (
-    <div className="flex flex-col h-full bg-[#05080f]">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-[#0d1220]">
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+    <div className="flex flex-col h-full bg-bench-bg">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-bench-border bg-bench-header-bg">
+        <div className="flex items-center gap-2 text-xs font-medium text-bench-muted">
           <TerminalIcon size={14} /> Output
         </div>
         <button 
           onClick={onClear}
-          className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+          className="text-bench-muted hover:text-bench-text transition-colors p-1 cursor-pointer"
           title="Clear Terminal"
         >
           <Trash2Icon size={14} />
@@ -34,23 +34,23 @@ export function CompilerTerminal({ logs, onClear }: CompilerTerminalProps) {
       
       <div 
         ref={scrollRef}
-        className="flex-1 p-4 overflow-y-auto font-mono text-[13px] leading-relaxed"
+        className="flex-1 p-4 overflow-y-auto font-mono text-[13px] leading-relaxed select-text"
       >
         {logs.length === 0 ? (
-          <div className="text-slate-600 italic">No output. Ready to compile.</div>
+          <div className="text-bench-muted/60 italic font-mono">No output. Ready to compile.</div>
         ) : (
           <div className="space-y-1">
             {logs.map((log, i) => {
               // Colorize based on content
-              let colorClass = 'text-slate-300'
-              if (log.includes('[Error]') || log.includes('error:')) colorClass = 'text-red-400'
-              else if (log.includes('[AI]')) colorClass = 'text-purple-400'
-              else if (log.includes('[Compiler]')) colorClass = 'text-blue-400'
-              else if (log.includes('warning:')) colorClass = 'text-amber-400'
-              else if (log.includes('successful') || log.includes('complete')) colorClass = 'text-emerald-400'
+              let colorClass = 'text-slate-700 dark:text-slate-300'
+              if (log.includes('[Error]') || log.includes('error:')) colorClass = 'text-red-600 dark:text-red-400'
+              else if (log.includes('[AI]')) colorClass = 'text-violet-600 dark:text-violet-400'
+              else if (log.includes('[Compiler]')) colorClass = 'text-blue-600 dark:text-blue-400'
+              else if (log.includes('warning:')) colorClass = 'text-amber-600 dark:text-amber-500 font-semibold'
+              else if (log.includes('successful') || log.includes('complete')) colorClass = 'text-emerald-600 dark:text-emerald-400 font-semibold'
 
               return (
-                <div key={i} className={`${colorClass} break-all whitespace-pre-wrap`}>
+                <div key={i} className={`${colorClass} break-all whitespace-pre-wrap font-mono`}>
                   {log}
                 </div>
               )

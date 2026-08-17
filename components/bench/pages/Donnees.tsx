@@ -73,7 +73,7 @@ export function Donnees() {
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+          <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
             Raw Data
           </h1>
           <button
@@ -88,8 +88,8 @@ export function Donnees() {
             }}
             className={`px-2.5 py-1 rounded text-[11px] font-mono border transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
               isPaused
-                ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/35 hover:border-emerald-500/60 shadow-[0_0_8px_rgba(16,185,129,0.05)]'
-                : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-amber-500/35 hover:border-amber-500/60 shadow-[0_0_8px_rgba(245,158,11,0.05)]'
+                ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/35 hover:border-emerald-500/60 shadow-[0_0_8px_rgba(16,185,129,0.05)]'
+                : 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/35 hover:border-amber-500/60 shadow-[0_0_8px_rgba(245,158,11,0.05)]'
             }`}
             title={isPaused ? "Resume registering raw data updates" : "Stop registering raw data updates in this view"}
           >
@@ -105,30 +105,30 @@ export function Donnees() {
                 setPage(0)
               }
             }}
-            className="px-2.5 py-1 rounded text-[11px] font-mono border transition-all duration-200 cursor-pointer flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/35 hover:border-red-500/60 shadow-[0_0_8px_rgba(239,68,68,0.05)]"
+            className="px-2.5 py-1 rounded text-[11px] font-mono border transition-all duration-200 cursor-pointer flex items-center gap-1.5 bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/35 hover:border-red-500/60 shadow-[0_0_8px_rgba(239,68,68,0.05)]"
             title="Delete all raw data and restart telemetry feed"
           >
             <RotateCcw size={12} />
             Restore
           </button>
         </div>
-        <span className="text-xs font-mono" style={{ color: '#475569' }}>
+        <span className="text-xs font-mono text-bench-muted">
           {displayHistory.length.toLocaleString('en-US')} samples — page {page + 1}/{Math.max(1, totalPages)}
         </span>
       </div>
 
       <div
         className="rounded-md border overflow-x-auto"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
         <table className="w-full text-xs font-mono" style={{ borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #1f2937', backgroundColor: '#0d1220' }}>
+            <tr style={{ borderBottom: '1px solid var(--bench-border)', backgroundColor: 'var(--bench-header-bg)' }}>
               {cols.map(c => (
                 <th
                   key={c.key}
                   className="px-3 py-2.5 text-left whitespace-nowrap font-semibold tracking-wider uppercase text-[10px]"
-                  style={{ color: '#64748b' }}
+                  style={{ color: 'var(--bench-muted)' }}
                 >
                   {c.label}
                 </th>
@@ -141,7 +141,7 @@ export function Donnees() {
                 <td
                   colSpan={cols.length || 1}
                   className="px-4 py-8 text-center"
-                  style={{ color: '#475569' }}
+                  style={{ color: 'var(--bench-muted)' }}
                 >
                   Waiting for active sensor data...
                 </td>
@@ -151,7 +151,7 @@ export function Donnees() {
                 <tr
                   key={row.timestamp}
                   style={{
-                    borderBottom: '1px solid #1a2333',
+                    borderBottom: '1px solid var(--bench-border)',
                     backgroundColor: ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
                   }}
                 >
@@ -164,7 +164,7 @@ export function Donnees() {
                       <td
                         key={c.key}
                         className="px-3 py-1.5 tabular-nums whitespace-nowrap"
-                        style={{ color: c.metric && rawVal !== undefined ? stateText[mState] : '#94a3b8' }}
+                        style={{ color: c.metric && rawVal !== undefined ? stateText[mState] : 'var(--bench-text)' }}
                       >
                         {c.fmt(rawVal)}
                       </td>
@@ -182,35 +182,35 @@ export function Donnees() {
         <button
           onClick={() => setPage(0)}
           disabled={page === 0}
-          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity"
-          style={{ borderColor: '#1f2937', color: '#94a3b8', backgroundColor: '#111827' }}
+          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity cursor-pointer"
+          style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-text)', backgroundColor: 'var(--bench-surface)' }}
         >
           «
         </button>
         <button
           onClick={() => setPage(p => Math.max(0, p - 1))}
           disabled={page === 0}
-          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity"
-          style={{ borderColor: '#1f2937', color: '#94a3b8', backgroundColor: '#111827' }}
+          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity cursor-pointer"
+          style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-text)', backgroundColor: 'var(--bench-surface)' }}
         >
           ‹ Prev
         </button>
-        <span className="text-xs font-mono px-2" style={{ color: '#64748b' }}>
+        <span className="text-xs font-mono px-2" style={{ color: 'var(--bench-muted)' }}>
           {page + 1} / {Math.max(1, totalPages)}
         </span>
         <button
           onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
           disabled={page >= totalPages - 1}
-          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity"
-          style={{ borderColor: '#1f2937', color: '#94a3b8', backgroundColor: '#111827' }}
+          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity cursor-pointer"
+          style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-text)', backgroundColor: 'var(--bench-surface)' }}
         >
           Next ›
         </button>
         <button
           onClick={() => setPage(Math.max(0, totalPages - 1))}
           disabled={page >= totalPages - 1}
-          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity"
-          style={{ borderColor: '#1f2937', color: '#94a3b8', backgroundColor: '#111827' }}
+          className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity cursor-pointer"
+          style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-text)', backgroundColor: 'var(--bench-surface)' }}
         >
           »
         </button>

@@ -39,16 +39,16 @@ export function Sparkline({ data, label, unit, color, state, height = 48, width 
 
   return (
     <div
-      className="flex flex-col gap-1 rounded-md p-2"
-      style={{ backgroundColor: '#111827', border: '1px solid #1f2937', minWidth: width }}
+      className="flex flex-col gap-1 rounded-md p-2 shadow-sm"
+      style={{ backgroundColor: 'var(--bench-surface)', border: '1px solid var(--bench-border)', minWidth: width }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider" style={{ color: '#64748b' }}>{label}</span>
+        <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--bench-muted)' }}>{label}</span>
         <span
           className="text-xs font-mono font-semibold tabular-nums"
           style={{ color: lineColor }}
         >
-          {latest?.toFixed(1)} <span className="text-[9px]" style={{ color: '#475569' }}>{unit}</span>
+          {latest?.toFixed(1)} <span className="text-[9px]" style={{ color: 'var(--bench-muted)' }}>{unit}</span>
         </span>
       </div>
       <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>

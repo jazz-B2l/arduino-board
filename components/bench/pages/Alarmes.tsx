@@ -44,10 +44,10 @@ export function Alarmes() {
   return (
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#94a3b8' }}>
+        <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
           Alarm History
         </h1>
-        <span className="text-xs font-mono" style={{ color: '#475569' }}>
+        <span className="text-xs font-mono text-bench-muted">
           {filtered.length} / {alarms.length} alarms
         </span>
       </div>
@@ -60,17 +60,17 @@ export function Alarmes() {
             <button
               key={l}
               onClick={() => setLevelFilter(l)}
-              className="px-3 py-1 rounded border text-[11px] font-mono font-medium transition-colors"
+              className="px-3 py-1 rounded border text-[11px] font-mono font-medium transition-colors cursor-pointer"
               style={{
                 borderColor: levelFilter === l
-                  ? l === 'DANGER' ? '#ef4444' : l === 'WARNING' ? '#f59e0b' : '#3b82f6'
-                  : '#1f2937',
+                  ? l === 'DANGER' ? 'var(--bench-danger)' : l === 'WARNING' ? 'var(--bench-warning)' : 'var(--bench-info)'
+                  : 'var(--bench-border)',
                 backgroundColor: levelFilter === l
                   ? l === 'DANGER' ? 'rgba(239,68,68,0.12)' : l === 'WARNING' ? 'rgba(245,158,11,0.12)' : 'rgba(59,130,246,0.12)'
                   : 'transparent',
                 color: levelFilter === l
-                  ? l === 'DANGER' ? '#ef4444' : l === 'WARNING' ? '#f59e0b' : '#3b82f6'
-                  : '#475569',
+                  ? l === 'DANGER' ? 'var(--bench-danger)' : l === 'WARNING' ? 'var(--bench-warning)' : 'var(--bench-info)'
+                  : 'var(--bench-muted)',
               }}
             >
               {l === 'ALL' ? 'All' : l}
@@ -78,17 +78,17 @@ export function Alarmes() {
           ))}
         </div>
 
-        <span className="opacity-30 text-xs" style={{ color: '#475569' }}>|</span>
+        <span className="opacity-30 text-xs" style={{ color: 'var(--bench-muted)' }}>|</span>
 
         {/* Metric filter */}
         <select
           value={metricFilter}
           onChange={e => setMetricFilter(e.target.value)}
-          className="text-xs font-mono rounded border px-2 py-1 outline-none"
+          className="text-xs font-mono rounded border px-2 py-1 outline-none cursor-pointer"
           style={{
-            backgroundColor: '#111827',
-            borderColor: '#1f2937',
-            color: '#94a3b8',
+            backgroundColor: 'var(--bench-surface)',
+            borderColor: 'var(--bench-border)',
+            color: 'var(--bench-text)',
           }}
         >
           <option value="ALL">All Metrics</option>
@@ -97,13 +97,13 @@ export function Alarmes() {
           ))}
         </select>
 
-        <span className="opacity-30 text-xs" style={{ color: '#475569' }}>|</span>
+        <span className="opacity-30 text-xs" style={{ color: 'var(--bench-muted)' }}>|</span>
 
         {/* Sort */}
         <button
           onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
-          className="px-3 py-1 rounded border text-[11px] font-mono transition-colors"
-          style={{ borderColor: '#1f2937', color: '#64748b', backgroundColor: '#111827' }}
+          className="px-3 py-1 rounded border text-[11px] font-mono transition-colors cursor-pointer"
+          style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-muted)', backgroundColor: 'var(--bench-surface)' }}
         >
           {sortDir === 'desc' ? '↓ Newest' : '↑ Oldest'}
         </button>
@@ -112,23 +112,23 @@ export function Alarmes() {
       {/* Table */}
       <div
         className="rounded-md border overflow-x-auto"
-        style={{ backgroundColor: '#111827', borderColor: '#1f2937' }}
+        style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
         <table className="w-full text-xs font-mono" style={{ borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #1f2937', backgroundColor: '#0d1220' }}>
+            <tr style={{ borderBottom: '1px solid var(--bench-border)', backgroundColor: 'var(--bench-header-bg)' }}>
               <th className="px-3 py-2.5 text-left w-8" />
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Timestamp</th>
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Metric</th>
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Level</th>
-              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Value</th>
-              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: '#64748b' }}>Relative</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Timestamp</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Metric</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Level</th>
+              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Value</th>
+              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Relative</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center" style={{ color: '#475569' }}>
+                <td colSpan={6} className="px-4 py-10 text-center" style={{ color: 'var(--bench-muted)' }}>
                   No alarms matching filters
                 </td>
               </tr>
@@ -137,20 +137,20 @@ export function Alarmes() {
                 <tr
                   key={alarm.id}
                   style={{
-                    borderBottom: '1px solid #1a2333',
+                    borderBottom: '1px solid var(--bench-border)',
                     backgroundColor: alarm.level === 'DANGER' ? 'rgba(239,68,68,0.03)' : 'rgba(245,158,11,0.02)',
                   }}
                 >
                   <td className="px-3 py-2 w-8">
                     {alarm.level === 'DANGER'
-                      ? <ZapIcon size={12} style={{ color: '#ef4444' }} />
-                      : <AlertTriangleIcon size={12} style={{ color: '#f59e0b' }} />
+                      ? <ZapIcon size={12} style={{ color: 'var(--bench-danger)' }} />
+                      : <AlertTriangleIcon size={12} style={{ color: 'var(--bench-warning)' }} />
                     }
                   </td>
-                  <td className="px-3 py-2 tabular-nums whitespace-nowrap" style={{ color: '#94a3b8' }}>
+                  <td className="px-3 py-2 tabular-nums whitespace-nowrap" style={{ color: 'var(--bench-text)' }}>
                     {formatDateTime(alarm.timestamp)}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap" style={{ color: '#e2e8f0' }}>
+                  <td className="px-3 py-2 whitespace-nowrap" style={{ color: 'var(--bench-text)' }}>
                     {METRIC_LABELS[alarm.metric] ?? alarm.metric}
                   </td>
                   <td className="px-3 py-2">
@@ -158,21 +158,21 @@ export function Alarmes() {
                       className="px-2 py-0.5 rounded-sm text-[10px] font-semibold"
                       style={{
                         backgroundColor: alarm.level === 'DANGER' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
-                        color:           alarm.level === 'DANGER' ? '#ef4444' : '#f59e0b',
+                        color:           alarm.level === 'DANGER' ? 'var(--bench-danger)' : 'var(--bench-warning)',
                       }}
                     >
                       {alarm.level}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums" style={{ color: '#e2e8f0' }}>
+                  <td className="px-3 py-2 text-right tabular-nums" style={{ color: 'var(--bench-text)' }}>
                     {alarm.metric === 'rpm'
                       ? alarm.value.toLocaleString('en-US')
                       : alarm.value.toFixed(2)
                     }
                     {' '}
-                    <span style={{ color: '#475569' }}>{METRIC_UNITS[alarm.metric] ?? ''}</span>
+                    <span style={{ color: 'var(--bench-muted)' }}>{METRIC_UNITS[alarm.metric] ?? ''}</span>
                   </td>
-                  <td className="px-3 py-2 text-right" style={{ color: '#64748b' }}>
+                  <td className="px-3 py-2 text-right" style={{ color: 'var(--bench-muted)' }}>
                     {relativeTime(alarm.timestamp)}
                   </td>
                 </tr>

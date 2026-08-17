@@ -5,42 +5,85 @@
   --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Fallback', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'JetBrains Mono Fallback', monospace;
 
-  /* Bench color palette */
-  --color-bench-bg:       #0a0e1a;
-  --color-bench-surface:  #111827;
-  --color-bench-border:   #1f2937;
-  --color-bench-nominal:  #10b981;
-  --color-bench-info:     #3b82f6;
-  --color-bench-warning:  #f59e0b;
-  --color-bench-danger:   #ef4444;
-  --color-bench-text:     #e2e8f0;
-  --color-bench-muted:    #64748b;
-  --color-bench-subtle:   #1e293b;
-
   /* Map shadcn tokens to bench palette */
-  --color-background:         var(--color-bench-bg);
-  --color-foreground:         var(--color-bench-text);
-  --color-card:               var(--color-bench-surface);
-  --color-card-foreground:    var(--color-bench-text);
-  --color-popover:            var(--color-bench-surface);
-  --color-popover-foreground: var(--color-bench-text);
-  --color-primary:            var(--color-bench-info);
+  --color-background:         var(--bench-bg);
+  --color-foreground:         var(--bench-text);
+  --color-card:               var(--bench-surface);
+  --color-card-foreground:    var(--bench-text);
+  --color-popover:            var(--bench-surface);
+  --color-popover-foreground: var(--bench-text);
+  --color-primary:            var(--bench-info);
   --color-primary-foreground: #ffffff;
-  --color-secondary:          var(--color-bench-subtle);
-  --color-secondary-foreground: var(--color-bench-text);
-  --color-muted:              var(--color-bench-subtle);
-  --color-muted-foreground:   var(--color-bench-muted);
-  --color-accent:             var(--color-bench-subtle);
-  --color-accent-foreground:  var(--color-bench-text);
-  --color-destructive:        var(--color-bench-danger);
-  --color-border:             var(--color-bench-border);
-  --color-input:              var(--color-bench-subtle);
-  --color-ring:               var(--color-bench-info);
+  --color-secondary:          var(--bench-subtle);
+  --color-secondary-foreground: var(--bench-text);
+  --color-muted:              var(--bench-subtle);
+  --color-muted-foreground:   var(--bench-muted);
+  --color-accent:             var(--bench-subtle);
+  --color-accent-foreground:  var(--bench-text);
+  --color-destructive:        var(--bench-danger);
+  --color-border:             var(--bench-border);
+  --color-input:              var(--bench-subtle);
+  --color-ring:               var(--bench-info);
+
+  /* Bench color palette - mapped to variables */
+  --color-bench-bg:           var(--bench-bg);
+  --color-bench-surface:      var(--bench-surface);
+  --color-bench-surface-hover: var(--bench-surface-hover);
+  --color-bench-border:       var(--bench-border);
+  --color-bench-nominal:      var(--bench-nominal);
+  --color-bench-info:         var(--bench-info);
+  --color-bench-warning:      var(--bench-warning);
+  --color-bench-danger:       var(--bench-danger);
+  --color-bench-text:         var(--bench-text);
+  --color-bench-muted:        var(--bench-muted);
+  --color-bench-subtle:       var(--bench-subtle);
+  --color-bench-panel-bg:     var(--bench-panel-bg);
+  --color-bench-header-bg:    var(--bench-header-bg);
+  --color-bench-nav-active:   var(--bench-nav-active);
+  --color-bench-input-bg:     var(--bench-input-bg);
 
   --radius: 0.375rem;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
+}
+
+:root {
+  /* Default Theme: Dark theme (since it's a dashboard and was dark before) */
+  --bench-bg:           #0a0e1a;
+  --bench-surface:      #111827;
+  --bench-surface-hover: #1f2937;
+  --bench-border:       #1f2937;
+  --bench-nominal:      #10b981;
+  --bench-info:         #3b82f6;
+  --bench-warning:      #f59e0b;
+  --bench-danger:       #ef4444;
+  --bench-text:         #e2e8f0;
+  --bench-muted:        #64748b;
+  --bench-subtle:       #1e293b;
+  --bench-panel-bg:     #090d16;
+  --bench-header-bg:    #0d1220;
+  --bench-nav-active:   #1e293b;
+  --bench-input-bg:     rgba(2, 6, 23, 0.5); /* slate-950/50 */
+}
+
+:root.light {
+  /* Light mode colors */
+  --bench-bg:           #f1f5f9; /* slate-100 for better layout hierarchy */
+  --bench-surface:      #ffffff; /* white */
+  --bench-surface-hover: #e2e8f0; /* slate-200 */
+  --bench-border:       #cbd5e1; /* slate-300 for clearer borders in light mode */
+  --bench-nominal:      #10b981;
+  --bench-info:         #2563eb; /* darker blue for better contrast */
+  --bench-warning:      #d97706; /* darker orange for contrast */
+  --bench-danger:       #dc2626; /* darker red for contrast */
+  --bench-text:         #0f172a; /* slate-900 */
+  --bench-muted:        #4b5563; /* slate-600 for readability */
+  --bench-subtle:       #e2e8f0; /* slate-200 */
+  --bench-panel-bg:     #e2e8f0; /* slate-200 */
+  --bench-header-bg:    #ffffff; /* white */
+  --bench-nav-active:   #e2e8f0; /* slate-200 */
+  --bench-input-bg:     #ffffff; /* white input bg */
 }
 
 @layer base {
@@ -52,11 +95,16 @@
     color-scheme: dark;
   }
 
+  html.light {
+    color-scheme: light;
+  }
+
   body {
-    background-color: var(--color-bench-bg);
-    color: var(--color-bench-text);
+    background-color: var(--bench-bg);
+    color: var(--bench-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    transition: background-color 150ms ease-in-out, color 150ms ease-in-out;
   }
 
   /* Focus visible states for keyboard accessibility */

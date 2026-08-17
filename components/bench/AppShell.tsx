@@ -20,10 +20,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0e1a] text-slate-300">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bench-bg text-bench-text">
         <div className="flex flex-col items-center gap-4">
           <CpuIcon size={44} className="text-blue-500 animate-pulse" />
-          <p className="text-xs font-mono tracking-widest text-slate-500 uppercase animate-pulse">
+          <p className="text-xs font-mono tracking-widest text-bench-muted uppercase animate-pulse">
             Verifying Workspace Access...
           </p>
         </div>
@@ -34,12 +34,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Render empty state while redirecting
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#0a0e1a]" />
+      <div className="min-h-screen bg-bench-bg" />
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#0a0e1a' }}>
+    <div className="flex flex-col min-h-screen bg-bench-bg text-bench-text">
       <AppHeader />
       <div className="flex flex-1 overflow-hidden">
         <AppNav />
