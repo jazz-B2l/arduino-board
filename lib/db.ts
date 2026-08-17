@@ -19,6 +19,7 @@ db.exec(`
     role TEXT NOT NULL,
     content TEXT NOT NULL,
     timestamp TEXT NOT NULL,
+    provider TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
@@ -26,6 +27,13 @@ db.exec(`
 // Safe migration to add user_id column to pre-existing databases
 try {
   db.exec('ALTER TABLE messages ADD COLUMN user_id TEXT');
+} catch (e) {
+  // Column already exists, ignore error
+}
+
+// Safe migration to add provider column to pre-existing databases
+try {
+  db.exec('ALTER TABLE messages ADD COLUMN provider TEXT');
 } catch (e) {
   // Column already exists, ignore error
 }
