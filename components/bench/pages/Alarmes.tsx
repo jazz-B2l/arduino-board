@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { AlertTriangleIcon, ZapIcon } from 'lucide-react'
 import { useBench } from '../BenchContext'
 import { METRIC_LABELS, METRIC_UNITS } from '@/lib/types'
+import { useLanguage } from '../LanguageContext'
 
 type LevelFilter  = 'ALL' | 'WARNING' | 'DANGER'
 type MetricFilter = 'ALL' | string
@@ -24,6 +25,7 @@ function formatDateTime(ts: number) {
 
 export function Alarmes() {
   const { alarms } = useBench()
+  const { t } = useLanguage()
   const [levelFilter,  setLevelFilter]  = useState<LevelFilter>('ALL')
   const [metricFilter, setMetricFilter] = useState<MetricFilter>('ALL')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
@@ -45,10 +47,10 @@ export function Alarmes() {
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
-          Alarm History
+          {t('alarms.title')}
         </h1>
         <span className="text-xs font-mono text-bench-muted">
-          {filtered.length} / {alarms.length} alarms
+          {filtered.length} / {alarms.length} {t('alarms.alarms')}
         </span>
       </div>
 
@@ -73,7 +75,7 @@ export function Alarmes() {
                   : 'var(--bench-muted)',
               }}
             >
-              {l === 'ALL' ? 'All' : l}
+              {l === 'ALL' ? t('alarms.all') : l === 'WARNING' ? t('alarms.warning') : t('alarms.danger')}
             </button>
           ))}
         </div>
@@ -91,7 +93,7 @@ export function Alarmes() {
             color: 'var(--bench-text)',
           }}
         >
-          <option value="ALL">All Metrics</option>
+          <option value="ALL">{t('alarms.allMetrics')}</option>
           {metricKeys.map(k => (
             <option key={k} value={k}>{METRIC_LABELS[k] ?? k}</option>
           ))}
@@ -105,7 +107,7 @@ export function Alarmes() {
           className="px-3 py-1 rounded border text-[11px] font-mono transition-colors cursor-pointer"
           style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-muted)', backgroundColor: 'var(--bench-surface)' }}
         >
-          {sortDir === 'desc' ? '↓ Newest' : '↑ Oldest'}
+          {sortDir === 'desc' ? t('alarms.newest') : t('alarms.oldest')}
         </button>
       </div>
 
@@ -118,18 +120,18 @@ export function Alarmes() {
           <thead>
             <tr style={{ borderBottom: '1px solid var(--bench-border)', backgroundColor: 'var(--bench-header-bg)' }}>
               <th className="px-3 py-2.5 text-left w-8" />
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Timestamp</th>
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Metric</th>
-              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Level</th>
-              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Value</th>
-              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>Relative</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>{t('alarms.timestamp')}</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>{t('alarms.metric')}</th>
+              <th className="px-3 py-2.5 text-left font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>{t('alarms.level')}</th>
+              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>{t('alarms.value')}</th>
+              <th className="px-3 py-2.5 text-right font-semibold tracking-wider uppercase text-[10px]" style={{ color: 'var(--bench-muted)' }}>{t('alarms.relative')}</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center" style={{ color: 'var(--bench-muted)' }}>
-                  No alarms matching filters
+                  {t('alarms.noAlarms')}
                 </td>
               </tr>
             ) : (

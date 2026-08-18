@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CheckIcon, CpuIcon, RotateCcwIcon, UsbIcon } from 'lucide-react'
 import { useBench } from '../BenchContext'
 import { DEFAULT_THRESHOLDS, type Thresholds } from '@/lib/types'
+import { useLanguage } from '../LanguageContext'
 
 const METRIC_CONFIG = [
   { key: 'temp_echap',     label: 'Exhaust Temperature', unit: '°C',    step: 10,   min: 100,  max: 1200 },
@@ -22,6 +23,7 @@ export function Parametres() {
     history,
   } = useBench()
 
+  const { t } = useLanguage()
   const [draft, setDraft] = useState<Thresholds>(() => ({ ...thresholds }))
   const [saved, setSaved]   = useState(false)
   const [diameter, setDiameter] = useState(() => {
@@ -85,9 +87,9 @@ export function Parametres() {
           <UsbIcon size={20} className="animate-pulse" />
         </div>
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-semibold text-bench-text font-mono">Configuration Unavailable</h2>
+          <h2 className="text-sm font-semibold text-bench-text font-mono">{t('settings.noSensors')}</h2>
           <p className="text-xs text-bench-muted leading-relaxed">
-            Please connect your Arduino board and start acquisition from the dashboard to configure your active sensors.
+            {t('settings.connectFirst')}
           </p>
         </div>
       </div>
@@ -102,9 +104,9 @@ export function Parametres() {
           <CpuIcon size={20} className="animate-spin" style={{ animationDuration: '3s' }} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-sm font-semibold text-bench-text font-mono">Waiting for Active Sensors</h2>
+          <h2 className="text-sm font-semibold text-bench-text font-mono">{t('settings.noSensors')}</h2>
           <p className="text-xs text-bench-muted leading-relaxed">
-            No sensors have been detected yet. Transmit telemetry signals from the Arduino to configure them.
+            {t('settings.connectFirst')}
           </p>
         </div>
       </div>
@@ -116,7 +118,7 @@ export function Parametres() {
     <div className="p-4 flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-muted">
-          Settings
+          {t('settings.title')}
         </h1>
         <div className="flex gap-2">
           <button
@@ -125,7 +127,7 @@ export function Parametres() {
             style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-muted)', backgroundColor: 'var(--bench-surface)' }}
           >
             <RotateCcwIcon size={12} />
-            Restore Defaults
+            {t('settings.resetThresholds')}
           </button>
           <button
             onClick={handleSave}
@@ -136,7 +138,7 @@ export function Parametres() {
               backgroundColor: saved ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)',
             }}
           >
-            {saved ? <><CheckIcon size={12} /> Saved</> : 'Save'}
+            {saved ? <><CheckIcon size={12} /> {t('action.saved')}</> : t('action.save')}
           </button>
         </div>
       </div>
@@ -182,7 +184,7 @@ export function Parametres() {
 
         <div className="divide-y" style={{ borderColor: 'var(--bench-border)' }}>
           {activeConfigs.map(cfg => {
-            const t = draft[cfg.key as keyof Thresholds]
+            const thr = draft[cfg.key as keyof Thresholds]
             return (
               <div key={cfg.key} className="px-4 py-4 flex flex-col gap-3">
                 <div className="flex items-baseline justify-between">
@@ -195,12 +197,12 @@ export function Parametres() {
                   {/* Warning */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--bench-warning)' }}>
-                      Warning Threshold
+                      {t('settings.warning')}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
-                        value={t.warning}
+                        value={thr.warning}
                         onChange={e => handleChange(cfg.key, 'warning', e.target.value)}
                         step={cfg.step}
                         min={cfg.min}
@@ -218,12 +220,12 @@ export function Parametres() {
                   {/* Danger */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--bench-danger)' }}>
-                      Danger Threshold
+                      {t('settings.danger')}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
-                        value={t.danger}
+                        value={thr.danger}
                         onChange={e => handleChange(cfg.key, 'danger', e.target.value)}
                         step={cfg.step}
                         min={cfg.min}
@@ -253,7 +255,7 @@ export function Parametres() {
           aria-live="polite"
         >
           <CheckIcon size={13} />
-          Settings successfully saved
+          {t('settings.thresholdsSaved')}
         </div>
       )}
     </div>
