@@ -33,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-bench-bg`}>
+    <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-bench-bg`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

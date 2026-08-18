@@ -1,3 +1,5 @@
+'use client'
+
 import { AppShell } from '@/components/bench/AppShell'
 import { Programmation } from '@/components/bench/pages/Programmation'
 
