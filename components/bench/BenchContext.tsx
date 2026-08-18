@@ -6,6 +6,20 @@ import { useSensorFeed, type FeedStats, type SensorFeedResult } from '@/hooks/us
 import { useThresholds } from '@/hooks/useThresholds'
 import { DEFAULT_THRESHOLDS, getMetricState, type AlarmEvent, type MetricState, type SensorReading, type Thresholds } from '@/lib/types'
 
+export interface ChatConversation {
+  id: string
+  title: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+  timestamp?: string
+  provider?: 'gemini' | 'groq'
+}
+
 interface BenchContextValue {
   latest:       SensorReading | null
   history:      SensorReading[]
@@ -33,6 +47,10 @@ interface BenchContextValue {
   connectedUsbInfo: { usbVendorId?: number; usbProductId?: number } | null
   navLayout: 'tabs' | 'sidebar'
   setNavLayout: (layout: 'tabs' | 'sidebar') => void
+  cachedConversations: ChatConversation[]
+  setCachedConversations: (convs: ChatConversation[]) => void
+  cachedMessages: Record<string, ChatMessage[]>
+  setCachedMessages: (convId: string, msgs: ChatMessage[]) => void
 }
 
 const BenchContext = createContext<BenchContextValue | null>(null)
@@ -44,6 +62,16 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
 
   const [selectedBoard, setSelectedBoardState] = useState<string | null>(null)
   const [navLayout, setNavLayoutState] = useState<'tabs' | 'sidebar'>('tabs')
+
+  const [cachedConversations, setCachedConversations] = useState<ChatConversation[]>([])
+  const [cachedMessages, setCachedMessagesState] = useState<Record<string, ChatMessage[]>>({})
+
+  const setCachedMessages = (convId: string, msgs: ChatMessage[]) => {
+    setCachedMessagesState(prev => ({
+      ...prev,
+      [convId]: msgs
+    }))
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -109,6 +137,10 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
     boardName,
     navLayout,
     setNavLayout,
+    cachedConversations,
+    setCachedConversations,
+    cachedMessages,
+    setCachedMessages,
   }
 
   return <BenchContext.Provider value={value}>{children}</BenchContext.Provider>
