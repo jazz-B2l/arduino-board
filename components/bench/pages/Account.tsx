@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/components/bench/ThemeContext'
+import { useBench } from '../BenchContext'
 import {
   UserIcon,
   MailIcon,
@@ -19,11 +20,39 @@ import {
 } from 'lucide-react'
 
 export function Account() {
-  const { user, profile, role, signOut, refreshProfile } = useAuth()
+  const { user, profile, role, sessionExpiresAt, signOut, refreshProfile } = useAuth()
   const { theme, setTheme } = useTheme()
+  const { navLayout, setNavLayout } = useBench()
 
   const [fullName, setFullName] = useState('')
   const [saveLoading, setSaveLoading] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState<string>('Loading...')
+
+  useEffect(() => {
+    if (!sessionExpiresAt) {
+      setTimeRemaining('No Session')
+      return
+    }
+
+    const updateCountdown = () => {
+      const msLeft = (sessionExpiresAt * 1000) - Date.now()
+      if (msLeft <= 0) {
+        setTimeRemaining('Expired')
+        return
+      }
+
+      const totalSecs = Math.floor(msLeft / 1000)
+      const mins = Math.floor(totalSecs / 60)
+      const secs = totalSecs % 60
+      const formatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+      setTimeRemaining(formatted)
+    }
+
+    updateCountdown()
+    const interval = setInterval(updateCountdown, 1000)
+
+    return () => clearInterval(interval)
+  }, [sessionExpiresAt])
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -230,6 +259,47 @@ export function Account() {
               </button>
             </div>
           </div>
+
+          {/* Navigation Layout Preferences Panel */}
+          <div
+            className="rounded-xl border p-6 flex flex-col gap-4 bg-bench-surface border-bench-border shadow-sm"
+          >
+            <div className="flex flex-col gap-1 border-b border-bench-border pb-3">
+              <h3 className="text-sm font-bold text-bench-text flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
+                Workspace Layout
+              </h3>
+              <p className="text-[11px] text-bench-muted">Choose your preferred workspace navigation bar layout.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              <button
+                type="button"
+                onClick={() => setNavLayout('tabs')}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                  navLayout === 'tabs'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.15)] font-bold'
+                    : 'border-bench-border hover:border-bench-text/30 text-bench-muted hover:bg-bench-subtle'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /></svg>
+                Top Tabs Bar
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNavLayout('sidebar')}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                  navLayout === 'sidebar'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.15)] font-bold'
+                    : 'border-bench-border hover:border-bench-text/30 text-bench-muted hover:bg-bench-subtle'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M9 3v18" /></svg>
+                Left Sidebar
+              </button>
+            </div>
+          </div>
           
           {/* Security Information Panel */}
           <div
@@ -245,6 +315,24 @@ export function Account() {
 
             <div className="flex flex-col gap-3 font-mono text-[10px] text-bench-muted">
               
+              <div className="flex justify-between items-center border-b border-bench-border pb-2">
+                <div className="flex items-center gap-1.5 text-bench-muted">
+                  <ShieldCheckIcon size={11} className="text-purple-500" />
+                  <span>Session Expiry Limit:</span>
+                </div>
+                <span className="text-bench-text">30 Minutes</span>
+              </div>
+
+              <div className="flex justify-between items-center border-b border-bench-border pb-2">
+                <div className="flex items-center gap-1.5 text-bench-muted">
+                  <ShieldCheckIcon size={11} className={timeRemaining === 'Expired' ? 'text-red-500' : 'text-emerald-500'} />
+                  <span>Session Remaining:</span>
+                </div>
+                <span className={`font-bold ${timeRemaining === 'Expired' ? 'text-red-500 animate-pulse' : 'text-emerald-500'}`}>
+                  {timeRemaining}
+                </span>
+              </div>
+
               <div className="flex justify-between items-center border-b border-bench-border pb-2">
                 <div className="flex items-center gap-1.5 text-bench-muted">
                   <ShieldCheckIcon size={11} />
