@@ -158,6 +158,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
 
   const [isSavedVisual, setIsSavedVisual] = useState(false)
   const [shouldBlink, setShouldBlink] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
   const blinkTimerRef = useRef<any>(null)
 
   useEffect(() => {
@@ -179,6 +180,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
 
   const handleCodeChange = (newCode: string, instant = false) => {
     setCode(newCode)
+    setIsDirty(true)
     
     if (blinkTimerRef.current) {
       clearTimeout(blinkTimerRef.current)
@@ -200,6 +202,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
       localStorage.setItem('bench_arduino_code', code)
       setIsSavedVisual(true)
       setShouldBlink(false)
+      setIsDirty(false)
       if (blinkTimerRef.current) {
         clearTimeout(blinkTimerRef.current)
         blinkTimerRef.current = null
@@ -454,7 +457,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
               className="absolute right-0 top-6 bottom-6 z-20 flex transition-transform duration-300 ease-in-out translate-x-[216px] hover:translate-x-0 group/bar"
               style={{ width: '240px' }}
               onMouseEnter={() => {
-                if (!isSavedVisual) {
+                if (isDirty && !isSavedVisual) {
                   setShouldBlink(true)
                 }
               }}
@@ -555,7 +558,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
                     title={isConnected ? 'Closes active browser terminal session before uploading' : 'Compile and flash to microcontroller'}
                   >
                     <UploadIcon size={12} />
-                    <span className="truncate">{isUploading ? 'Uploading...' : isConnected ? 'Disconnect' : 'Upload'}</span>
+                    <span className="truncate">{isUploading ? 'Uploading...' : 'Upload'}</span>
                   </button>
                 </div>
               </div>
