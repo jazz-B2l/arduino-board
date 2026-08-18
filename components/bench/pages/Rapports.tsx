@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { DownloadIcon, FileTextIcon } from 'lucide-react'
 import { useBench } from '../BenchContext'
 import { METRIC_LABELS, METRIC_UNITS } from '@/lib/types'
+import { useLanguage } from '../LanguageContext'
 
 function formatDateTime(ts: number) {
   return new Date(ts).toLocaleString('en-US')
@@ -40,6 +41,7 @@ function historyToRows(readings: ReturnType<typeof useBench>['history']) {
 
 export function Rapports() {
   const { history, alarms, stats } = useBench()
+  const { t } = useLanguage()
 
   // Last 10 minutes
   const last10min = useMemo(() => {
@@ -66,7 +68,7 @@ export function Rapports() {
   const exports = [
     {
       id:       'full',
-      title:    'Full Session',
+      title:    t('reports.fullSession'),
       icon:     FileTextIcon,
       rows:     history.length,
       timeRange: totalTimeRange,
@@ -75,7 +77,7 @@ export function Rapports() {
     },
     {
       id:       '10min',
-      title:    'Last 10 Minutes',
+      title:    t('reports.last10min'),
       icon:     FileTextIcon,
       rows:     last10min.length,
       timeRange: last10TimeRange,
@@ -84,7 +86,7 @@ export function Rapports() {
     },
     {
       id:       'alarms',
-      title:    'Alarm Log',
+      title:    t('reports.alarmLog'),
       icon:     FileTextIcon,
       rows:     alarms.length,
       timeRange: alarms.length > 0
@@ -98,7 +100,7 @@ export function Rapports() {
   return (
     <div className="p-4 flex flex-col gap-4">
       <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
-        Reports &amp; CSV Export
+        {t('reports.title')}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -118,16 +120,16 @@ export function Rapports() {
             {/* Preview */}
             <div className="flex flex-col gap-2 text-xs font-mono">
               <div className="flex justify-between">
-                <span style={{ color: 'var(--bench-muted)' }}>Rows</span>
+                <span style={{ color: 'var(--bench-muted)' }}>{t('reports.rows')}</span>
                 <span style={{ color: 'var(--bench-text)' }}>{exp.rows.toLocaleString('en-US')}</span>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span style={{ color: 'var(--bench-muted)' }}>Time Range</span>
+                <span style={{ color: 'var(--bench-muted)' }}>{t('reports.timeRange')}</span>
                 <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{exp.timeRange}</span>
               </div>
               <div className="flex justify-between">
-                <span style={{ color: 'var(--bench-muted)' }}>Format</span>
-                <span style={{ color: 'var(--bench-text)' }}>CSV (UTF-8, ; separator)</span>
+                <span style={{ color: 'var(--bench-muted)' }}>{t('reports.format')}</span>
+                <span style={{ color: 'var(--bench-text)' }}>{t('reports.formatValue')}</span>
               </div>
             </div>
 
@@ -142,7 +144,7 @@ export function Rapports() {
               }}
             >
               <DownloadIcon size={13} />
-              Download ({exp.rows.toLocaleString('en-US')} rows)
+              {t('reports.download')} ({exp.rows.toLocaleString('en-US')} {t('reports.rows').toLowerCase()})
             </button>
           </div>
         ))}
@@ -157,14 +159,14 @@ export function Rapports() {
           className="text-[10px] uppercase tracking-widest mb-3 font-semibold"
           style={{ color: 'var(--bench-muted)' }}
         >
-          Session Summary
+          {t('reports.sessionSummary')}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Total Frames',   value: stats.totalFrames.toLocaleString('en-US') },
-            { label: 'Invalid Frames', value: stats.invalidFrames.toString() },
-            { label: 'Total Alarms',    value: alarms.length.toString() },
-            { label: 'Source',           value: stats.port !== 'None' ? `Serial Port (${stats.port})` : 'Port Disconnected' },
+            { label: t('reports.totalFrames'),   value: stats.totalFrames.toLocaleString('en-US') },
+            { label: t('reports.invalidFrames'), value: stats.invalidFrames.toString() },
+            { label: t('reports.totalAlarms'),   value: alarms.length.toString() },
+            { label: t('reports.source'),        value: stats.port !== 'None' ? `${t('reports.serialPort')} (${stats.port})` : t('reports.portDisconnected') },
           ].map(item => (
             <div key={item.label} className="flex flex-col gap-0.5">
               <span style={{ color: 'var(--bench-muted)' }}>{item.label}</span>

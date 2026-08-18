@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next'
-import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
+import { IBM_Plex_Sans, JetBrains_Mono, Noto_Kufi_Arabic } from 'next/font/google'
 import './globals.css'
 import { BenchProvider } from '@/components/bench/BenchContext'
 import { AuthProvider } from '@/components/auth/AuthContext'
 import { ThemeProvider } from '@/components/bench/ThemeContext'
+import { LanguageProvider } from '@/components/bench/LanguageContext'
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ['latin'],
@@ -15,6 +16,12 @@ const jetBrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-mono',
+})
+
+const notoKufiArabic = Noto_Kufi_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-arabic',
 })
 
 export const metadata: Metadata = {
@@ -33,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} bg-bench-bg`} suppressHydrationWarning>
+    <html lang="en" className={`${ibmPlexSans.variable} ${jetBrainsMono.variable} ${notoKufiArabic.variable} bg-bench-bg`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -52,9 +59,11 @@ export default function RootLayout({
       <body className="antialiased font-sans min-h-screen text-bench-text">
         <AuthProvider>
           <ThemeProvider>
-            <BenchProvider>
-              {children}
-            </BenchProvider>
+            <LanguageProvider>
+              <BenchProvider>
+                {children}
+              </BenchProvider>
+            </LanguageProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>
