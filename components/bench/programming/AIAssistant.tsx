@@ -330,12 +330,14 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
     // Add user message to UI immediately
     setMessages(prev => {
       const next = prev.filter(m => m.content !== DEFAULT_MESSAGE.content)
-      const nextWithUser = [...next, userMessage]
-      if (initialConversationId) {
-        setCachedMessages(initialConversationId, nextWithUser)
-      }
-      return nextWithUser
+      return [...next, userMessage]
     })
+    if (initialConversationId) {
+      setCachedMessages(initialConversationId, [
+        ...messages.filter(m => m.content !== DEFAULT_MESSAGE.content),
+        userMessage
+      ])
+    }
     if (!textToSend) setInput('')
 
     let activeConvId = initialConversationId
