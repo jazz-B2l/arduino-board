@@ -5,6 +5,7 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/components/bench/ThemeContext'
 import { useBench } from '../BenchContext'
+import { useLanguage } from '../LanguageContext'
 import {
   UserIcon,
   MailIcon,
@@ -23,6 +24,7 @@ export function Account() {
   const { user, profile, role, sessionExpiresAt, signOut, refreshProfile } = useAuth()
   const { theme, setTheme } = useTheme()
   const { navLayout, setNavLayout } = useBench()
+  const { t } = useLanguage()
 
   const [fullName, setFullName] = useState('')
   const [saveLoading, setSaveLoading] = useState(false)
@@ -131,7 +133,7 @@ export function Account() {
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-bench-border text-xs font-mono text-bench-muted hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/10 transition-all cursor-pointer"
         >
           <LogOutIcon size={12} />
-          Sign Out of Workspace
+          {t('account.signOut')}
         </button>
       </div>
 
@@ -147,7 +149,7 @@ export function Account() {
               <UserIcon size={14} className="text-blue-500" />
               Profile Details
             </h3>
-            <p className="text-[11px] text-bench-muted">Update your public identity on the test bench workspace.</p>
+            <p className="text-[11px] text-bench-muted">{t('account.profileDesc')}</p>
           </div>
 
           {/* Form Messages */}
@@ -169,20 +171,20 @@ export function Account() {
             
             {/* Full Name input */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] text-bench-muted uppercase tracking-wider font-mono">Full Name</label>
+              <label className="text-[10px] text-bench-muted uppercase tracking-wider font-mono">{t('account.fullName')}</label>
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Enter your name"
+                placeholder={t('account.fullNamePlaceholder')}
                 className="w-full px-3 py-2 rounded border bg-bench-input-bg border-bench-border text-xs placeholder-bench-muted/60 text-bench-text focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/25 transition-all font-sans"
               />
             </div>
 
             {/* Email (Read only) */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] text-bench-muted uppercase tracking-wider font-mono">Registered Email</label>
+              <label className="text-[10px] text-bench-muted uppercase tracking-wider font-mono">{t('account.email')}</label>
               <div className="relative">
                 <MailIcon size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-bench-muted" />
                 <input
@@ -211,7 +213,7 @@ export function Account() {
               ) : (
                 <CheckIcon size={12} />
               )}
-              Save Changes
+              {t('account.saveChanges')}
             </button>
           </form>
         </div>
@@ -242,7 +244,7 @@ export function Account() {
                 }`}
               >
                 <SunIcon size={14} />
-                Light Mode
+                {t('account.lightMode')}
               </button>
 
               <button
@@ -255,7 +257,7 @@ export function Account() {
                 }`}
               >
                 <MoonIcon size={14} />
-                Dark Mode
+                {t('account.darkMode')}
               </button>
             </div>
           </div>
@@ -269,7 +271,7 @@ export function Account() {
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
                 Workspace Layout
               </h3>
-              <p className="text-[11px] text-bench-muted">Choose your preferred workspace navigation bar layout.</p>
+              <p className="text-[11px] text-bench-muted">{t('account.layoutDesc')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-1">
@@ -283,7 +285,7 @@ export function Account() {
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /></svg>
-                Top Tabs
+                {t('account.topTabs')}
               </button>
 
               <button
@@ -296,7 +298,7 @@ export function Account() {
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 15h18" /></svg>
-                Bottom Tabs
+                {t('account.bottomTabs')}
               </button>
 
               <button
@@ -309,7 +311,7 @@ export function Account() {
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M9 3v18" /></svg>
-                Left Sidebar
+                {t('account.leftSidebar')}
               </button>
 
               <button
@@ -322,7 +324,7 @@ export function Account() {
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /></svg>
-                Right Sidebar
+                {t('account.rightSidebar')}
               </button>
             </div>
           </div>

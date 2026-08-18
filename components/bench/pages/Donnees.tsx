@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useBench } from '../BenchContext'
 import { getMetricState } from '@/lib/types'
 import { RotateCcw, Play, Pause } from 'lucide-react'
+import { useLanguage } from '../LanguageContext'
 
 const PAGE_SIZE = 50
 
@@ -27,6 +28,7 @@ const stateText: Record<string, string> = {
 
 export function Donnees() {
   const { history, thresholds, restart } = useBench()
+  const { t } = useLanguage()
   const [page, setPage] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [pausedHistory, setPausedHistory] = useState<typeof history | null>(null)
@@ -55,13 +57,13 @@ export function Donnees() {
   // Build active columns dynamically
   const cols = useMemo(() => {
     const allCols = [
-      { key: 'timestamp',      label: 'Timestamp',       fmt: (v: number) => `${fmtDate(v)} ${fmtTime(v)}`, metric: null },
-      { key: 'temp_carburant', label: 'Fuel (°C)',       fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_carburant' },
-      { key: 'temp_echap',     label: 'Exhaust (°C)',    fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_echap' },
-      { key: 'temp_admission', label: 'Intake (°C)',     fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_admission' },
-      { key: 'rpm',            label: 'RPM',              fmt: (v: number) => v !== undefined ? v.toLocaleString('en-US') : '--',     metric: 'rpm' },
-      { key: 'vitesse',        label: 'Speed (m/s)',    fmt: (v: number) => v !== undefined ? v.toFixed(2) : '--',                  metric: null },
-      { key: 'vibration',      label: 'Vibration (m/s²)', fmt: (v: number) => v !== undefined ? v.toFixed(3) : '--',                  metric: 'vibration' },
+      { key: 'timestamp',      label: t('data.timestamp'),  fmt: (v: number) => `${fmtDate(v)} ${fmtTime(v)}`, metric: null },
+      { key: 'temp_carburant', label: t('data.fuel'),         fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_carburant' },
+      { key: 'temp_echap',     label: t('data.exhaust'),      fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_echap' },
+      { key: 'temp_admission', label: t('data.intake'),       fmt: (v: number) => v !== undefined ? v.toFixed(1) : '--',                  metric: 'temp_admission' },
+      { key: 'rpm',            label: t('data.rpm'),          fmt: (v: number) => v !== undefined ? v.toLocaleString('en-US') : '--',     metric: 'rpm' },
+      { key: 'vitesse',        label: t('data.speed'),        fmt: (v: number) => v !== undefined ? v.toFixed(2) : '--',                  metric: null },
+      { key: 'vibration',      label: t('data.vibration'),    fmt: (v: number) => v !== undefined ? v.toFixed(3) : '--',                  metric: 'vibration' },
     ]
     return allCols.filter(col => {
       if (col.key === 'timestamp') return true
@@ -74,7 +76,7 @@ export function Donnees() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
-            Raw Data
+            {t('data.title')}
           </h1>
           <button
             onClick={() => {
@@ -94,11 +96,11 @@ export function Donnees() {
             title={isPaused ? "Resume registering raw data updates" : "Stop registering raw data updates in this view"}
           >
             {isPaused ? <Play size={12} /> : <Pause size={12} />}
-            {isPaused ? 'Resume' : 'Stop'}
+            {isPaused ? t('action.resume') : t('action.stop')}
           </button>
           <button
             onClick={() => {
-              if (window.confirm("Are you sure you want to delete all data and start again?")) {
+              if (window.confirm(t('data.confirmRestore'))) {
                 restart()
                 setIsPaused(false)
                 setPausedHistory(null)
@@ -109,7 +111,7 @@ export function Donnees() {
             title="Delete all raw data and restart telemetry feed"
           >
             <RotateCcw size={12} />
-            Restore
+            {t('action.restore')}
           </button>
         </div>
         <span className="text-xs font-mono text-bench-muted">
@@ -143,7 +145,7 @@ export function Donnees() {
                   className="px-4 py-8 text-center"
                   style={{ color: 'var(--bench-muted)' }}
                 >
-                  Waiting for active sensor data...
+                  {t('data.waiting')}
                 </td>
               </tr>
             ) : (
@@ -193,7 +195,7 @@ export function Donnees() {
           className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity cursor-pointer"
           style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-text)', backgroundColor: 'var(--bench-surface)' }}
         >
-          ‹ Prev
+          ‹ {t('data.prev')}
         </button>
         <span className="text-xs font-mono px-2" style={{ color: 'var(--bench-muted)' }}>
           {page + 1} / {Math.max(1, totalPages)}
@@ -204,7 +206,7 @@ export function Donnees() {
           className="px-3 py-1 rounded border text-xs font-mono disabled:opacity-30 transition-opacity cursor-pointer"
           style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-text)', backgroundColor: 'var(--bench-surface)' }}
         >
-          Next ›
+          {t('data.next')} ›
         </button>
         <button
           onClick={() => setPage(Math.max(0, totalPages - 1))}
