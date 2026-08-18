@@ -620,7 +620,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
             </h2>
             <div className="flex items-center gap-1.5 text-[10px] text-bench-muted font-mono mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              {provider === 'gemini' ? 'Gemini 2.5' : 'Llama 3.1'}
+              {provider === 'gemini' ? 'Gemini 2.5' : 'Llama 3.3'}
             </div>
           </div>
         </div>
@@ -634,7 +634,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
               className="bg-transparent text-xs text-bench-text font-medium outline-none cursor-pointer appearance-none pr-5 z-10 w-full"
             >
               <option value="gemini" className="bg-bench-surface text-bench-text">Gemini 2.5</option>
-              <option value="groq" className="bg-bench-surface text-bench-text">Llama 3.1</option>
+              <option value="groq" className="bg-bench-surface text-bench-text">Llama 3.3</option>
             </select>
             <ChevronDownIcon size={14} className="text-bench-muted absolute right-2 pointer-events-none" />
           </div>
@@ -711,7 +711,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-6 h-6 rounded-md overflow-hidden flex items-center justify-center bg-bench-header-bg border border-bench-border flex-shrink-0">
                       {msg.provider === 'groq' ? (
-                        <img src="/groq-logo.png" alt="Llama 3.1" className="w-full h-full object-cover" />
+                        <img src="/groq-logo.png" alt="Llama 3.3" className="w-full h-full object-cover" />
                       ) : (
                         <img src="/gemini-logo.png" alt="Gemini" className="w-full h-full object-cover" />
                       )}
