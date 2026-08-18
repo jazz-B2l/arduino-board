@@ -45,8 +45,8 @@ interface BenchContextValue {
   setSelectedBoard: (board: string | null) => void
   boardName:        string
   connectedUsbInfo: { usbVendorId?: number; usbProductId?: number } | null
-  navLayout: 'tabs' | 'sidebar'
-  setNavLayout: (layout: 'tabs' | 'sidebar') => void
+  navLayout: 'tabs' | 'sidebar' | 'right-sidebar' | 'bottom-tabs'
+  setNavLayout: (layout: 'tabs' | 'sidebar' | 'right-sidebar' | 'bottom-tabs') => void
   cachedConversations: ChatConversation[]
   setCachedConversations: (convs: ChatConversation[]) => void
   cachedMessages: Record<string, ChatMessage[]>
@@ -61,7 +61,7 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
   const alarms     = useAlarms(feed.latest, thresholds)
 
   const [selectedBoard, setSelectedBoardState] = useState<string | null>(null)
-  const [navLayout, setNavLayoutState] = useState<'tabs' | 'sidebar'>('tabs')
+  const [navLayout, setNavLayoutState] = useState<'tabs' | 'sidebar' | 'right-sidebar' | 'bottom-tabs'>('tabs')
 
   const [cachedConversations, setCachedConversations] = useState<ChatConversation[]>([])
   const [cachedMessages, setCachedMessagesState] = useState<Record<string, ChatMessage[]>>({})
@@ -75,16 +75,16 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('bench_nav_layout')
-      if (saved === 'sidebar') {
-        setNavLayoutState('sidebar')
+      const saved = localStorage.getItem('bench_nav_layout') as any
+      if (saved === 'sidebar' || saved === 'right-sidebar' || saved === 'bottom-tabs') {
+        setNavLayoutState(saved)
       } else {
         setNavLayoutState('tabs')
       }
     }
   }, [])
 
-  const setNavLayout = (layout: 'tabs' | 'sidebar') => {
+  const setNavLayout = (layout: 'tabs' | 'sidebar' | 'right-sidebar' | 'bottom-tabs') => {
     setNavLayoutState(layout)
     if (typeof window !== 'undefined') {
       localStorage.setItem('bench_nav_layout', layout)
