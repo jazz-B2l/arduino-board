@@ -46,10 +46,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {navLayout === 'tabs' && <AppNav />}
       <div className="flex flex-1 overflow-hidden">
         {navLayout === 'sidebar' && <AppNav />}
-        <main className="flex-1 overflow-y-auto relative" id="main-content">
+        <main
+          className="flex-1 overflow-y-auto relative"
+          id="main-content"
+          style={navLayout === 'bottom-tabs' ? { paddingBottom: '48px' } : undefined}
+        >
           {children}
         </main>
+        {navLayout === 'right-sidebar' && <AppNav />}
       </div>
+      {navLayout === 'bottom-tabs' && (
+        <div className="fixed bottom-0 left-0 right-0 z-50">
+          <AppNav />
+        </div>
+      )}
       <AppFooter />
     </div>
   )
