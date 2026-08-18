@@ -124,7 +124,7 @@ void loop() {
   }
 
   return (
-    <div className="min-h-screen text-bench-text relative overflow-hidden flex flex-col font-sans bg-bench-bg">
+    <div className="forced-dark min-h-screen text-bench-text relative overflow-hidden flex flex-col font-sans bg-bench-bg">
       
       {/* Dynamic Background Gradients */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full opacity-10 dark:opacity-20 pointer-events-none blur-[140px]" style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 80%)' }} />
