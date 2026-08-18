@@ -1,89 +1,25 @@
 import { NextResponse } from 'next/server'
-import db from '@/lib/db'
-
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const sessionId = searchParams.get('sessionId') || 'default'
-    const userId = searchParams.get('userId')
-
-    let messages
-    if (userId) {
-      const stmt = db.prepare('SELECT role, content, timestamp, provider FROM messages WHERE user_id = ? ORDER BY id ASC')
-      messages = stmt.all(userId)
-    } else {
-      const stmt = db.prepare('SELECT role, content, timestamp, provider FROM messages WHERE session_id = ? ORDER BY id ASC')
-      messages = stmt.all(sessionId)
-    }
-
-    return NextResponse.json({ messages })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
-
-export async function DELETE(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const sessionId = searchParams.get('sessionId') || 'default'
-    const userId = searchParams.get('userId')
-
-    if (userId) {
-      const stmt = db.prepare('DELETE FROM messages WHERE user_id = ?')
-      stmt.run(userId)
-    } else {
-      const stmt = db.prepare('DELETE FROM messages WHERE session_id = ?')
-      stmt.run(sessionId)
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
+import { supabase } from '@/lib/supabase'
 
 export async function POST(req: Request) {
   try {
-    const { message, provider, boardName, thresholds, currentCode, sessionId = 'default', userId } = await req.json()
-
-    if (!message || typeof message !== 'object') {
-      // For backwards compatibility, if they pass the old format
-      if (message === undefined && (req as any).body?.messages) {
-         return NextResponse.json({ error: 'Please update your client to send a single message object.' }, { status: 400 })
-      }
+    // 1. Authenticate user using JWT from Authorization header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized: No token provided' }, { status: 401 })
     }
 
-    const { role: userRole, content: userContent, timestamp: userTimestamp } = message
-    const MAX_MESSAGES_PER_USER = 100
-
-    // Prune oldest messages if the user reaches the history limit
-    if (userId) {
-      const pruneStmt = db.prepare(`
-        DELETE FROM messages 
-        WHERE user_id = ? 
-          AND id NOT IN (
-            SELECT id FROM messages 
-            WHERE user_id = ? 
-            ORDER BY id DESC 
-            LIMIT ?
-          )
-      `)
-      // Keep only top 99 messages so adding the user message makes exactly 100
-      pruneStmt.run(userId, userId, MAX_MESSAGES_PER_USER - 1)
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 })
     }
 
-    // Save user message to database
-    const insertStmt = db.prepare('INSERT INTO messages (session_id, user_id, role, content, timestamp, provider) VALUES (?, ?, ?, ?, ?, ?)')
-    insertStmt.run(sessionId, userId || null, userRole, userContent, userTimestamp, null)
+    // 2. Parse request body
+    const { chatHistory, provider, boardName, thresholds, currentCode } = await req.json()
 
-    // Fetch the full history to provide context to the AI
-    let chatHistory: {role: string, content: string}[]
-    if (userId) {
-      const getHistoryStmt = db.prepare('SELECT role, content FROM messages WHERE user_id = ? ORDER BY id ASC')
-      chatHistory = getHistoryStmt.all(userId) as {role: string, content: string}[]
-    } else {
-      const getHistoryStmt = db.prepare('SELECT role, content FROM messages WHERE session_id = ? ORDER BY id ASC')
-      chatHistory = getHistoryStmt.all(sessionId) as {role: string, content: string}[]
+    if (!chatHistory || !Array.isArray(chatHistory)) {
+      return NextResponse.json({ error: 'Invalid request: chatHistory is required.' }, { status: 400 })
     }
 
     const currentProvider = provider || 'gemini'
@@ -120,7 +56,7 @@ Keep responses concise, professional, and in English.`
       const groqMessages = [
         { role: 'system', content: systemPrompt },
         ...chatHistory.map(msg => ({
-          role: msg.role === 'model' ? 'assistant' : msg.role,
+          role: msg.role === 'model' || msg.role === 'assistant' ? 'assistant' : 'user',
           content: msg.content
         }))
       ]
@@ -151,11 +87,13 @@ Keep responses concise, professional, and in English.`
         return NextResponse.json({ error: 'Gemini API Key is not configured in .env.local' }, { status: 500 })
       }
 
+      // Convert history to Gemini format (roles must alternate user/model)
       const contents = chatHistory.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
+        role: msg.role === 'model' || msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }]
       }))
 
+      // Ensure history doesn't start with a model message
       if (contents.length > 0 && contents[0].role === 'model') {
         contents.shift()
       }
@@ -184,27 +122,7 @@ Keep responses concise, professional, and in English.`
       aiContent = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
     }
 
-    // Save AI response to database
-    const aiTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    
-    // Prune before inserting assistant response so total messages remains <= MAX_MESSAGES_PER_USER
-    if (userId) {
-      const pruneStmt = db.prepare(`
-        DELETE FROM messages 
-        WHERE user_id = ? 
-          AND id NOT IN (
-            SELECT id FROM messages 
-            WHERE user_id = ? 
-            ORDER BY id DESC 
-            LIMIT ?
-          )
-      `)
-      pruneStmt.run(userId, userId, MAX_MESSAGES_PER_USER - 1)
-    }
-
-    insertStmt.run(sessionId, userId || null, 'assistant', aiContent, aiTimestamp, currentProvider)
-
-    return NextResponse.json({ content: aiContent, timestamp: aiTimestamp })
+    return NextResponse.json({ content: aiContent })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
