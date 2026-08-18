@@ -199,3 +199,13 @@
     animation: none;
   }
 }
+
+/* ── RTL (Arabic) overrides ── */
+[dir="rtl"] {
+  font-family: var(--font-arabic), var(--font-sans), system-ui, sans-serif;
+}
+
+[dir="rtl"] .font-mono {
+  /* keep monospace for code/numbers even in RTL */
+  font-family: var(--font-mono), monospace;
+}

@@ -15,22 +15,24 @@ import {
   UserIcon,
 } from 'lucide-react'
 import { useBench } from './BenchContext'
+import { useLanguage } from './LanguageContext'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboardIcon },
-  { href: '/programmation', label: 'Code',    icon: CodeIcon },
-  { href: '/graphiques', label: 'Charts',     icon: BarChart3Icon },
-  { href: '/donnees',    label: 'Data',       icon: TableIcon },
-  { href: '/alarmes',    label: 'Alarms',     icon: AlertTriangleIcon },
-  { href: '/rapports',   label: 'Reports',    icon: FileTextIcon },
-  { href: '/parametres', label: 'Settings',   icon: SettingsIcon },
-  { href: '/systeme',    label: 'System',     icon: MonitorIcon },
-  { href: '/account',    label: 'Account',    icon: UserIcon },
+  { href: '/dashboard',    labelKey: 'nav.dashboard', icon: LayoutDashboardIcon },
+  { href: '/programmation',labelKey: 'nav.code',      icon: CodeIcon },
+  { href: '/graphiques',   labelKey: 'nav.charts',    icon: BarChart3Icon },
+  { href: '/donnees',      labelKey: 'nav.data',      icon: TableIcon },
+  { href: '/alarmes',      labelKey: 'nav.alarms',    icon: AlertTriangleIcon },
+  { href: '/rapports',     labelKey: 'nav.reports',   icon: FileTextIcon },
+  { href: '/parametres',   labelKey: 'nav.settings',  icon: SettingsIcon },
+  { href: '/systeme',      labelKey: 'nav.system',    icon: MonitorIcon },
+  { href: '/account',      labelKey: 'nav.account',   icon: UserIcon },
 ]
 
 export function AppNav() {
   const pathname = usePathname()
   const { alarms, navLayout } = useBench()
+  const { t } = useLanguage()
   const unacknowledgedAlarms = alarms.filter(a => a.level === 'DANGER').length
   const isHorizontal = navLayout === 'tabs' || navLayout === 'bottom-tabs'
   const isRight = navLayout === 'right-sidebar'
@@ -46,9 +48,10 @@ export function AppNav() {
       style={{ backgroundColor: 'var(--bench-header-bg)' }}
       aria-label="Main navigation"
     >
-      {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      {NAV_ITEMS.map(({ href, labelKey, icon: Icon }) => {
         const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
         const isAlarms = href === '/alarmes'
+        const label = t(labelKey)
 
         return (
           <Link
