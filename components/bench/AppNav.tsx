@@ -30,13 +30,18 @@ const NAV_ITEMS = [
 
 export function AppNav() {
   const pathname = usePathname()
-  const { alarms } = useBench()
+  const { alarms, navLayout } = useBench()
   const unacknowledgedAlarms = alarms.filter(a => a.level === 'DANGER').length
+  const isTabs = navLayout === 'tabs'
 
   return (
     <nav
-      className="flex-shrink-0 w-[52px] md:w-44 border-r flex flex-col py-3 gap-0.5"
-      style={{ backgroundColor: 'var(--bench-header-bg)', borderColor: 'var(--bench-border)' }}
+      className={`flex-shrink-0 border-bench-border select-none ${
+        isTabs 
+          ? 'w-full flex-row overflow-x-auto px-4 py-1 gap-1 border-b' 
+          : 'w-[52px] md:w-44 flex-col py-3 gap-0.5 border-r'
+      } flex`}
+      style={{ backgroundColor: 'var(--bench-header-bg)' }}
       aria-label="Main navigation"
     >
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -47,16 +52,21 @@ export function AppNav() {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-3 px-3 py-2.5 mx-1.5 rounded text-sm transition-colors relative"
+            className={`flex items-center gap-2 transition-all relative ${
+              isTabs 
+                ? 'px-3.5 py-2 my-0.5 rounded-md text-xs border-b-2 hover:bg-bench-subtle/50' 
+                : 'px-3 py-2.5 mx-1.5 rounded text-sm hover:bg-bench-subtle/50'
+            }`}
             style={{
               backgroundColor: isActive ? 'var(--bench-nav-active)' : 'transparent',
               color: isActive ? 'var(--bench-text)' : 'var(--bench-muted)',
-              borderLeft: isActive ? '2px solid var(--bench-info)' : '2px solid transparent',
+              borderLeft: !isTabs && isActive ? '2px solid var(--bench-info)' : '2px solid transparent',
+              borderBottom: isTabs && isActive ? '2px solid var(--bench-info)' : '2px solid transparent',
             }}
             aria-current={isActive ? 'page' : undefined}
           >
             <Icon
-              size={16}
+              size={isTabs ? 14 : 16}
               style={{ color: isActive ? 'var(--bench-info)' : 'var(--bench-muted)', flexShrink: 0 }}
             />
             <span className="hidden md:block font-medium truncate">{label}</span>
@@ -64,8 +74,9 @@ export function AppNav() {
             {/* Alarm badge */}
             {isAlarms && unacknowledgedAlarms > 0 && (
               <span
-                className="hidden md:flex ml-auto w-5 h-5 rounded-full text-[10px] font-mono font-bold items-center justify-center"
-                style={{ backgroundColor: '#ef4444', color: '#fff' }}
+                className={`w-4 h-4 rounded-full text-[9px] font-mono font-bold flex items-center justify-center bg-red-500 text-white shrink-0 ${
+                  isTabs ? 'ml-1' : 'hidden md:flex ml-auto'
+                }`}
               >
                 {unacknowledgedAlarms > 9 ? '9+' : unacknowledgedAlarms}
               </span>

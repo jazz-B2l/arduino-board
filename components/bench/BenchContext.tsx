@@ -31,6 +31,8 @@ interface BenchContextValue {
   setSelectedBoard: (board: string | null) => void
   boardName:        string
   connectedUsbInfo: { usbVendorId?: number; usbProductId?: number } | null
+  navLayout: 'tabs' | 'sidebar'
+  setNavLayout: (layout: 'tabs' | 'sidebar') => void
 }
 
 const BenchContext = createContext<BenchContextValue | null>(null)
@@ -41,6 +43,25 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
   const alarms     = useAlarms(feed.latest, thresholds)
 
   const [selectedBoard, setSelectedBoardState] = useState<string | null>(null)
+  const [navLayout, setNavLayoutState] = useState<'tabs' | 'sidebar'>('tabs')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('bench_nav_layout')
+      if (saved === 'sidebar') {
+        setNavLayoutState('sidebar')
+      } else {
+        setNavLayoutState('tabs')
+      }
+    }
+  }, [])
+
+  const setNavLayout = (layout: 'tabs' | 'sidebar') => {
+    setNavLayoutState(layout)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('bench_nav_layout', layout)
+    }
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -86,6 +107,8 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
     selectedBoard,
     setSelectedBoard,
     boardName,
+    navLayout,
+    setNavLayout,
   }
 
   return <BenchContext.Provider value={value}>{children}</BenchContext.Provider>
