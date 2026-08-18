@@ -137,7 +137,7 @@ void loop() {
   }
 }`
 
-export function Programmation() {
+export function Programmation({ initialConversationId }: { initialConversationId?: string } = {}) {
   const { connectionStatus, boardName, disconnect, connect, selectedBoard, setSelectedBoard, connectedUsbInfo } = useBench()
   const effectiveBoard = resolveBoardProfile(boardName)
   
@@ -177,7 +177,7 @@ export function Programmation() {
     }
   }, [])
 
-  const handleCodeChange = (newCode: string) => {
+  const handleCodeChange = (newCode: string, instant = false) => {
     setCode(newCode)
     
     if (blinkTimerRef.current) {
@@ -186,9 +186,13 @@ export function Programmation() {
     
     setShouldBlink(false)
     
-    blinkTimerRef.current = setTimeout(() => {
+    if (instant) {
       setShouldBlink(true)
-    }, 1000)
+    } else {
+      blinkTimerRef.current = setTimeout(() => {
+        setShouldBlink(true)
+      }, 1000)
+    }
   }
 
   const handleSave = () => {
@@ -364,7 +368,7 @@ export function Programmation() {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingV && dragVStartRef.current && containerRef.current) {
         const deltaX = e.clientX - dragVStartRef.current.clientX
-        const newWidth = dragVStartRef.current.width - deltaX
+        const newWidth = dragVStartRef.current.width + deltaX
         const containerWidth = containerRef.current.clientWidth
         const clampedWidth = Math.max(MIN_AI_WIDTH, Math.min(containerWidth - MIN_EDITOR_WIDTH, newWidth))
         setAiWidth(clampedWidth)
@@ -427,136 +431,141 @@ export function Programmation() {
           }
         }
         .animate-save-blink {
-          animation: save-btn-blink 0.6s ease-in-out 2;
+          animation: save-btn-blink 0.6s ease-in-out 1;
         }
       `}</style>
       {(isDraggingV || isDraggingH) && (
         <div className="fixed inset-0 z-50 select-none" style={{ cursor: isDraggingV ? 'col-resize' : 'row-resize' }} />
       )}
 
-      <header className="flex flex-shrink-0 flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-2.5 border-b border-bench-border bg-bench-header-bg select-none gap-3 font-sans">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${isConnected ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-500/20' : 'bg-bench-surface text-bench-muted border-bench-border'}`}>
-            <CpuIcon size={20} />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-bench-text flex items-center gap-2">
-              <CodeIcon size={18} className="text-blue-600 dark:text-blue-400" /> Programming Workspace
-            </h1>
-            <div className="text-xs text-bench-muted flex items-center gap-2 mt-0.5">
-              <span className="flex items-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-slate-600'}`}></span>
-                {isConnected ? 'Serial Connected' : 'Serial Standby'}
-              </span>
-              <span>•</span>
-              <span>Detected: {boardName || 'None'}</span>
-              <span>•</span>
-              <span>Protocol v{protocolVersion}</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Compiler Configuration Toolbar */}
-        <div className="flex flex-wrap items-center gap-4 text-xs">
-          {/* Target Board Select */}
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-bench-muted font-mono">Board Profile</span>
-            <select
-              value={effectiveBoard}
-              onChange={e => setSelectedBoard(e.target.value)}
-              className="rounded border border-bench-border bg-bench-surface px-2.5 py-1 text-bench-text outline-none focus:border-blue-500 font-mono cursor-pointer"
-            >
-              {Object.keys(BOARD_FQBNS).map(name => (
-                <option key={name} value={name}>{name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* COM Port Selector */}
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-bench-muted font-mono">Upload COM Port</span>
-            <div className="flex items-center gap-1.5">
-              <select
-                value={selectedPort}
-                onChange={e => setSelectedPort(e.target.value)}
-                className="rounded border border-bench-border bg-bench-surface px-2 py-1 text-bench-text outline-none focus:border-blue-500 min-w-[100px] font-mono cursor-pointer"
-              >
-                {ports.length > 0 ? (
-                  ports.map(p => (
-                    <option key={p.address} value={p.address}>
-                      {p.address} {p.label ? `(${p.label})` : ''}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Auto-Detect</option>
-                )}
-              </select>
-              <button
-                onClick={fetchPorts}
-                disabled={isLoadingPorts}
-                className="p-1.5 rounded border border-bench-border hover:bg-bench-subtle text-bench-muted hover:text-bench-text transition-colors cursor-pointer"
-                title="Rescan target serial ports"
-              >
-                <RefreshCwIcon size={12} className={isLoadingPorts ? 'animate-spin' : ''} />
-              </button>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex items-end gap-2 mt-3.5">
-            <button
-              onClick={handleSave}
-              onAnimationEnd={() => setShouldBlink(false)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded border transition-colors font-mono font-medium disabled:opacity-50 shadow-[0_0_10px_rgba(59,130,246,0.05)] cursor-pointer ${
-                isSavedVisual
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-600/20 dark:text-emerald-400 dark:border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.1)] font-semibold'
-                  : shouldBlink
-                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 dark:bg-blue-600/15 dark:text-blue-400 dark:hover:bg-blue-600/25 dark:border-blue-500/35 animate-save-blink'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 dark:bg-blue-600/15 dark:text-blue-400 dark:hover:bg-blue-600/25 dark:border-blue-500/35'
-              }`}
-              title="Save sketch to local storage"
-            >
-              {isSavedVisual ? <CheckIcon size={14} /> : <SaveIcon size={14} />}
-              {isSavedVisual ? 'Saved' : 'Save'}
-            </button>
-            <button
-              onClick={handleCompile}
-              disabled={isCompiling || isUploading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-bench-surface text-bench-text hover:bg-bench-subtle transition-colors border border-bench-border font-mono font-medium disabled:opacity-50 cursor-pointer"
-              title="Verify sketch syntax and compile binary"
-            >
-              <PlayIcon size={14} /> Verify
-            </button>
-            <button
-              onClick={handleUpload}
-              disabled={isCompiling || isUploading}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded font-mono font-bold border transition-colors disabled:opacity-50 ${
-                isConnected
-                  ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200 dark:bg-amber-600/15 dark:text-amber-400 dark:hover:bg-amber-600/25 dark:border-amber-500/35 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
-                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-600/15 dark:text-emerald-400 dark:hover:bg-emerald-600/25 dark:border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.05)]'
-              }`}
-              title={isConnected ? 'Closes active browser terminal session before uploading' : 'Compile and flash to microcontroller'}
-            >
-              <UploadIcon size={14} />
-              {isUploading ? 'Uploading...' : isConnected ? 'Disconnect & Upload' : 'Upload'}
-            </button>
-          </div>
-        </div>
-      </header>
 
       <div ref={containerRef} className="flex flex-1 min-h-0 relative select-text font-sans">
+        <div className="flex-shrink-0 bg-bench-bg flex flex-col overflow-hidden" style={{ width: `${aiWidth}px` }}>
+          <AIAssistant code={code} onCodeUpdate={handleCodeChange} initialConversationId={initialConversationId} />
+        </div>
+        <div onMouseDown={handleVMouseDown} className={`w-1.5 flex-shrink-0 cursor-col-resize transition-colors ${isDraggingV ? 'bg-blue-500' : 'bg-bench-border hover:bg-blue-500/50'}`} title="Resize AI Chatbot panel" />
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 min-h-0 relative">
+          <div className="flex-1 min-h-0 relative group/editor overflow-hidden">
             <CodeEditor code={code} onChange={handleCodeChange} />
+            
+            {/* Sliding Vertical Configuration Toolbar */}
+            <div 
+              className="absolute right-0 top-6 bottom-6 z-20 flex transition-transform duration-300 ease-in-out translate-x-[216px] hover:translate-x-0 group/bar"
+              style={{ width: '240px' }}
+              onMouseEnter={() => {
+                if (!isSavedVisual) {
+                  setShouldBlink(true)
+                }
+              }}
+            >
+              {/* Peek Handle (visible on the left edge of toolbar wrapper when hidden) */}
+              <div className={`w-[24px] h-full flex flex-col items-center justify-center bg-bench-header-bg/95 backdrop-blur border border-r-0 border-bench-border rounded-l-lg shadow-md group-hover/bar:opacity-0 transition-all duration-300 select-none cursor-pointer ${
+                shouldBlink ? 'animate-save-blink border-blue-400 bg-blue-500/15' : ''
+              }`}>
+                {/* Grabber triple dot handle */}
+                <div className="flex flex-col gap-1 items-center">
+                  <span className="w-1 h-1 rounded-full bg-bench-muted/70" />
+                  <span className="w-1 h-1 rounded-full bg-bench-muted/70" />
+                  <span className="w-1 h-1 rounded-full bg-bench-muted/70" />
+                </div>
+              </div>
+              
+              {/* Toolbar Content Panel */}
+              <div className="flex-1 bg-bench-header-bg/95 backdrop-blur border border-bench-border border-l-0 rounded-l-lg p-3 flex flex-col gap-3.5 shadow-2xl justify-center">
+                {/* Target Board Select */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-bench-muted font-mono uppercase tracking-wider">Board Profile</span>
+                  <select
+                    value={effectiveBoard}
+                    onChange={e => setSelectedBoard(e.target.value)}
+                    className="w-full rounded border border-bench-border bg-bench-surface px-2 py-1 text-[10px] text-bench-text outline-none focus:border-blue-500 font-mono cursor-pointer"
+                  >
+                    {Object.keys(BOARD_FQBNS).map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* COM Port Selector */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-[9px] text-bench-muted font-mono uppercase tracking-wider">Upload Port</span>
+                  <div className="flex items-center gap-1">
+                    <select
+                      value={selectedPort}
+                      onChange={e => setSelectedPort(e.target.value)}
+                      className="flex-1 rounded border border-bench-border bg-bench-surface px-1.5 py-1 text-[10px] text-bench-text outline-none focus:border-blue-500 min-w-0 font-mono cursor-pointer"
+                    >
+                      {ports.length > 0 ? (
+                        ports.map(p => (
+                          <option key={p.address} value={p.address}>
+                            {p.address}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">Auto</option>
+                      )}
+                    </select>
+                    <button
+                      onClick={fetchPorts}
+                      disabled={isLoadingPorts}
+                      className="p-1 rounded border border-bench-border hover:bg-bench-subtle text-bench-muted hover:text-bench-text transition-colors cursor-pointer shrink-0"
+                      title="Rescan target ports"
+                    >
+                      <RefreshCwIcon size={11} className={isLoadingPorts ? 'animate-spin' : ''} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="h-px bg-bench-border w-full my-0.5" />
+
+                {/* Action buttons */}
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={handleSave}
+                    onAnimationEnd={() => setShouldBlink(false)}
+                    className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded border transition-colors font-mono text-[10px] font-medium disabled:opacity-50 shadow-[0_0_10px_rgba(59,130,246,0.05)] cursor-pointer ${
+                      isSavedVisual
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-600/20 dark:text-emerald-400 dark:border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.1)] font-semibold'
+                        : shouldBlink
+                        ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 dark:bg-blue-600/15 dark:text-blue-400 dark:hover:bg-blue-600/25 dark:border-blue-500/35 animate-save-blink'
+                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 dark:bg-blue-600/15 dark:text-blue-400 dark:hover:bg-blue-600/25 dark:border-blue-500/35'
+                    }`}
+                    title="Save sketch to local storage"
+                  >
+                    {isSavedVisual ? <CheckIcon size={12} /> : <SaveIcon size={12} />}
+                    <span>{isSavedVisual ? 'Saved' : 'Save'}</span>
+                  </button>
+                  <button
+                    onClick={handleCompile}
+                    disabled={isCompiling || isUploading}
+                    className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded bg-bench-surface text-bench-text hover:bg-bench-subtle transition-colors border border-bench-border font-mono text-[10px] font-medium disabled:opacity-50 cursor-pointer"
+                    title="Verify sketch syntax and compile binary"
+                  >
+                    <PlayIcon size={12} /> Verify
+                  </button>
+                  <button
+                    onClick={handleUpload}
+                    disabled={isCompiling || isUploading}
+                    className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded font-mono text-[10px] font-bold border transition-colors disabled:opacity-50 ${
+                      isConnected
+                        ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200 dark:bg-amber-600/15 dark:text-amber-400 dark:hover:bg-amber-600/25 dark:border-amber-500/35 shadow-[0_0_10px_rgba(245,158,11,0.05)]'
+                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-600/15 dark:text-emerald-400 dark:hover:bg-emerald-600/25 dark:border-emerald-500/35 shadow-[0_0_10px_rgba(16,185,129,0.05)]'
+                    }`}
+                    title={isConnected ? 'Closes active browser terminal session before uploading' : 'Compile and flash to microcontroller'}
+                  >
+                    <UploadIcon size={12} />
+                    <span className="truncate">{isUploading ? 'Uploading...' : isConnected ? 'Disconnect' : 'Upload'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
           <div onMouseDown={handleHMouseDown} className={`h-1.5 flex-shrink-0 cursor-row-resize transition-colors ${isDraggingH ? 'bg-blue-500' : 'bg-bench-border hover:bg-blue-500/50'}`} title="Resize terminal output panel" />
           <div className="flex-shrink-0 bg-bench-bg overflow-hidden" style={{ height: `${outputHeight}px` }}>
             <CompilerTerminal logs={terminalOutput} onClear={() => setTerminalOutput([])} />
           </div>
-        </div>
-        <div onMouseDown={handleVMouseDown} className={`w-1.5 flex-shrink-0 cursor-col-resize transition-colors ${isDraggingV ? 'bg-blue-500' : 'bg-bench-border hover:bg-blue-500/50'}`} title="Resize AI Chatbot panel" />
-        <div className="flex-shrink-0 bg-bench-bg flex flex-col overflow-hidden" style={{ width: `${aiWidth}px` }}>
-          <AIAssistant code={code} onCodeUpdate={handleCodeChange} />
         </div>
       </div>
 
