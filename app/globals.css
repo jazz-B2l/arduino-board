@@ -86,6 +86,25 @@
   --bench-input-bg:     #ffffff; /* white input bg */
 }
 
+.forced-dark {
+  --bench-bg:           #0a0e1a;
+  --bench-surface:      #111827;
+  --bench-surface-hover: #1f2937;
+  --bench-border:       #1f2937;
+  --bench-nominal:      #10b981;
+  --bench-info:         #3b82f6;
+  --bench-warning:      #f59e0b;
+  --bench-danger:       #ef4444;
+  --bench-text:         #e2e8f0;
+  --bench-muted:        #64748b;
+  --bench-subtle:       #1e293b;
+  --bench-panel-bg:     #090d16;
+  --bench-header-bg:    #0d1220;
+  --bench-nav-active:   #1e293b;
+  --bench-input-bg:     rgba(2, 6, 23, 0.5);
+  color-scheme: dark;
+}
+
 @layer base {
   * {
     box-sizing: border-box;

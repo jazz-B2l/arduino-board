@@ -68,7 +68,7 @@ Keep responses concise, professional, and in English.`
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
+          model: 'llama-3.3-70b-versatile',
           messages: groqMessages,
           temperature: 0.2
         })
