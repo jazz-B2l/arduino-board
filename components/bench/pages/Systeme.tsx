@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ActivityIcon, RefreshCwIcon, WifiIcon } from 'lucide-react'
 import { useBench } from '../BenchContext'
+import { useLanguage } from '../LanguageContext'
 
 function useUptime(startTime: number) {
   const [uptime, setUptime] = useState(0)
@@ -34,6 +35,7 @@ export function Systeme() {
   } = useBench()
 
   const uptime = useUptime(stats.startTime)
+  const { t } = useLanguage()
 
   const signalQuality = stats.totalFrames === 0
     ? 100
@@ -41,14 +43,14 @@ export function Systeme() {
 
   const diagItems = [
     {
-      label: 'Connection status',
+      label: t('system.connStatus'),
       value: connectionStatus === 'connected'
-        ? 'Port Connected'
+        ? t('system.portConnected')
         : connectionStatus === 'connecting'
-          ? 'Connecting...'
+          ? t('system.connecting')
           : connectionStatus === 'error'
-            ? 'Connection Error'
-            : 'Port Disconnected',
+            ? t('system.connError')
+            : t('system.portDisconnected'),
       color: connectionStatus === 'connected'
         ? '#10b981'
         : connectionStatus === 'connecting'
@@ -57,44 +59,16 @@ export function Systeme() {
             ? '#ef4444'
             : '#64748b',
     },
+    { label: t('system.usbPort'),        value: stats.port, color: stats.port !== 'None' ? '#3b82f6' : '#64748b' },
+    { label: t('system.uptime'),          value: formatDuration(uptime), color: '#94a3b8' },
+    { label: t('system.receivedFrames'),  value: stats.totalFrames.toLocaleString('en-US'), color: '#10b981' },
+    { label: t('system.invalidFrames'),   value: stats.invalidFrames.toString(), color: stats.invalidFrames > 0 ? '#f59e0b' : '#10b981' },
+    { label: t('system.invalidRate'),     value: `${(100 - signalQuality).toFixed(1)} %`, color: (100 - signalQuality) > 5 ? '#ef4444' : '#10b981' },
+    { label: t('system.signalQuality'),   value: `${signalQuality} %`, color: signalQuality >= 99 ? '#10b981' : signalQuality >= 90 ? '#f59e0b' : '#ef4444' },
+    { label: t('system.bufferSize'),      value: t('system.bufferValue'), color: '#94a3b8' },
     {
-      label: 'USB Serial Port',
-      value: stats.port,
-      color: stats.port !== 'None' ? '#3b82f6' : '#64748b',
-    },
-    {
-      label: 'Acquisition uptime',
-      value: formatDuration(uptime),
-      color: '#94a3b8',
-    },
-    {
-      label: 'Received frames',
-      value: stats.totalFrames.toLocaleString('en-US'),
-      color: '#10b981',
-    },
-    {
-      label: 'Invalid frames',
-      value: stats.invalidFrames.toString(),
-      color: stats.invalidFrames > 0 ? '#f59e0b' : '#10b981',
-    },
-    {
-      label: 'Invalidity rate',
-      value: `${(100 - signalQuality).toFixed(1)} %`,
-      color: (100 - signalQuality) > 5 ? '#ef4444' : '#10b981',
-    },
-    {
-      label: 'Signal quality',
-      value: `${signalQuality} %`,
-      color: signalQuality >= 99 ? '#10b981' : signalQuality >= 90 ? '#f59e0b' : '#ef4444',
-    },
-    {
-      label: 'Buffer size',
-      value: '36,000 samples (10h)',
-      color: '#94a3b8',
-    },
-    {
-      label: 'Acquisition state',
-      value: frozen ? 'Suspended (Emergency Stop)' : connectionStatus === 'connected' ? 'Active' : 'Waiting',
+      label: t('system.acqState'),
+      value: frozen ? t('system.suspended') : connectionStatus === 'connected' ? t('system.active') : t('system.waiting'),
       color: frozen ? '#ef4444' : connectionStatus === 'connected' ? '#10b981' : '#64748b',
     },
   ]
@@ -119,7 +93,7 @@ export function Systeme() {
     <div className="p-4 flex flex-col gap-5 max-w-2xl">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
-          System &amp; Diagnostics
+          {t('system.title')}
         </h1>
         <div className="flex items-center gap-2">
           <span
@@ -132,12 +106,12 @@ export function Systeme() {
           >
             <WifiIcon size={11} />
             {connectionStatus === 'connected'
-              ? 'Active Telemetry'
+              ? t('system.activeTelemetry')
               : connectionStatus === 'connecting'
-                ? 'Connecting...'
+                ? t('system.connecting')
                 : connectionStatus === 'error'
-                  ? 'Port Error'
-                  : 'Port Disconnected'}
+                  ? t('system.portError')
+                  : t('system.portDisconnected')}
           </span>
         </div>
       </div>
@@ -153,7 +127,7 @@ export function Systeme() {
         >
           <ActivityIcon size={13} style={{ color: '#3b82f6' }} />
           <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--bench-muted)' }}>
-            Diagnostics
+            {t('system.diagnostics')}
           </span>
         </div>
         <div className="divide-y" style={{ borderColor: 'var(--bench-border)' }}>
@@ -174,7 +148,7 @@ export function Systeme() {
         style={{ backgroundColor: 'var(--bench-surface)', borderColor: 'var(--bench-border)' }}
       >
         <div className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'var(--bench-muted)' }}>
-          Serial Port Control
+          {t('system.portControl')}
         </div>
 
         {serialError && (
@@ -185,13 +159,13 @@ export function Systeme() {
 
         <p className="text-xs" style={{ color: 'var(--bench-muted)' }}>
           {connectionStatus === 'connected'
-            ? `Connected to ${stats.port}. Telemetry data is read in real time.`
-            : "Connect the Arduino test bench via the USB serial port to receive physical measurements."}
+            ? `${t('system.connectedTo')} ${stats.port}. ${t('system.connectPrompt').split('.')[0]}.`
+            : t('system.connectPrompt')}
         </p>
 
         {!serialSupported && (
           <div className="text-xs text-amber-500 font-mono font-semibold">
-            Warning: Web Serial API is not supported by your current browser. Please use Chrome, Edge, or Opera on desktop.
+            {t('system.webSerialWarn')}
           </div>
         )}
 
@@ -211,7 +185,7 @@ export function Systeme() {
                 size={13}
                 className={connectionStatus === 'connecting' ? 'animate-spin' : ''}
               />
-              {connectionStatus === 'connecting' ? 'Connecting...' : 'Connect Device'}
+              {connectionStatus === 'connecting' ? t('system.connecting') : t('action.connect')}
             </button>
           ) : (
             <button
@@ -223,7 +197,7 @@ export function Systeme() {
                 backgroundColor: 'rgba(239,68,68,0.1)',
               }}
             >
-              Disconnect
+              {t('action.disconnect')}
             </button>
           )}
 
@@ -236,7 +210,7 @@ export function Systeme() {
               backgroundColor: 'var(--bench-subtle)',
             }}
           >
-            Clear Data
+            {t('action.clearData')}
           </button>
         </div>
       </div>
@@ -247,19 +221,19 @@ export function Systeme() {
         style={{ backgroundColor: 'var(--bench-header-bg)', borderColor: 'var(--bench-border)', color: 'var(--bench-muted)' }}
       >
         <div className="font-semibold mb-1" style={{ color: 'var(--bench-text)' }}>
-          Expected Data Format (Arduino / Serial Port)
+          {t('system.dataFormat')}
         </div>
-        The test bench expects JSON or CSV messages sent line by line at a baud rate of 9600.
-        <div className="mt-2 font-semibold">JSON Example:</div>
+        {t('system.dataFormatDesc')}
+        <div className="mt-2 font-semibold">{t('system.jsonExample')}</div>
         <code className="block mt-1 p-2 rounded border border-bench-border bg-bench-bg text-[10px] text-emerald-800 dark:text-emerald-400 font-mono">
           {"{\"temp_carburant\": 40.2, \"temp_echap\": 575.0, \"temp_admission\": 32.1, \"rpm\": 2800, \"vitesse\": 10.5, \"vibration\": 0.60}"}
         </code>
-        <div className="mt-2 font-semibold">CSV Example:</div>
+        <div className="mt-2 font-semibold">{t('system.csvExample')}</div>
         <code className="block mt-1 p-2 rounded border border-bench-border bg-bench-bg text-[10px] text-emerald-800 dark:text-emerald-400 font-mono">
           40.2,575.0,32.1,2800,10.5,0.60
         </code>
         <div className="mt-1 font-semibold text-[10px] text-slate-500">
-          CSV values order: Fuel Temp, Exhaust Temp, Intake Temp, RPM, Speed, Vibration.
+          {t('system.csvOrder')}
         </div>
       </div>
     </div>
