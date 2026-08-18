@@ -4,6 +4,7 @@ import { EmergencyStop } from './EmergencyStop'
 import { StatusPill } from './StatusPill'
 import { useBench } from './BenchContext'
 import { useAuth } from '@/components/auth/AuthContext'
+import { useLanguage } from './LanguageContext'
 import Link from 'next/link'
 import { LogOutIcon } from 'lucide-react'
 
@@ -11,6 +12,7 @@ import { LogOutIcon } from 'lucide-react'
 export function AppHeader() {
   const { frozen, freeze, unfreeze } = useBench()
   const { user, profile, signOut } = useAuth()
+  const { lang, setLang, t } = useLanguage()
 
   const initials = (profile?.full_name || user?.email || 'U')
     .split(' ')
@@ -28,7 +30,7 @@ export function AppHeader() {
             style={{ backgroundColor: '#ef4444', color: '#fff' }}
             role="alert"
           >
-            ⏹ EMERGENCY STOP ACTIVATED — acquisition suspended
+            {t('header.emergencyBanner')}
           </div>
         )}
         <header
@@ -46,9 +48,9 @@ export function AppHeader() {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--bench-info)' }}>
-                Test Bench
+                {t('header.title')}
               </span>
-              <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>Monitoring Pro</span>
+              <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{t('header.subtitle')}</span>
             </div>
           </div>
 
@@ -73,10 +75,19 @@ export function AppHeader() {
               </Link>
               <button
                 onClick={signOut}
-                title="Sign Out of Workspace"
+                title={t('header.signOut')}
                 className="p-1.5 rounded text-bench-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
               >
                 <LogOutIcon size={12} />
+              </button>
+              {/* EN | AR language toggle */}
+              <button
+                onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+                title="Toggle language"
+                className="px-2 py-0.5 rounded border text-[10px] font-mono font-bold transition-colors hover:bg-bench-subtle"
+                style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-muted)' }}
+              >
+                {lang === 'en' ? 'AR' : 'EN'}
               </button>
             </div>
           )}
