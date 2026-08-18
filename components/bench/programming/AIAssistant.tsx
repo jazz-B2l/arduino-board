@@ -132,7 +132,14 @@ function generateTitle(message: string): string {
 
 export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAssistantProps) {
   const router = useRouter()
-  const { boardName, thresholds } = useBench()
+  const { 
+    boardName, 
+    thresholds,
+    cachedConversations,
+    setCachedConversations,
+    cachedMessages,
+    setCachedMessages
+  } = useBench()
   const { user, loading } = useAuth()
 
   const [provider, setProvider] = useState<'gemini' | 'groq'>('gemini')
@@ -176,9 +183,9 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
   }, [input])
 
   // 1. Fetch conversations list
-  const fetchConversations = async () => {
+  const fetchConversations = async (background = false) => {
     if (!user) return
-    setChatsLoading(true)
+    if (!background) setChatsLoading(true)
     try {
       const { data, error } = await supabase
         .from('conversations')
@@ -186,18 +193,20 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         .order('updated_at', { ascending: false })
       
       if (error) throw error
-      setConversations(data || [])
+      const convs = data || []
+      setConversations(convs)
+      setCachedConversations(convs)
     } catch (e: any) {
       console.error('Error fetching conversations:', e.message)
     } finally {
-      setChatsLoading(false)
+      if (!background) setChatsLoading(false)
     }
   }
 
   // 2. Fetch messages for active conversation
-  const fetchMessages = async (convId: string) => {
+  const fetchMessages = async (convId: string, background = false) => {
     if (!user) return
-    setMessagesLoading(true)
+    if (!background) setMessagesLoading(true)
     try {
       const { data, error } = await supabase
         .from('messages')
@@ -214,30 +223,40 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         provider: m.metadata?.provider || 'gemini'
       }))
 
-      if (mapped.length > 0) {
-        setMessages(mapped)
-      } else {
-        setMessages([{ ...DEFAULT_MESSAGE, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }])
-      }
+      const finalMessages = mapped.length > 0 ? mapped : [{ ...DEFAULT_MESSAGE, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]
+      setMessages(finalMessages)
+      setCachedMessages(convId, finalMessages)
     } catch (e: any) {
       console.error('Error fetching messages:', e.message)
       setToast({ message: 'Failed to load message history.', type: 'error' })
     } finally {
-      setMessagesLoading(false)
+      if (!background) setMessagesLoading(false)
     }
   }
 
   // Trigger loading list when user state updates
   useEffect(() => {
     if (!loading && user) {
-      fetchConversations()
+      if (cachedConversations.length > 0) {
+        setConversations(cachedConversations)
+        fetchConversations(true)
+      } else {
+        fetchConversations(false)
+      }
     }
-  }, [user, loading])
+  }, [user, loading, cachedConversations])
 
   // Trigger loading chat details when ID in dynamic route changes
   useEffect(() => {
     if (initialConversationId) {
-      fetchMessages(initialConversationId)
+      const cached = cachedMessages[initialConversationId]
+      if (cached) {
+        setMessages(cached)
+        setMessagesLoading(false)
+        fetchMessages(initialConversationId, true)
+      } else {
+        fetchMessages(initialConversationId, false)
+      }
       if (typeof window !== 'undefined') {
         localStorage.setItem('bench_active_conversation_id', initialConversationId)
       }
@@ -309,7 +328,14 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
     const userMessage: Message = { role: 'user', content: text, timestamp }
     
     // Add user message to UI immediately
-    setMessages(prev => [...prev, userMessage])
+    setMessages(prev => {
+      const next = prev.filter(m => m.content !== DEFAULT_MESSAGE.content)
+      const nextWithUser = [...next, userMessage]
+      if (initialConversationId) {
+        setCachedMessages(initialConversationId, nextWithUser)
+      }
+      return nextWithUser
+    })
     if (!textToSend) setInput('')
 
     let activeConvId = initialConversationId
@@ -394,19 +420,34 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         .eq('id', activeConvId)
 
       // Step 6: Render response in UI
-      setMessages(prev => [...prev, { role: 'assistant', content: aiContent, timestamp, provider }])
+      const finalAssistantMessage: Message = { role: 'assistant', content: aiContent, timestamp, provider }
+      setMessages(prev => {
+        const next = [...prev, finalAssistantMessage]
+        if (initialConversationId) {
+          setCachedMessages(initialConversationId, next)
+        }
+        return next
+      })
       
       // Refresh list to pull updated_at ordering
-      fetchConversations()
+      fetchConversations(true)
 
       // Step 7: Redirect to unique chat URL if it was a new chat
       if (!initialConversationId) {
+        setCachedMessages(activeConvId, [...messages.filter(m => m.content !== DEFAULT_MESSAGE.content), userMessage, finalAssistantMessage])
         router.push(`/programmation/${activeConvId}`)
       }
     } catch (err: any) {
       console.error('Error sending message:', err.message)
       setToast({ message: err.message || 'Error occurred.', type: 'error' })
-      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${err.message || 'Could not save or call AI service.'}`, timestamp, provider }])
+      const errorMsg: Message = { role: 'assistant', content: `Error: ${err.message || 'Could not save or call AI service.'}`, timestamp, provider }
+      setMessages(prev => {
+        const next = [...prev, errorMsg]
+        if (initialConversationId) {
+          setCachedMessages(initialConversationId, next)
+        }
+        return next
+      })
     } finally {
       setIsLoading(false)
     }
@@ -620,7 +661,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
             </h2>
             <div className="flex items-center gap-1.5 text-[10px] text-bench-muted font-mono mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              {provider === 'gemini' ? 'Gemini 2.5' : 'Llama 3.3'}
+              {provider === 'gemini' ? 'Gemini 2.5' : 'GPT-OSS 20B'}
             </div>
           </div>
         </div>
@@ -634,7 +675,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
               className="bg-transparent text-xs text-bench-text font-medium outline-none cursor-pointer appearance-none pr-5 z-10 w-full"
             >
               <option value="gemini" className="bg-bench-surface text-bench-text">Gemini 2.5</option>
-              <option value="groq" className="bg-bench-surface text-bench-text">Llama 3.3</option>
+              <option value="groq" className="bg-bench-surface text-bench-text">GPT-OSS 20B</option>
             </select>
             <ChevronDownIcon size={14} className="text-bench-muted absolute right-2 pointer-events-none" />
           </div>
@@ -711,7 +752,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-6 h-6 rounded-md overflow-hidden flex items-center justify-center bg-bench-header-bg border border-bench-border flex-shrink-0">
                       {msg.provider === 'groq' ? (
-                        <img src="/groq-logo.png" alt="Llama 3.3" className="w-full h-full object-cover" />
+                        <img src="/groq-logo.png" alt="GPT-OSS 20B" className="w-full h-full object-cover" />
                       ) : (
                         <img src="/gemini-logo.png" alt="Gemini" className="w-full h-full object-cover" />
                       )}
