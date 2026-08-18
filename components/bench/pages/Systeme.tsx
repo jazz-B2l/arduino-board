@@ -251,11 +251,11 @@ export function Systeme() {
         </div>
         The test bench expects JSON or CSV messages sent line by line at a baud rate of 9600.
         <div className="mt-2 font-semibold">JSON Example:</div>
-        <code className="block mt-1 p-2 rounded bg-black/40 text-[10px] text-emerald-400 font-mono">
+        <code className="block mt-1 p-2 rounded border border-bench-border bg-bench-bg text-[10px] text-emerald-800 dark:text-emerald-400 font-mono">
           {"{\"temp_carburant\": 40.2, \"temp_echap\": 575.0, \"temp_admission\": 32.1, \"rpm\": 2800, \"vitesse\": 10.5, \"vibration\": 0.60}"}
         </code>
         <div className="mt-2 font-semibold">CSV Example:</div>
-        <code className="block mt-1 p-2 rounded bg-black/40 text-[10px] text-emerald-400 font-mono">
+        <code className="block mt-1 p-2 rounded border border-bench-border bg-bench-bg text-[10px] text-emerald-800 dark:text-emerald-400 font-mono">
           40.2,575.0,32.1,2800,10.5,0.60
         </code>
         <div className="mt-1 font-semibold text-[10px] text-slate-500">
