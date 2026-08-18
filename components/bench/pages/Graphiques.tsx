@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts'
 import { useBench } from '../BenchContext'
+import { useLanguage } from '../LanguageContext'
 
 const METRICS = [
   { key: 'temp_carburant', label: 'Fuel (°C)',    color: '#3b82f6' },
@@ -53,6 +54,7 @@ function CustomTooltip({ active, payload, label }: TooltipProps) {
 
 export function Graphiques() {
   const { history } = useBench()
+  const { t } = useLanguage()
   const [visible, setVisible] = useState<Set<string>>(new Set(METRICS.map(m => m.key)))
 
   // Identify active sensors from session history
@@ -93,10 +95,10 @@ export function Graphiques() {
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-sm font-semibold uppercase tracking-widest text-bench-text">
-          Charts — Last 10 Minutes
+          {t('charts.title')}
         </h1>
         <span className="text-xs font-mono text-bench-muted">
-          {chartData.length} points
+          {chartData.length} {t('charts.points')}
         </span>
       </div>
 
@@ -127,7 +129,7 @@ export function Graphiques() {
       >
         {chartData.length < 2 || activeMetrics.length === 0 ? (
           <div className="flex items-center justify-center h-64 text-sm text-bench-muted">
-            Waiting for active sensor data...
+            {t('charts.waiting')}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={420}>
