@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
@@ -15,6 +15,7 @@ interface AuthContextValue {
   profile: UserProfile | null
   role: string | null
   loading: boolean
+  sessionExpiresAt: number | null // Unix timestamp in seconds when JWT token expires
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -26,6 +27,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null)
+  
+  const timeoutRef = useRef<any>(null)
+
+  const handleSessionExpiration = (expiresAt: number | null) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+
+    if (expiresAt) {
+      setSessionExpiresAt(expiresAt)
+      const msRemaining = (expiresAt * 1000) - Date.now()
+      if (msRemaining > 0) {
+        timeoutRef.current = setTimeout(() => {
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+              signOut().then(() => {
+                alert('Your session token has expired for security. Please login again.')
+              })
+            }
+          })
+        }, msRemaining)
+      } else {
+        signOut()
+      }
+    } else {
+      setSessionExpiresAt(null)
+    }
+  }
 
   const fetchProfileAndRole = async (userId: string) => {
     try {
@@ -58,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setUser(session.user)
+        handleSessionExpiration(session.expires_at ?? null)
         fetchProfileAndRole(session.user.id).finally(() => {
           setLoading(false)
         })
@@ -70,23 +102,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         setUser(session.user)
+        handleSessionExpiration(session.expires_at ?? null)
         await fetchProfileAndRole(session.user.id)
       } else {
         setUser(null)
         setProfile(null)
         setRole(null)
+        handleSessionExpiration(null)
       }
       setLoading(false)
     })
 
     return () => {
       subscription.unsubscribe()
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
     }
   }, [])
 
   const signOut = async () => {
     setLoading(true)
     try {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
       await supabase.auth.signOut()
     } catch (err) {
       console.error('Failed to sign out:', err)
@@ -100,6 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     role,
     loading,
+    sessionExpiresAt,
     signOut,
     refreshProfile
   }
