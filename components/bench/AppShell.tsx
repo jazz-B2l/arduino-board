@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthContext'
+import { useBench } from './BenchContext'
 import { AppFooter } from './AppFooter'
 import { AppHeader } from './AppHeader'
 import { AppNav } from './AppNav'
@@ -10,6 +11,7 @@ import { CpuIcon } from 'lucide-react'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
+  const { navLayout } = useBench()
   const router = useRouter()
 
   useEffect(() => {
@@ -41,8 +43,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen bg-bench-bg text-bench-text">
       <AppHeader />
+      {navLayout === 'tabs' && <AppNav />}
       <div className="flex flex-1 overflow-hidden">
-        <AppNav />
+        {navLayout === 'sidebar' && <AppNav />}
         <main className="flex-1 overflow-y-auto relative" id="main-content">
           {children}
         </main>

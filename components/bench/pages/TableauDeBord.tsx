@@ -399,15 +399,14 @@ export function TableauDeBord() {
             className="md:col-span-5 rounded-xl border p-6 flex flex-col items-center text-center justify-between gap-5 relative overflow-hidden bg-bench-surface border-bench-border"
           >
             <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
-            
             <div className="flex flex-col items-center gap-3 w-full">
               <div className={`w-14 h-14 rounded-full flex items-center justify-center border relative transition-all ${
                 isConnected
-                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/30'
+                  ? 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-500/30'
                   : 'bg-bench-subtle text-bench-muted border-bench-border dark:bg-slate-900 dark:text-slate-500'
               }`}>
                 {isConnected && (
-                  <span className="absolute inset-0 rounded-full border border-emerald-200 dark:border-emerald-500/20 animate-ping opacity-75" />
+                  <span className="absolute inset-0 rounded-full border border-emerald-300 dark:border-emerald-500/20 animate-ping opacity-75" />
                 )}
                 <UsbIcon size={24} />
               </div>
@@ -502,7 +501,7 @@ export function TableauDeBord() {
               </div>
               <span className={`text-[9px] font-mono border px-2 py-0.5 rounded-full flex items-center gap-1 ${
                 isConnected
-                  ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-500 dark:bg-emerald-950/20 dark:border-emerald-800/40'
+                  ? 'text-emerald-700 bg-emerald-100 border-emerald-300 dark:text-emerald-500 dark:bg-emerald-950/20 dark:border-emerald-800/40'
                   : 'text-bench-muted bg-bench-subtle border-bench-border dark:text-slate-500 dark:bg-slate-900 dark:border-slate-800'
               }`}>
                 {isConnected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500 animate-pulse" />}
@@ -900,17 +899,17 @@ export function TableauDeBord() {
           <div className="lg:col-span-2 border border-bench-border rounded-lg overflow-hidden flex flex-col bg-bench-panel-bg">
             <div className="flex items-center justify-between px-4 py-2 border-b border-bench-border bg-bench-header-bg">
               <div className="flex items-center gap-2">
-                <TerminalIcon size={13} className="text-emerald-400 animate-pulse" />
-                <span id="live-console-heading" className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-300">
+                <TerminalIcon size={13} className={isConnected ? 'text-emerald-600 dark:text-emerald-400 animate-pulse' : 'text-bench-muted'} />
+                <span id="live-console-heading" className="text-[10px] font-mono uppercase tracking-widest font-semibold text-bench-text">
                   Live Console Stream (9600 Baud)
                 </span>
               </div>
-              <span className="text-[9px] font-mono text-emerald-500 bg-emerald-950/20 border border-emerald-800/40 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-mono text-emerald-700 bg-emerald-100 border border-emerald-300 dark:text-emerald-500 dark:bg-emerald-950/20 dark:border-emerald-800/40 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500 animate-pulse" />
                 ACQUIRING
               </span>
             </div>
-            <div className="p-3 h-36 overflow-y-auto font-mono text-[10px] flex flex-col gap-0.5 bg-black/40 text-emerald-400 select-text">
+            <div className="p-3 h-36 overflow-y-auto font-mono text-[10px] flex flex-col gap-0.5 bg-slate-950 text-emerald-400 select-text">
               {rawLines.length > 0 ? (
                 rawLines.map((line, idx) => (
                   <div key={idx} className="truncate font-mono">
@@ -937,7 +936,7 @@ export function TableauDeBord() {
               <p className="text-[10px] text-slate-400 leading-relaxed">
                 Upload this simple CSV layout to your board to start plotting coordinates instantly:
               </p>
-              <pre className="p-1.5 rounded bg-black/40 text-[9px] text-emerald-400 font-mono border border-slate-900/60 leading-normal max-h-16 overflow-y-auto select-all">
+              <pre className="p-1.5 rounded bg-slate-950 text-[9px] text-emerald-400 font-mono border border-bench-border leading-normal max-h-16 overflow-y-auto select-all">
 {`void loop() {
   // FuelT, ExhT, IntT, RPM, speed, vib
   Serial.print(35.5);   Serial.print(",");
