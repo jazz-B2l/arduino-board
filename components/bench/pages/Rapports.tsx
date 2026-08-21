@@ -3,7 +3,6 @@
 import { useMemo } from 'react'
 import { DownloadIcon, FileTextIcon } from 'lucide-react'
 import { useBench } from '../BenchContext'
-import { METRIC_LABELS, METRIC_UNITS } from '@/lib/types'
 import { useLanguage } from '../LanguageContext'
 
 function formatDateTime(ts: number) {
@@ -27,21 +26,30 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   URL.revokeObjectURL(url)
 }
 
-function historyToRows(readings: ReturnType<typeof useBench>['history']) {
+function historyToRows(readings: ReturnType<typeof useBench>['history'], t: (k: string) => string) {
   return readings.map(r => ({
-    'Timestamp':          formatDateTime(r.timestamp),
-    'Fuel Temp (°C)':     r.temp_carburant !== undefined ? r.temp_carburant.toFixed(1) : '',
-    'Exhaust Temp (°C)':  r.temp_echap !== undefined ? r.temp_echap.toFixed(1) : '',
-    'Intake Temp (°C)':   r.temp_admission !== undefined ? r.temp_admission.toFixed(1) : '',
-    'Engine Speed (rpm)': r.rpm !== undefined ? r.rpm.toString() : '',
-    'Speed (m/s)':        r.vitesse !== undefined ? r.vitesse.toFixed(2) : '',
-    'Vibration (m/s²)':   r.vibration !== undefined ? r.vibration.toFixed(3) : '',
+    [t('data.timestamp')]:          formatDateTime(r.timestamp),
+    [t('data.fuel')]:               r.temp_carburant !== undefined ? r.temp_carburant.toFixed(1) : '',
+    [t('data.exhaust')]:            r.temp_echap !== undefined ? r.temp_echap.toFixed(1) : '',
+    [t('data.intake')]:             r.temp_admission !== undefined ? r.temp_admission.toFixed(1) : '',
+    [t('metric.rpm')]:              r.rpm !== undefined ? r.rpm.toString() : '',
+    [t('metric.vitesse')]:          r.vitesse !== undefined ? r.vitesse.toFixed(2) : '',
+    [t('metric.vibration')]:        r.vibration !== undefined ? r.vibration.toFixed(3) : '',
   }))
 }
 
 export function Rapports() {
   const { history, alarms, stats } = useBench()
   const { t } = useLanguage()
+
+  // Resolve localized units dynamically
+  const getUnit = (metric: string) => {
+    if (metric.startsWith('temp_')) return t('unit.temp')
+    if (metric === 'rpm') return t('unit.rpm')
+    if (metric === 'vitesse') return t('unit.vitesse')
+    if (metric === 'vibration') return t('unit.vibration')
+    return ''
+  }
 
   // Last 10 minutes
   const last10min = useMemo(() => {
@@ -58,12 +66,12 @@ export function Rapports() {
     : '—'
 
   const alarmRows = useMemo(() => alarms.map(a => ({
-    'Timestamp': formatDateTime(a.timestamp),
-    'Metric':    METRIC_LABELS[a.metric] ?? a.metric,
-    'Level':     a.level,
-    'Value':     a.metric === 'rpm' ? a.value.toLocaleString('en-US') : a.value.toFixed(2),
-    'Unit':      METRIC_UNITS[a.metric] ?? '',
-  })), [alarms])
+    [t('alarms.timestamp')]: formatDateTime(a.timestamp),
+    [t('alarms.metric')]:    t('metric.' + a.metric),
+    [t('alarms.level')]:     a.level === 'DANGER' ? t('alarms.danger') : t('alarms.warning'),
+    [t('alarms.value')]:     a.metric === 'rpm' ? a.value.toLocaleString('en-US') : a.value.toFixed(2),
+    [t('alarms.level') === 'Level' ? 'Unit' : 'الوحدة']: getUnit(a.metric),
+  })), [alarms, t])
 
   const exports = [
     {
@@ -73,7 +81,7 @@ export function Rapports() {
       rows:     history.length,
       timeRange: totalTimeRange,
       color:    '#3b82f6',
-      onDownload: () => downloadCsv(`bench_session_${Date.now()}.csv`, historyToRows(history)),
+      onDownload: () => downloadCsv(`bench_session_${Date.now()}.csv`, historyToRows(history, t)),
     },
     {
       id:       '10min',
@@ -82,7 +90,7 @@ export function Rapports() {
       rows:     last10min.length,
       timeRange: last10TimeRange,
       color:    '#10b981',
-      onDownload: () => downloadCsv(`bench_10min_${Date.now()}.csv`, historyToRows(last10min)),
+      onDownload: () => downloadCsv(`bench_10min_${Date.now()}.csv`, historyToRows(last10min, t)),
     },
     {
       id:       'alarms',
