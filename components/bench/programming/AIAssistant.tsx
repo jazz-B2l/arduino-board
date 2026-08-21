@@ -540,8 +540,8 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
       
       {/* Sidebar Drawer Panel */}
       <div 
-        className={`absolute top-0 bottom-0 left-0 w-[245px] bg-bench-header-bg border-r border-bench-border z-40 flex flex-col transition-transform duration-300 transform select-none ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`absolute top-0 bottom-0 start-0 w-[245px] bg-bench-header-bg border-e border-bench-border z-40 flex flex-col transition-transform duration-300 transform select-none ${
+          isSidebarOpen ? 'translate-x-0' : (lang === 'ar' ? 'translate-x-full' : '-translate-x-full')
         }`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-bench-border bg-bench-surface">
