@@ -7,6 +7,7 @@ import { AIAssistant } from '../programming/AIAssistant'
 import { CompilerTerminal } from '../programming/CompilerTerminal'
 import { CpuIcon, CodeIcon, PlayIcon, UploadIcon, RefreshCwIcon, SaveIcon, CheckIcon } from 'lucide-react'
 import { BOARD_FQBNS, resolveBoardProfile } from '@/lib/types'
+import { useLanguage } from '../LanguageContext'
 
 const MIN_AI_WIDTH = 280
 const MIN_EDITOR_WIDTH = 400
@@ -138,6 +139,7 @@ void loop() {
 }`
 
 export function Programmation({ initialConversationId }: { initialConversationId?: string } = {}) {
+  const { t } = useLanguage()
   const { connectionStatus, boardName, disconnect, connect, selectedBoard, setSelectedBoard, connectedUsbInfo } = useBench()
   const effectiveBoard = resolveBoardProfile(boardName)
   
@@ -478,7 +480,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
               <div className="flex-1 bg-bench-header-bg/95 backdrop-blur border border-bench-border border-l-0 rounded-l-lg p-3 flex flex-col gap-3.5 shadow-2xl justify-center">
                 {/* Target Board Select */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-[9px] text-bench-muted font-mono uppercase tracking-wider">Board Profile</span>
+                  <span className="text-[9px] text-bench-muted font-mono uppercase tracking-wider">{t('code.board')}</span>
                   <select
                     value={effectiveBoard}
                     onChange={e => setSelectedBoard(e.target.value)}
@@ -492,7 +494,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
 
                 {/* COM Port Selector */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-[9px] text-bench-muted font-mono uppercase tracking-wider">Upload Port</span>
+                  <span className="text-[9px] text-bench-muted font-mono uppercase tracking-wider">{t('code.port')}</span>
                   <div className="flex items-center gap-1">
                     <select
                       value={selectedPort}
@@ -506,7 +508,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
                           </option>
                         ))
                       ) : (
-                        <option value="">Auto</option>
+                        <option value="">{t('code.noPort')}</option>
                       )}
                     </select>
                     <button
@@ -537,7 +539,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
                     title="Save sketch to local storage"
                   >
                     {isSavedVisual ? <CheckIcon size={12} /> : <SaveIcon size={12} />}
-                    <span>{isSavedVisual ? 'Saved' : 'Save'}</span>
+                    <span>{isSavedVisual ? t('action.saved') : t('code.save')}</span>
                   </button>
                   <button
                     onClick={handleCompile}
@@ -545,7 +547,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
                     className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded bg-bench-surface text-bench-text hover:bg-bench-subtle transition-colors border border-bench-border font-mono text-[10px] font-medium disabled:opacity-50 cursor-pointer"
                     title="Verify sketch syntax and compile binary"
                   >
-                    <PlayIcon size={12} /> Verify
+                    <PlayIcon size={12} /> {t('code.verify')}
                   </button>
                   <button
                     onClick={handleUpload}
@@ -558,7 +560,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
                     title={isConnected ? 'Closes active browser terminal session before uploading' : 'Compile and flash to microcontroller'}
                   >
                     <UploadIcon size={12} />
-                    <span className="truncate">{isUploading ? 'Uploading...' : 'Upload'}</span>
+                    <span className="truncate">{isUploading ? t('action.uploading') : t('code.upload')}</span>
                   </button>
                 </div>
               </div>
