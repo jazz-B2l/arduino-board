@@ -147,7 +147,7 @@ export function Account() {
           <div className="flex flex-col gap-1 border-b border-bench-border pb-3">
             <h3 className="text-sm font-bold text-bench-text flex items-center gap-2">
               <UserIcon size={14} className="text-blue-500" />
-              Profile Details
+              {t('account.profileDetails')}
             </h3>
             <p className="text-[11px] text-bench-muted">{t('account.profileDesc')}</p>
           </div>
@@ -194,7 +194,7 @@ export function Account() {
                   className="w-full pl-9 pr-3 py-2 rounded border bg-bench-input-bg border-bench-border text-xs text-bench-muted/80 select-all font-sans cursor-not-allowed opacity-60"
                 />
               </div>
-              <p className="text-[9px] text-bench-muted/70 font-mono">Email changes must be requested through system administrators.</p>
+              <p className="text-[9px] text-bench-muted/70 font-mono">{t('account.emailWarning')}</p>
             </div>
 
             {/* Submit */}
@@ -228,9 +228,9 @@ export function Account() {
             <div className="flex flex-col gap-1 border-b border-bench-border pb-3">
               <h3 className="text-sm font-bold text-bench-text flex items-center gap-2">
                 <SunIcon size={14} className="text-amber-500" />
-                Workspace Theme
+                {t('account.themeTitle')}
               </h3>
-              <p className="text-[11px] text-bench-muted">Customize the visual theme of your telemetry workspace.</p>
+              <p className="text-[11px] text-bench-muted">{t('account.themeDesc')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-1">
@@ -269,7 +269,7 @@ export function Account() {
             <div className="flex flex-col gap-1 border-b border-bench-border pb-3">
               <h3 className="text-sm font-bold text-bench-text flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
-                Workspace Layout
+                {t('account.layoutTitle')}
               </h3>
               <p className="text-[11px] text-bench-muted">{t('account.layoutDesc')}</p>
             </div>
@@ -336,9 +336,9 @@ export function Account() {
             <div className="flex flex-col gap-1 border-b border-bench-border pb-3">
               <h3 className="text-sm font-bold text-bench-text flex items-center gap-2">
                 <ShieldCheckIcon size={14} className="text-emerald-500" />
-                Workspace Access info
+                {t('account.accessInfo')}
               </h3>
-              <p className="text-[11px] text-bench-muted">Security descriptors for your workspace profile.</p>
+              <p className="text-[11px] text-bench-muted">{t('account.securityDescPlain')}</p>
             </div>
 
             <div className="flex flex-col gap-3 font-mono text-[10px] text-bench-muted">
@@ -346,15 +346,15 @@ export function Account() {
               <div className="flex justify-between items-center border-b border-bench-border pb-2">
                 <div className="flex items-center gap-1.5 text-bench-muted">
                   <ShieldCheckIcon size={11} className="text-purple-500" />
-                  <span>Session Expiry Limit:</span>
+                  <span>{t('account.expiryLimit')}</span>
                 </div>
-                <span className="text-bench-text">30 Minutes</span>
+                <span className="text-bench-text">{t('account.expiryLimitVal')}</span>
               </div>
 
               <div className="flex justify-between items-center border-b border-bench-border pb-2">
                 <div className="flex items-center gap-1.5 text-bench-muted">
                   <ShieldCheckIcon size={11} className={timeRemaining === 'Expired' ? 'text-red-500' : 'text-emerald-500'} />
-                  <span>Session Remaining:</span>
+                  <span>{t('account.sessionRemaining')}</span>
                 </div>
                 <span className={`font-bold ${timeRemaining === 'Expired' ? 'text-red-500 animate-pulse' : 'text-emerald-500'}`}>
                   {timeRemaining}
@@ -364,7 +364,7 @@ export function Account() {
               <div className="flex justify-between items-center border-b border-bench-border pb-2">
                 <div className="flex items-center gap-1.5 text-bench-muted">
                   <ShieldCheckIcon size={11} />
-                  <span>Access Role:</span>
+                  <span>{t('account.role')}:</span>
                 </div>
                 <span className="text-blue-500 font-bold capitalize">{role || 'User'}</span>
               </div>
@@ -372,7 +372,7 @@ export function Account() {
               <div className="flex justify-between items-center border-b border-bench-border pb-2">
                 <div className="flex items-center gap-1.5 text-bench-muted">
                   <CalendarIcon size={11} />
-                  <span>Created At:</span>
+                  <span>{t('account.created')}</span>
                 </div>
                 <span className="text-bench-text">{createdDate}</span>
               </div>
@@ -380,7 +380,7 @@ export function Account() {
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-1.5 text-bench-muted">
                   <KeyIcon size={11} />
-                  <span>Workspace User ID:</span>
+                  <span>{t('account.userId')}</span>
                 </div>
                 <span className="text-[9px] text-bench-muted bg-bench-bg p-1.5 rounded border border-bench-border select-all break-all leading-relaxed">
                   {user.id}
@@ -392,13 +392,13 @@ export function Account() {
 
           {/* Tip Panel */}
           <div className="p-4 rounded-lg border bg-blue-500/5 border-blue-500/10 text-[11px] leading-relaxed text-bench-muted">
-            <h4 className="font-bold text-bench-text mb-1">R&D Telemetry Sync</h4>
-            Your sensor calibration thresholds, dashboard widget layouts, and device connections are synchronized with your account to ensure a seamless experience on any workstation.
+            <h4 className="font-bold text-bench-text mb-1">{t('account.syncTitle')}</h4>
+            {t('account.syncDesc')}
           </div>
 
           {/* Personal Info Badge */}
           <div className="flex flex-col items-center gap-2 border border-bench-border/60 bg-bench-surface/40 px-4 py-3 rounded-lg backdrop-blur-md transition-all hover:border-blue-500/30 hover:bg-bench-surface/60">
-            <span className="text-[10px] uppercase tracking-wider text-blue-400 font-bold">Developed by Ahmed Merabti</span>
+            <span className="text-[10px] uppercase tracking-wider text-blue-400 font-bold">{t('account.developer')}</span>
             <div className="flex items-center gap-4 text-bench-muted">
               <a
                 href="mailto:merabtiahmedabderahim213@gmail.com"
