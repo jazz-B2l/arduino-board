@@ -25,6 +25,7 @@ import {
 import { useBench } from '../BenchContext'
 import { useAuth } from '@/components/auth/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { useLanguage } from '../LanguageContext'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -49,7 +50,7 @@ interface AIAssistantProps {
 
 const DEFAULT_MESSAGE: Omit<Message, 'timestamp'> = {
   role: 'assistant',
-  content: "Hello! I am your Arduino AI assistant. I have access to your active board and sensor thresholds. Ask me to write or edit your sketch!",
+  content: "HELLO_SENTINEL",
   provider: 'gemini'
 }
 
@@ -105,7 +106,7 @@ function MessagesSkeleton() {
 }
 
 // Deterministic title generator for the first prompt
-function generateTitle(message: string): string {
+function generateTitle(message: string, defaultTitle: string): string {
   let text = message.trim().split('\n')[0].split(/[.!?]/)[0]
   const prefixes = [
     /^(please\s+)?write\s+(a\s+)?/i,
@@ -127,11 +128,12 @@ function generateTitle(message: string): string {
   if (text) {
     text = text.charAt(0).toUpperCase() + text.slice(1)
   }
-  return text || 'New Chat'
+  return text || defaultTitle;
 }
 
 export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAssistantProps) {
   const router = useRouter()
+  const { t, lang } = useLanguage()
   const { 
     boardName, 
     thresholds,
@@ -282,10 +284,10 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
       setConversations(prev =>
         prev.map(c => (c.id === id ? { ...c, title: renameTitle.trim() } : c))
       )
-      setToast({ message: 'Conversation renamed.', type: 'success' })
+      setToast({ message: t('chat.toast.renamed'), type: 'success' })
     } catch (e: any) {
       console.error('Error renaming:', e.message)
-      setToast({ message: 'Failed to rename conversation.', type: 'error' })
+      setToast({ message: t('chat.toast.renameFailed'), type: 'error' })
     } finally {
       setRenamingId(null)
     }
@@ -293,7 +295,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
 
   // Delete a conversation
   const handleDeleteConfirm = async (id: string) => {
-    if (!confirm('Are you sure you want to permanently delete this chat?')) return
+    if (!confirm(t('chat.confirmDelete'))) return
 
     try {
       const { error } = await supabase
@@ -304,7 +306,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
       if (error) throw error
 
       setConversations(prev => prev.filter(c => c.id !== id))
-      setToast({ message: 'Conversation deleted.', type: 'info' })
+      setToast({ message: t('chat.toast.deleted'), type: 'info' })
 
       if (initialConversationId === id) {
         if (typeof window !== 'undefined') {
@@ -314,7 +316,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
       }
     } catch (e: any) {
       console.error('Error deleting:', e.message)
-      setToast({ message: 'Failed to delete conversation.', type: 'error' })
+      setToast({ message: t('chat.toast.deleteFailed'), type: 'error' })
     }
   }
 
@@ -347,12 +349,12 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
       const token = session?.access_token
 
       if (!token) {
-        throw new Error('Authentication session token not found. Please log in again.')
+        throw new Error(t('chat.authError'))
       }
 
       // Step 1: Create conversation if we are in "New Chat" mode
       if (!activeConvId) {
-        const generatedTitle = generateTitle(text)
+        const generatedTitle = generateTitle(text, t('chat.newChat'))
         const { data: newConv, error: convErr } = await supabase
           .from('conversations')
           .insert({ title: generatedTitle, user_id: user.id })
@@ -392,13 +394,14 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
           provider,
           boardName,
           thresholds,
-          currentCode: code
+          currentCode: code,
+          lang
         })
       })
 
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch response from AI endpoint.')
+        throw new Error(data.error || t('chat.toast.loadFailed'))
       }
 
       const aiContent = data.content
@@ -481,20 +484,20 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                     <button 
                       onClick={() => copyToClipboard(codeText)}
                       className="hover:text-bench-text transition-colors flex items-center gap-1 cursor-pointer"
-                      title="Copy"
+                      title={t('chat.copy')}
                     >
                       {copiedCode === codeText ? <CheckIcon size={14} className="text-emerald-500" /> : <CopyIcon size={14} />}
-                      {copiedCode === codeText ? 'Copied' : 'Copy'}
+                      {copiedCode === codeText ? t('chat.copied') : t('chat.copy')}
                     </button>
                     <button 
                       onClick={() => {
                         onCodeUpdate(codeText, true)
-                        setToast({ message: "Code snippet loaded into the editor!", type: "success" })
+                        setToast({ message: t('chat.toast.codeLoaded'), type: "success" })
                       }}
                       className="text-purple-600 dark:text-purple-400 hover:text-purple-500 transition-colors flex items-center gap-1 font-bold ml-2 cursor-pointer"
-                      title="Insert"
+                      title={t('chat.insert')}
                     >
-                      <SparklesIcon size={14} /> Insert
+                      <SparklesIcon size={14} /> {t('chat.insert')}
                     </button>
                   </div>
                 </div>
@@ -513,7 +516,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
     )
   }
 
-  const activeChatTitle = conversations.find(c => c.id === initialConversationId)?.title || 'New Chat'
+  const activeChatTitle = conversations.find(c => c.id === initialConversationId)?.title || t('chat.newChat')
 
   return (
     <div className="flex flex-col h-full bg-bench-surface relative">
@@ -542,7 +545,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         }`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-bench-border bg-bench-surface">
-          <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-bench-text">AI Conversations</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-bench-text">{t('chat.title')}</span>
           <button 
             onClick={() => setIsSidebarOpen(false)}
             className="p-1 rounded hover:bg-bench-subtle text-bench-muted hover:text-bench-text transition-colors cursor-pointer"
@@ -562,16 +565,16 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
             }}
             className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-dashed border-bench-border hover:border-blue-500/50 bg-bench-surface hover:bg-bench-subtle text-xs font-mono font-bold text-bench-text transition-all cursor-pointer"
           >
-            <PlusIcon size={14} /> New Chat
+            <PlusIcon size={14} /> {t('chat.newChat')}
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-2 space-y-1.5 scrollbar-thin">
-          <span className="text-[9px] font-mono tracking-wider text-bench-muted/60 uppercase block px-2 mb-1">Recent Chats</span>
+          <span className="text-[9px] font-mono tracking-wider text-bench-muted/60 uppercase block px-2 mb-1">{t('chat.recentChats')}</span>
           {chatsLoading ? (
             <SidebarSkeleton />
           ) : conversations.length === 0 ? (
-            <div className="text-[10px] text-bench-muted/80 text-center py-6 font-mono">No recent chats</div>
+            <div className="text-[10px] text-bench-muted/80 text-center py-6 font-mono">{t('chat.noRecentChats')}</div>
           ) : (
             conversations.map(chat => {
               const isActive = initialConversationId === chat.id
@@ -623,7 +626,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                           setRenameTitle(chat.title)
                         }}
                         className="p-0.5 rounded hover:bg-bench-bg hover:text-blue-500 text-bench-muted/60 transition-colors cursor-pointer"
-                        title="Rename"
+                        title={t('chat.rename')}
                       >
                         <Edit2Icon size={11} />
                       </button>
@@ -633,7 +636,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                           handleDeleteConfirm(chat.id)
                         }}
                         className="p-0.5 rounded hover:bg-bench-bg hover:text-red-500 text-bench-muted/60 transition-colors cursor-pointer"
-                        title="Delete"
+                        title={t('chat.delete')}
                       >
                         <Trash2Icon size={11} />
                       </button>
@@ -652,7 +655,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
           <button 
             onClick={() => setIsSidebarOpen(true)}
             className="p-1.5 rounded-md text-bench-muted hover:text-bench-text hover:bg-bench-subtle transition-colors cursor-pointer mr-1 shrink-0"
-            title="Chat History"
+            title={t('chat.historyTitle')}
           >
             <MenuIcon size={16} />
           </button>
@@ -686,33 +689,33 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
 
       {/* Prompts Quick Actions Sub-header Bar */}
       <div className="flex items-center gap-1.5 px-4 py-1.5 border-b border-bench-border bg-bench-surface select-none overflow-x-auto scrollbar-none shrink-0">
-        <span className="text-[10px] text-bench-muted font-mono mr-1 uppercase tracking-wider shrink-0">Quick Ask:</span>
+        <span className="text-[10px] text-bench-muted font-mono mr-1 uppercase tracking-wider shrink-0">{t('chat.quickAsk')}</span>
         
         <button
-          onClick={() => handleSend("Please explain what this Arduino code does and describe the main block functionalities:\n\n" + code)}
+          onClick={() => handleSend(lang === 'ar' ? ("يرجى شرح ما يفعله كود أردوينو هذا ووصف وظائف الكتل الرئيسية:\n\n" + code) : ("Please explain what this Arduino code does and describe the main block functionalities:\n\n" + code))}
           disabled={isLoading || !code.trim()}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] font-mono font-medium transition-all cursor-pointer bg-blue-50/50 hover:bg-blue-50 text-blue-600 border-blue-200/60 hover:border-blue-300 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-500/20 dark:hover:border-blue-500/35 hover:dark:bg-blue-950/30 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-          title="Explain current code"
+          title={t('chat.explainCode')}
         >
-          <BookOpenIcon size={12} /> Explain Code
+          <BookOpenIcon size={12} /> {t('chat.explainCode')}
         </button>
 
         <button
-          onClick={() => handleSend("Check this Arduino code for any compile errors, bugs, or logic issues and fix them:\n\n" + code)}
+          onClick={() => handleSend(lang === 'ar' ? ("تحقق من كود أردوينو هذا للبحث عن أي أخطاء ترجمة أو مشاكل منطقية وإصلاحها:\n\n" + code) : ("Check this Arduino code for any compile errors, bugs, or logic issues and fix them:\n\n" + code))}
           disabled={isLoading || !code.trim()}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] font-mono font-medium transition-all cursor-pointer bg-red-50/50 hover:bg-red-50 text-red-600 border-red-200/60 hover:border-red-300 dark:bg-red-950/20 dark:text-red-400 dark:border-red-500/20 dark:hover:border-red-500/35 hover:dark:bg-red-950/30 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-          title="Fix compilation errors and bugs"
+          title={t('chat.fixErrors')}
         >
-          <WrenchIcon size={12} /> Fix Errors
+          <WrenchIcon size={12} /> {t('chat.fixErrors')}
         </button>
 
         <button
-          onClick={() => handleSend("Optimize the performance and memory usage of this Arduino code:\n\n" + code)}
+          onClick={() => handleSend(lang === 'ar' ? ("قم بتحسين أداء كود أردوينو هذا وتقليل استهلاك الذاكرة:\n\n" + code) : ("Optimize the performance and memory usage of this Arduino code:\n\n" + code))}
           disabled={isLoading || !code.trim()}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] font-mono font-medium transition-all cursor-pointer bg-emerald-50/50 hover:bg-emerald-50 text-emerald-600 border-emerald-200/60 hover:border-emerald-300 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:border-emerald-500/35 hover:dark:bg-emerald-950/30 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-          title="Optimize code performance"
+          title={t('chat.optimizeCode')}
         >
-          <ZapIcon size={12} /> Optimize Code
+          <ZapIcon size={12} /> {t('chat.optimizeCode')}
         </button>
       </div>
 
@@ -724,12 +727,17 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
           /* Empty/Initial state with Suggestions */
           <div className="h-full flex flex-col justify-center items-center py-6 px-2 select-none">
             <div className="text-center max-w-sm mb-8">
-              <h3 className="text-sm font-bold text-bench-text mb-1">How can I help you build?</h3>
-              <p className="text-[11px] text-bench-muted">Select an option below or type a query to get started with the AI Copilot.</p>
+              <h3 className="text-sm font-bold text-bench-text mb-1">{t('chat.welcomeTitle')}</h3>
+              <p className="text-[11px] text-bench-muted">{t('chat.welcomeDesc')}</p>
             </div>
             
             <div className="grid grid-cols-2 gap-3 w-full max-w-md">
-              {SUGGESTIONS.map((sug, idx) => (
+              {[
+                { label: t('chat.sug.generate'), prompt: t('chat.sug.prompt.generate'), icon: SUGGESTIONS[0].icon },
+                { label: t('chat.sug.debug'), prompt: t('chat.sug.prompt.debug'), icon: SUGGESTIONS[1].icon },
+                { label: t('chat.sug.explain'), prompt: t('chat.sug.prompt.explain'), icon: SUGGESTIONS[2].icon },
+                { label: t('chat.sug.optimize'), prompt: t('chat.sug.prompt.optimize'), icon: SUGGESTIONS[3].icon }
+              ].map((sug, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSend(sug.prompt)}
@@ -759,7 +767,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                         <img src="/gemini-logo.png" alt="Gemini" className="w-full h-full object-cover" />
                       )}
                     </div>
-                    <span className="text-[10px] font-bold text-bench-muted font-mono">Copilot</span>
+                    <span className="text-[10px] font-bold text-bench-muted font-mono">{t('chat.copilot')}</span>
                     {msg.timestamp && <span className="text-[9px] text-bench-muted/60 font-mono ml-1">{msg.timestamp}</span>}
                   </div>
                 )}
@@ -767,7 +775,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                 <div 
                   className={`max-w-[95%] w-full min-w-0 ${isUser ? 'max-w-[90%] bg-indigo-50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 rounded-2xl rounded-tr-sm px-4 py-3 border border-indigo-200 dark:border-indigo-500/20 shadow-sm' : 'text-bench-text'}`}
                 >
-                  {renderContent(msg.content, isUser)}
+                  {renderContent(msg.content === 'HELLO_SENTINEL' ? t('chat.defaultWelcome') : msg.content, isUser)}
                 </div>
 
                 {isUser && msg.timestamp && (
@@ -818,7 +826,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
                 }
               }}
               disabled={isLoading}
-              placeholder={isLoading ? "Loading response..." : "Ask Copilot anything..."}
+              placeholder={isLoading ? t('chat.loading') : t('chat.placeholder')}
               rows={1}
               className="flex-1 bg-transparent border-none outline-none text-[15px] text-bench-text placeholder-bench-muted/60 py-1 resize-none max-h-40 min-h-[28px] overflow-y-auto"
             />
