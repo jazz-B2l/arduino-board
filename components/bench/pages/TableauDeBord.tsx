@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
 import Link from 'next/link'
 import { useBench } from '../BenchContext'
+import { useLanguage } from '../LanguageContext'
 import { AnalogGauge } from '../AnalogGauge'
 import { Sparkline } from '../Sparkline'
 import { RecentAlarms } from '../RecentAlarms'
@@ -85,7 +86,33 @@ interface DashboardWidget {
   metric: string
 }
 
+const getLocalizedChartInfo = (id: string, name: string, bestFor: string, example: string, isRTL: boolean) => {
+  if (!isRTL) return { name, bestFor, example };
+  switch (id) {
+    case 'line': return { name: 'مخطط خطي', bestFor: 'تغير البيانات بمرور الوقت', example: 'درجة الحرارة، الجهد الكهربائي' };
+    case 'area': return { name: 'مخطط مساحي', bestFor: 'القياسات المستمرة والمتراكمة', example: 'الضغط، الرطوبة' };
+    case 'gauge': return { name: 'مقياس دائري / تاكومتر', bestFor: 'القيمة الحالية + النطاق الآمن', example: 'دورة في الدقيقة، السرعة، الحرارة' };
+    case 'radial': return { name: 'مقياس شعاعي', bestFor: 'النسبة المئوية والنطاق', example: 'البطارية، حمل المعالج' };
+    case 'bar': return { name: 'مخطط شريطي عمودي', bestFor: 'مقارنة القراءات المنفصلة', example: 'قراءات المستشعرات، الحالات' };
+    case 'hbar': return { name: 'مخطط شريطي أفقي', bestFor: 'الترتيب والمقارنات المتعددة', example: 'مستشعرات متعددة' };
+    case 'scatter': return { name: 'مخطط التشتت', bestFor: 'العلاقة بين قيمتين', example: 'دورة في الدقيقة مقابل الحرارة' };
+    case 'histogram': return { name: 'مخطط توزيع التكرار', bestFor: 'توزيع القراءات الإحصائي', example: 'الاهتزاز، الضوضاء' };
+    case 'heatmap': return { name: 'المخطط الحراري', bestFor: 'كثافة القراءات عبر الوقت', example: 'درجة الحرارة والاهتزاز' };
+    case 'number': return { name: 'بطاقة رقمية / مؤشر رئيسي', bestFor: 'قيمة حالية واحدة بارزة', example: '72.5 درجة مئوية' };
+    case 'progress': return { name: 'شريط تقدم خطي', bestFor: 'النسبة المئوية المنتهية', example: 'البطارية 78%' };
+    case 'led': return { name: 'مؤشر LED / الحالة', bestFor: 'الحالة الرقمية الثنائية', example: 'تشغيل/إيقاف، تنبيه' };
+    case 'sparkline': return { name: 'خط اتجاهي صغير', bestFor: 'مؤشر اتجاه مصغر مدمج', example: 'تغير الحرارة على بطاقة' };
+    case 'multiline': return { name: 'مخطط خطي متعدد', bestFor: 'مستشعرات متعددة في وقت واحد', example: 'تسارع المحاور X/Y/Z' };
+    case 'candlestick': return { name: 'مخطط الشموع اليابانية', bestFor: 'القيم القصوى والدنيا والمستويات', example: 'حركة مستشعرات التبريد' };
+    case 'polar': return { name: 'مخطط قطبي / رادار', bestFor: 'القياسات متعددة المحاور', example: 'توجيه المستشعر' };
+    case 'waveform': return { name: 'شكل الموجة التناظرية', bestFor: 'الإشارات ذات التردد العالي', example: 'الصوت، الاهتزاز السريع' };
+    case 'fft': return { name: 'طيف التردد (FFT)', bestFor: 'تحليل الترددات والاهتزازات', example: 'اهتزاز المحرك الميكانيكي' };
+    default: return { name, bestFor, example };
+  }
+}
+
 export function TableauDeBord() {
+  const { t, lang } = useLanguage()
   const {
     latest: realLatest,
     history: realHistory,
@@ -365,10 +392,10 @@ export function TableauDeBord() {
       <div className="p-6 max-w-5xl mx-auto flex flex-col gap-6 mt-6">
         <div className="text-center flex flex-col gap-2">
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 dark:from-blue-400 dark:via-indigo-400 dark:to-emerald-400 bg-clip-text text-transparent">
-            Arduino Device Connection
+            {t('dashboard.step.connect')}
           </h1>
           <p className="text-sm text-bench-muted max-w-xl mx-auto leading-relaxed">
-            Please connect your Arduino board via USB. Once the browser pairs with the serial device, we will validate the signal incoming stream.
+            {t('dashboard.step.connectDesc')}
           </p>
         </div>
 
@@ -377,7 +404,7 @@ export function TableauDeBord() {
           <div className="p-4 text-xs rounded-lg border bg-amber-950/20 text-amber-500 border-amber-900/40 flex items-center gap-3">
             <AlertTriangleIcon size={18} className="text-amber-500" />
             <div>
-              <strong>Web Serial Unsupported:</strong> Your browser does not support the Web Serial API. Please use a desktop-compatible Chromium browser (Chrome, Edge, Opera) to connect a board.
+              <strong>{t('dashboard.step.unsupported')}</strong> {t('dashboard.step.unsupportedDesc')}
             </div>
           </div>
         )}
@@ -386,7 +413,7 @@ export function TableauDeBord() {
           <div className="p-4 text-xs rounded-lg border bg-red-950/20 text-red-400 border-red-900/40 flex items-center gap-3 font-mono">
             <AlertTriangleIcon size={18} className="text-red-500 animate-pulse" />
             <div>
-              <strong>Connection Fault:</strong> {serialError}
+              <strong>{t('dashboard.step.connFault')}</strong> {serialError}
             </div>
           </div>
         )}
@@ -413,12 +440,12 @@ export function TableauDeBord() {
 
               <div className="flex flex-col gap-1">
                 <h3 className="text-sm font-bold text-bench-text">
-                  {isConnected ? 'Device Connected Successfully' : 'Device Offline'}
+                  {isConnected ? t('dashboard.step.connectedSuccess') : t('dashboard.step.offline')}
                 </h3>
                 <p className="text-xs text-bench-muted leading-relaxed max-w-[240px] mx-auto">
                   {isConnected
-                    ? `Your ${boardName} was identified on the serial port interface.`
-                    : 'Pair your board via USB serial link to stream physical sensors.'}
+                    ? t('dashboard.step.identifySuccess').replace('{board}', boardName || '')
+                    : t('dashboard.step.pairPrompt')}
                 </p>
               </div>
             </div>
@@ -426,11 +453,11 @@ export function TableauDeBord() {
             {isConnected ? (
               <div className="flex flex-col gap-3 w-full border-t border-[#1f2937]/30 dark:border-[#1f2937]/50 pt-4">
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-bench-muted">Detected USB:</span>
+                  <span className="text-bench-muted">{t('dashboard.step.detectedUsb')}</span>
                   <span className="text-bench-text font-bold">{stats.port && stats.port !== 'None' ? stats.port : 'Unknown'}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-bench-muted">Board Profile:</span>
+                  <span className="text-bench-muted">{t('dashboard.step.boardProfile')}</span>
                   <select
                     value={resolveBoardProfile(selectedBoard || boardName)}
                     onChange={e => setSelectedBoard(e.target.value)}
@@ -442,7 +469,7 @@ export function TableauDeBord() {
                   </select>
                 </div>
                 <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-bench-muted">Baud Rate:</span>
+                  <span className="text-bench-muted">{t('dashboard.step.baudRate')}</span>
                   <span className="text-bench-text">9600 bps</span>
                 </div>
                 
@@ -465,14 +492,14 @@ export function TableauDeBord() {
                     ) : (
                       <CpuIcon size={12} />
                     )}
-                    {handshakeStatus === 'sending' ? 'Testing...' : handshakeStatus === 'success' ? 'Validated!' : handshakeStatus === 'error' ? 'Failed!' : 'Validate LED 13'}
+                    {handshakeStatus === 'sending' ? t('dashboard.step.testing') : handshakeStatus === 'success' ? t('dashboard.step.validated') : handshakeStatus === 'error' ? t('dashboard.step.failed') : t('dashboard.step.validateLed')}
                   </button>
                   
                   <button
                     onClick={disconnect}
                     className="px-3.5 py-2 rounded border border-bench-border text-xs font-mono text-bench-muted hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-950/40 hover:bg-red-50 dark:hover:bg-red-950/10 transition-colors cursor-pointer"
                   >
-                    Disconnect
+                    {t('action.disconnect')}
                   </button>
                 </div>
               </div>
@@ -483,20 +510,18 @@ export function TableauDeBord() {
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded text-xs font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
               >
                 <RefreshCwIcon size={12} className={connectionStatus === 'connecting' ? 'animate-spin' : ''} />
-                {connectionStatus === 'connecting' ? 'Pairing Board...' : 'Pair & Connect Arduino'}
+                {connectionStatus === 'connecting' ? t('dashboard.step.pairing') : t('dashboard.step.pairConnect')}
               </button>
             )}
           </div>
 
           {/* Right panel: Live signal log verification */}
-          <div
-            className="md:col-span-7 border border-bench-border rounded-xl overflow-hidden flex flex-col bg-bench-panel-bg"
-          >
+          <div className="md:col-span-7 border border-bench-border rounded-xl overflow-hidden flex flex-col bg-bench-panel-bg">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-bench-border bg-bench-header-bg">
               <div className="flex items-center gap-2">
                 <TerminalIcon size={13} className={isConnected ? 'text-emerald-600 dark:text-emerald-400 animate-pulse' : 'text-bench-muted'} />
                 <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-bench-text">
-                  Signal Stream Monitor (9600 Baud)
+                  {t('dashboard.step.monitorTitle')}
                 </span>
               </div>
               <span className={`text-[9px] font-mono border px-2 py-0.5 rounded-full flex items-center gap-1 ${
@@ -505,7 +530,7 @@ export function TableauDeBord() {
                   : 'text-bench-muted bg-bench-subtle border-bench-border dark:text-slate-500 dark:bg-slate-900 dark:border-slate-800'
               }`}>
                 {isConnected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-500 animate-pulse" />}
-                {isConnected ? 'ONLINE' : 'OFFLINE'}
+                {isConnected ? t('dashboard.step.online') : t('dashboard.step.offlineCaps')}
               </span>
             </div>
 
@@ -519,15 +544,15 @@ export function TableauDeBord() {
                     </div>
                   ))
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-1 py-8 text-center">
-                    <span className="animate-pulse">Waiting for serial stream telemetry...</span>
-                    <span className="text-[9px] max-w-[260px] leading-relaxed text-slate-500">(Make sure your Arduino code transmits values via Serial.print CSV or JSON formats)</span>
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-1 py-8 text-center font-mono">
+                    <span className="animate-pulse">{t('dashboard.step.waitingTelemetry')}</span>
+                    <span className="text-[9px] max-w-[260px] leading-relaxed text-slate-500">{t('dashboard.step.telemetryHint')}</span>
                   </div>
                 )
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400 py-8 text-center font-mono">
-                  <span>DISCONNECTED</span>
-                  <span className="text-[9px] text-slate-500 mt-1">Connect your device to view raw data stream</span>
+                  <span>{t('dashboard.step.disconnected')}</span>
+                  <span className="text-[9px] text-slate-500 mt-1">{t('dashboard.step.rawPrompt')}</span>
                 </div>
               )}
             </div>
@@ -541,7 +566,7 @@ export function TableauDeBord() {
             disabled={!isConnected}
             className="flex items-center gap-2 px-8 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.35)] bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none"
           >
-            {nextStepLabel}
+            {hasConfiguredWidgets ? t('dashboard.step.openConsole') : t('dashboard.step.configTitle')}
             <ArrowRightIcon size={14} />
           </button>
         </div>
@@ -555,10 +580,10 @@ export function TableauDeBord() {
       <div className="p-6 max-w-6xl mx-auto flex flex-col gap-8 mt-6">
         <div className="text-center flex flex-col gap-2">
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
-            Configure Dashboard Widgets
+            {t('dashboard.step.configTitle')}
           </h1>
           <p className="text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
-            Select the charts, tachometers, progress bars, and high-frequency wave indicators you want to display on your workspace telemetry grid.
+            {t('dashboard.step.configDesc')}
           </p>
         </div>
 
@@ -568,10 +593,10 @@ export function TableauDeBord() {
             onClick={() => setSetupStep('connect-device')}
             className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded border border-[#1f2937] text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
           >
-            ← Back to Connection Check ({boardName})
+            {lang === 'ar' ? `← العودة لفحص الاتصال (${boardName})` : `← Back to Connection Check (${boardName})`}
           </button>
           <span className="text-xs text-slate-500 font-mono">
-            {selectedChartIds.size} widgets selected
+            {lang === 'ar' ? `تم اختيار ${selectedChartIds.size} عناصر` : `${selectedChartIds.size} widgets selected`}
           </span>
         </div>
 
@@ -580,6 +605,7 @@ export function TableauDeBord() {
           {AVAILABLE_CHARTS.map(chart => {
             const isSelected = selectedChartIds.has(chart.id)
             const isAllMetric = chart.defaultMetric === 'all'
+            const localized = getLocalizedChartInfo(chart.id, chart.name, chart.bestFor, chart.example, lang === 'ar')
             return (
               <div
                 key={chart.id}
@@ -599,7 +625,7 @@ export function TableauDeBord() {
                       className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/50 cursor-pointer pointer-events-none"
                     />
                     <span className={`text-sm font-bold transition-colors ${isSelected ? 'text-blue-400' : 'text-slate-100'}`}>
-                      {chart.name}
+                      {localized.name}
                     </span>
                   </div>
                   <span className="text-[9px] font-mono uppercase bg-bench-border/50 px-2 py-0.5 rounded text-bench-muted">
@@ -608,8 +634,8 @@ export function TableauDeBord() {
                 </div>
 
                 <div className="flex flex-col gap-1.5 text-xs leading-relaxed text-slate-400 flex-1">
-                  <p><strong>Best for:</strong> {chart.bestFor}</p>
-                  <p><strong>Example:</strong> {chart.example}</p>
+                  <p><strong>{lang === 'ar' ? 'أفضل استخدام:' : 'Best for:'}</strong> {localized.bestFor}</p>
+                  <p><strong>{lang === 'ar' ? 'مثال:' : 'Example:'}</strong> {localized.example}</p>
                 </div>
 
                 {/* Metric Selector Dropdown */}
@@ -617,10 +643,10 @@ export function TableauDeBord() {
                   onClick={e => e.stopPropagation()} // prevent toggle chart
                   className="flex items-center justify-between gap-3 border-t border-[#1f2937]/40 pt-3 text-xs"
                 >
-                  <span className="text-slate-500 font-mono">Bound Metric:</span>
+                  <span className="text-slate-500 font-mono">{lang === 'ar' ? 'الإشارة المرتبطة:' : 'Bound Metric:'}</span>
                   {isAllMetric ? (
                     <span className="text-slate-300 font-semibold font-mono text-[10px] bg-slate-900 border border-slate-800 px-2 py-1 rounded">
-                      All Active Metrics
+                      {lang === 'ar' ? 'جميع الإشارات النشطة' : 'All Active Metrics'}
                     </span>
                   ) : (
                     <select
@@ -630,7 +656,7 @@ export function TableauDeBord() {
                     >
                       {Object.keys(METRIC_LABELS).map(key => (
                         <option key={key} value={key}>
-                          {METRIC_LABELS[key]}
+                          {t('metric.' + key)}
                         </option>
                       ))}
                     </select>
@@ -649,7 +675,7 @@ export function TableauDeBord() {
             className="flex items-center gap-2 px-8 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.35)] bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none animate-bounce"
           >
             <CheckCircle2Icon size={16} />
-            Start Monitoring Grid
+            {t('dashboard.step.createConsole')}
           </button>
         </div>
       </div>
@@ -665,10 +691,10 @@ export function TableauDeBord() {
         <div className="flex flex-col">
           <h1 className="text-lg font-bold text-slate-100 flex items-center gap-2">
             <CpuIcon size={18} className="text-blue-400" />
-            {boardName} Telemetry Station
+            {lang === 'ar' ? `محطة قياس البعد لـ ${boardName}` : `${boardName} Telemetry Station`}
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Console Workspace • Real-time acquisition running at 1 Hz
+            {lang === 'ar' ? 'مساحة عمل لوحة التحكم • استقبال البيانات في الوقت الفعلي بمعدل 1 هرتز' : 'Console Workspace • Real-time acquisition running at 1 Hz'}
           </p>
         </div>
 
@@ -682,10 +708,10 @@ export function TableauDeBord() {
                 ? 'bg-amber-600/10 border-amber-500 text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.1)]'
                 : 'border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900'
             }`}
-            title="Toggle simulated telemetry values to preview charts"
+            title={lang === 'ar' ? 'تبديل قيم القياس المحاكاة لمعاينة المخططات' : 'Toggle simulated telemetry values to preview charts'}
           >
             <PlayIcon size={13} className={demoMode ? 'animate-pulse' : ''} />
-            {demoMode ? 'DEMO MODE ACTIVE' : 'ACTIVATE DEMO MODE'}
+            {demoMode ? (lang === 'ar' ? 'وضع المحاكاة نشط' : 'DEMO MODE ACTIVE') : (lang === 'ar' ? 'تفعيل وضع المحاكاة' : 'ACTIVATE DEMO MODE')}
           </button>
 
           {/* Add Widget Button */}
@@ -694,26 +720,26 @@ export function TableauDeBord() {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-blue-500/40 bg-blue-600/10 hover:bg-blue-600 text-blue-400 hover:text-white transition-all text-xs font-mono font-bold"
           >
             <PlusIcon size={13} />
-            ADD CHART
+            {t('dashboard.widget.add')}
           </button>
 
           {/* Setup / Reset Config buttons */}
           <button
             onClick={() => setSetupStep('choose-charts')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors text-xs font-mono"
-            title="Select which charts to display"
+            title={lang === 'ar' ? 'اختر المخططات التي تريد عرضها' : 'Select which charts to display'}
           >
             <SlidersHorizontalIcon size={13} />
-            WIDGETS SELECTOR
+            {t('dashboard.step.configTitle')}
           </button>
 
           <button
             onClick={handleResetWorkspace}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded border border-slate-800 text-slate-400 hover:text-red-400 hover:border-red-900/50 hover:bg-red-950/10 transition-colors text-xs font-mono"
-            title="Clear workspace widgets configuration"
+            title={lang === 'ar' ? 'مسح تهيئة عناصر مساحة العمل' : 'Clear workspace widgets configuration'}
           >
             <RotateCcwIcon size={13} />
-            RESET
+            {t('dashboard.widget.reset')}
           </button>
 
           <button
@@ -721,9 +747,9 @@ export function TableauDeBord() {
               setSetupStep('connect-device')
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-red-500/25 bg-red-950/15 hover:bg-red-600 text-red-400 hover:text-white transition-all text-xs font-mono font-bold"
-            title="Check device serial connection"
+            title={lang === 'ar' ? 'فحص اتصال المنفذ المتسلسل للجهاز' : 'Check device serial connection'}
           >
-            CONNECTION PAGE
+            {t('dashboard.btn.connectionPage')}
           </button>
         </div>
       </div>
@@ -743,9 +769,9 @@ export function TableauDeBord() {
               <UsbIcon size={18} />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Serial Connection</span>
+              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{t('dashboard.status.serialConn')}</span>
               <span className="text-xs font-bold font-mono text-slate-200">
-                {isConnected ? `Connected on ${boardName}` : connectionStatus === 'connecting' ? 'Connecting...' : 'Disconnected'}
+                {isConnected ? (lang === 'ar' ? `متصل على ${boardName}` : `Connected on ${boardName}`) : connectionStatus === 'connecting' ? t('dashboard.status.connecting') : t('dashboard.status.disconnected')}
               </span>
             </div>
           </div>
@@ -757,7 +783,7 @@ export function TableauDeBord() {
                 disabled={!serialSupported || connectionStatus === 'connecting'}
                 className="px-4 py-1.5 rounded text-xs font-mono font-bold bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 transition-colors"
               >
-                {connectionStatus === 'connecting' ? 'Connecting...' : 'Connect Serial'}
+                {connectionStatus === 'connecting' ? t('dashboard.status.connecting') : t('dashboard.btn.connectSerial')}
               </button>
             ) : (
               <button
@@ -962,44 +988,43 @@ export function TableauDeBord() {
       {/* Threshold Configuration (Only when active sensors exist) */}
       {(activeSensors.rpm || activeSensors.vitesse || activeSensors.vibration || activeSensors.temp_carburant || activeSensors.temp_echap || activeSensors.temp_admission) && (
         <section aria-labelledby="thresholds-heading">
-          <div
-            className="rounded-lg border p-5 flex flex-col gap-4 bg-bench-surface border-bench-border shadow-lg"
-          >
-            <div className="flex items-center justify-between border-b border-bench-border pb-3">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontalIcon size={14} className="text-emerald-400" />
-                <span id="thresholds-heading" className="text-xs uppercase tracking-widest font-semibold text-slate-400">
-                  Telemetry Alert Thresholds
-                </span>
+          {/* Calibration Panel */}
+          <div className="rounded-xl border p-6 flex flex-col gap-4 bg-bench-surface border-bench-border shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-bench-border pb-3">
+              <div className="flex flex-col gap-0.5">
+                <h3 className="text-sm font-bold text-bench-text flex items-center gap-2">
+                  <SlidersHorizontalIcon size={14} className="text-purple-500" />
+                  {t('dashboard.panel.alarmTuning')}
+                </h3>
               </div>
               <button
                 onClick={handleSaveThresholds}
-                className="flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-mono font-semibold transition-colors"
+                className="px-3.5 py-1.5 rounded text-[10px] font-mono font-bold border transition-all flex items-center gap-1 cursor-pointer self-start md:self-auto"
                 style={{
                   borderColor:     saved ? '#10b981' : '#3b82f6',
                   color:           saved ? '#10b981' : '#3b82f6',
                   backgroundColor: saved ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)',
                 }}
               >
-                {saved ? <><CheckIcon size={12} /> Saved</> : 'Apply Thresholds'}
+                {saved ? <><CheckIcon size={12} /> {t('action.saved')}</> : t('dashboard.panel.saveCalib')}
               </button>
             </div>
 
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Configure Warning / Danger limit values. These parameters control the LED alerts, Radial colors, and critical alarm triggers.
+              {lang === 'ar' ? 'تهيئة قيم حد التحذير / الخطر. تتحكم هذه المعلمات في تنبيهات LED والألوان والمحفزات الحرجة.' : 'Configure Warning / Danger limit values. These parameters control the LED alerts, Radial colors, and critical alarm triggers.'}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-1 font-sans">
               {Object.keys(thresholds).map(key => {
                 const metricKey = key as keyof Thresholds
-                const label = METRIC_LABELS[key] || key
+                const label = t('metric.' + key) || key
                 const unit = METRIC_UNITS[key] || ''
                 return (
                   <div key={key} className="p-3 rounded border border-slate-800/60 bg-slate-950/20 flex flex-col gap-2">
                     <span className="text-[11px] font-semibold text-slate-300">{label} ({unit})</span>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[9px] text-amber-500 uppercase tracking-wider">Warning</span>
+                        <span className="text-[9px] text-amber-500 uppercase tracking-wider">{t('dashboard.panel.warning')}</span>
                         <input
                           type="number"
                           value={draft[metricKey].warning}
@@ -1031,7 +1056,7 @@ export function TableauDeBord() {
           id="alarms-heading"
           className="text-[10px] uppercase tracking-widest mb-3 font-semibold text-slate-500 animate-pulse"
         >
-          Active Alarm Logger
+          {t('alarms.recentAlarms')}
         </h2>
         <RecentAlarms alarms={alarms} limit={10} />
       </section>
@@ -1046,11 +1071,11 @@ export function TableauDeBord() {
             >
               <X size={18} />
             </button>
-            <h2 className="text-base font-bold text-slate-100 font-sans">Add New Chart to Dashboard</h2>
+            <h2 className="text-base font-bold text-slate-100 font-sans">{t('dashboard.widget.addWorkspace')}</h2>
 
             <div className="flex flex-col gap-4 mt-2">
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-slate-400 font-mono">Chart Type</label>
+                <label className="text-xs text-slate-400 font-mono">{t('dashboard.widget.type')}</label>
                 <select
                   value={newWidgetType}
                   onChange={e => {
@@ -1061,27 +1086,27 @@ export function TableauDeBord() {
                   className="rounded border border-slate-800 bg-slate-900 p-2 text-xs font-mono text-slate-200 outline-none focus:border-blue-500"
                 >
                   {AVAILABLE_CHARTS.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>{getLocalizedChartInfo(c.id, c.name, '', '', lang === 'ar').name}</option>
                   ))}
                 </select>
               </div>
 
               {newWidgetType !== 'multiline' && newWidgetType !== 'polar' ? (
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-slate-400 font-mono">Telemetry Source Metric</label>
+                  <label className="text-xs text-slate-400 font-mono">{t('dashboard.widget.chooseMetric')}</label>
                   <select
                     value={newWidgetMetric}
                     onChange={e => setNewWidgetMetric(e.target.value)}
                     className="rounded border border-slate-800 bg-slate-900 p-2 text-xs font-mono text-slate-200 outline-none focus:border-blue-500"
                   >
                     {Object.keys(METRIC_LABELS).map(key => (
-                      <option key={key} value={key}>{METRIC_LABELS[key]}</option>
+                      <option key={key} value={key}>{t('metric.' + key)}</option>
                     ))}
                   </select>
                 </div>
               ) : (
                 <div className="text-xs text-slate-500 font-mono italic bg-slate-900 border border-slate-800/60 p-2 rounded">
-                  Note: This chart type requires all active telemetry channels and aggregates them automatically.
+                  {lang === 'ar' ? 'ملاحظة: يتطلب هذا النوع من المخططات جميع قنوات القياس النشطة ويجمعها تلقائياً.' : 'Note: This chart type requires all active telemetry channels and aggregates them automatically.'}
                 </div>
               )}
             </div>
@@ -1090,7 +1115,7 @@ export function TableauDeBord() {
               onClick={handleAddWidget}
               className="mt-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs shadow-lg transition-all"
             >
-              ADD TO CONSOLE
+              {t('dashboard.widget.addBtn')}
             </button>
           </div>
         </div>
@@ -1155,9 +1180,10 @@ function WidgetRenderer({ widget, latest, history, thresholds, spark, stats }: W
 }
 
 function EmptyWidgetState() {
+  const { t } = useLanguage()
   return (
     <div className="flex items-center justify-center h-44 text-slate-500 text-xs font-mono">
-      Waiting for telemetry signals...
+      {t('dashboard.step.waitingTelemetry')}
     </div>
   )
 }
@@ -1178,6 +1204,7 @@ function CustomMiniTooltip({ active, payload }: any) {
 
 // 1. Line Chart
 function WidgetLineChart({ metric, history }: { metric: string; history: any[] }) {
+  const { t } = useLanguage()
   const data = history.slice(-65)
   if (data.length < 2) return <EmptyWidgetState />
   return (
@@ -1188,7 +1215,7 @@ function WidgetLineChart({ metric, history }: { metric: string; history: any[] }
           <XAxis dataKey="timestamp" tick={false} stroke="#1f2937" />
           <YAxis tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'var(--font-mono)' }} stroke="#1f2937" />
           <Tooltip content={<CustomMiniTooltip />} />
-          <Line type="monotone" dataKey={metric} name={METRIC_LABELS[metric]} stroke="#3b82f6" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+          <Line type="monotone" dataKey={metric} name={t('metric.' + metric)} stroke="#3b82f6" strokeWidth={1.5} dot={false} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -1197,6 +1224,7 @@ function WidgetLineChart({ metric, history }: { metric: string; history: any[] }
 
 // 2. Area Chart
 function WidgetAreaChart({ metric, history }: { metric: string; history: any[] }) {
+  const { t } = useLanguage()
   const data = history.slice(-65)
   if (data.length < 2) return <EmptyWidgetState />
   return (
@@ -1213,7 +1241,7 @@ function WidgetAreaChart({ metric, history }: { metric: string; history: any[] }
           <XAxis dataKey="timestamp" tick={false} stroke="#1f2937" />
           <YAxis tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'var(--font-mono)' }} stroke="#1f2937" />
           <Tooltip content={<CustomMiniTooltip />} />
-          <Area type="monotone" dataKey={metric} name={METRIC_LABELS[metric]} stroke="#8b5cf6" strokeWidth={1.5} fillOpacity={1} fill={`url(#gradArea-${metric})`} dot={false} isAnimationActive={false} />
+          <Area type="monotone" dataKey={metric} name={t('metric.' + metric)} stroke="#8b5cf6" strokeWidth={1.5} fillOpacity={1} fill={`url(#gradArea-${metric})`} dot={false} isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -1295,6 +1323,7 @@ function WidgetRadialGauge({ metric, latest, thresholds }: { metric: string; lat
 
 // 5. Bar Chart
 function WidgetBarChart({ metric, history }: { metric: string; history: any[] }) {
+  const { t } = useLanguage()
   const data = history.slice(-25)
   if (data.length < 2) return <EmptyWidgetState />
   return (
@@ -1305,7 +1334,7 @@ function WidgetBarChart({ metric, history }: { metric: string; history: any[] })
           <XAxis dataKey="timestamp" tick={false} stroke="#1f2937" />
           <YAxis tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'var(--font-mono)' }} stroke="#1f2937" />
           <Tooltip content={<CustomMiniTooltip />} />
-          <Bar dataKey={metric} name={METRIC_LABELS[metric]} fill="#10b981" radius={[1.5, 1.5, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey={metric} name={t('metric.' + metric)} fill="#10b981" radius={[1.5, 1.5, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -1314,6 +1343,7 @@ function WidgetBarChart({ metric, history }: { metric: string; history: any[] })
 
 // 6. Horizontal Bar
 function WidgetHorizontalBar({ metric, latest, thresholds }: { metric: string; latest: any; thresholds: Thresholds }) {
+  const { t, lang } = useLanguage()
   const val = latest?.[metric] ?? 0
   const state = getMetricState(metric, val, thresholds)
   const unit = METRIC_UNITS[metric] || ''
@@ -1327,22 +1357,22 @@ function WidgetHorizontalBar({ metric, latest, thresholds }: { metric: string; l
 
   const pct = Math.min(100, Math.max(0, (val / max) * 100))
   const color = state === 'DANGER' ? '#ef4444' : state === 'WARNING' ? '#f59e0b' : '#3b82f6'
-  const t = thresholds[metric as MetricKey]
-  const warnPct = t ? (t.warning / max) * 100 : 70
-  const dangPct = t ? (t.danger / max) * 100 : 90
+  const thresh = thresholds[metric as MetricKey]
+  const warnPct = thresh ? (thresh.warning / max) * 100 : 70
+  const dangPct = thresh ? (thresh.danger / max) * 100 : 90
 
   return (
     <div className="flex flex-col justify-center gap-3.5 px-4 h-44 select-none">
       <div className="flex justify-between text-xs font-mono">
-        <span className="text-slate-400">Current Reading</span>
+        <span className="text-slate-400">{lang === 'ar' ? 'القراءة الحالية' : 'Current Reading'}</span>
         <span className="font-extrabold text-slate-100">{val.toFixed(1)} {unit}</span>
       </div>
 
       <div className="relative w-full h-4.5 bg-slate-950 rounded border border-slate-800 overflow-hidden">
         {/* Warning threshold divider */}
-        <div className="absolute top-0 bottom-0 w-0.5 bg-amber-500/40 z-10" style={{ left: `${warnPct}%` }} title={`Warning: ${t?.warning}`} />
+        <div className="absolute top-0 bottom-0 w-0.5 bg-amber-500/40 z-10" style={{ left: `${warnPct}%` }} title={`Warning: ${thresh?.warning}`} />
         {/* Danger threshold divider */}
-        <div className="absolute top-0 bottom-0 w-0.5 bg-red-500/40 z-10" style={{ left: `${dangPct}%` }} title={`Danger: ${t?.danger}`} />
+        <div className="absolute top-0 bottom-0 w-0.5 bg-red-500/40 z-10" style={{ left: `${dangPct}%` }} title={`Danger: ${thresh?.danger}`} />
 
         {/* Fill */}
         <div
@@ -1353,9 +1383,9 @@ function WidgetHorizontalBar({ metric, latest, thresholds }: { metric: string; l
 
       <div className="flex justify-between text-[9px] text-slate-500 font-mono">
         <span>0</span>
-        <span>Warning ({t?.warning || '--'})</span>
-        <span>Danger ({t?.danger || '--'})</span>
-        <span>Max ({max})</span>
+        <span>{lang === 'ar' ? 'تحذير' : 'Warning'} ({thresh?.warning || '--'})</span>
+        <span>{lang === 'ar' ? 'خطر' : 'Danger'} ({thresh?.danger || '--'})</span>
+        <span>{lang === 'ar' ? 'الأقصى' : 'Max'} ({max})</span>
       </div>
     </div>
   )
@@ -1363,10 +1393,11 @@ function WidgetHorizontalBar({ metric, latest, thresholds }: { metric: string; l
 
 // 7. Scatter Plot
 function WidgetScatterPlot({ metric, history }: { metric: string; history: any[] }) {
+  const { t, lang } = useLanguage()
   const data = history.slice(-60)
   const compareMetric = metric === 'rpm' ? 'temp_echap' : 'rpm'
-  const compareLabel = METRIC_LABELS[compareMetric]?.split(' ')[0] || compareMetric
-  const primaryLabel = METRIC_LABELS[metric]?.split(' ')[0] || metric
+  const compareLabel = t('metric.' + compareMetric)?.split(' ')[0] || compareMetric
+  const primaryLabel = t('metric.' + metric)?.split(' ')[0] || metric
 
   const chartData = data.map(r => ({
     x: r[compareMetric as keyof SensorReading],
@@ -1383,7 +1414,7 @@ function WidgetScatterPlot({ metric, history }: { metric: string; history: any[]
           <XAxis type="number" dataKey="x" name={compareLabel} stroke="#1f2937" tick={{ fill: '#64748b', fontSize: 9 }} />
           <YAxis type="number" dataKey="y" name={primaryLabel} stroke="#1f2937" tick={{ fill: '#64748b', fontSize: 9 }} />
           <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-          <Scatter name="Telemetry distribution" data={chartData} fill="#ec4899" isAnimationActive={false} />
+          <Scatter name={lang === 'ar' ? 'توزيع القياسات' : 'Telemetry distribution'} data={chartData} fill="#ec4899" isAnimationActive={false} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>
@@ -1463,6 +1494,7 @@ function WidgetHeatmap({ metric, history, thresholds }: { metric: string; histor
 
 // 10. Number / KPI Card
 function WidgetKPICard({ metric, latest, history }: { metric: string; latest: any; history: any[] }) {
+  const { t, lang } = useLanguage()
   const val = latest?.[metric] ?? 0
   const unit = METRIC_UNITS[metric] || ''
 
@@ -1486,23 +1518,23 @@ function WidgetKPICard({ metric, latest, history }: { metric: string; latest: an
 
       <div className="flex gap-4 mt-3 text-[10px] font-mono">
         <div className="text-slate-500 flex flex-col items-center font-mono">
-          <span>MIN</span>
+          <span>{lang === 'ar' ? 'الأدنى' : 'MIN'}</span>
           <span className="text-blue-400 font-bold font-mono">{min.toFixed(1)}</span>
         </div>
         <div className="border-r border-slate-800 font-mono" />
         <div className="text-slate-500 flex flex-col items-center font-mono">
-          <span>TREND</span>
+          <span>{lang === 'ar' ? 'الاتجاه' : 'TREND'}</span>
           {trend === 'up' ? (
-            <span className="text-emerald-500 font-bold font-mono">▲ RISING</span>
+            <span className="text-emerald-500 font-bold font-mono">{lang === 'ar' ? '▲ متصاعد' : '▲ RISING'}</span>
           ) : trend === 'down' ? (
-            <span className="text-red-500 font-bold font-mono">▼ FALLING</span>
+            <span className="text-red-500 font-bold font-mono">{lang === 'ar' ? '▼ متناقص' : '▼ FALLING'}</span>
           ) : (
-            <span className="text-slate-400 font-bold font-mono">■ STABLE</span>
+            <span className="text-slate-400 font-bold font-mono">{lang === 'ar' ? '■ مستقر' : '■ STABLE'}</span>
           )}
         </div>
         <div className="border-r border-slate-800 font-mono" />
         <div className="text-slate-500 flex flex-col items-center font-mono">
-          <span>MAX</span>
+          <span>{lang === 'ar' ? 'الأقصى' : 'MAX'}</span>
           <span className="text-amber-500 font-bold font-mono">{max.toFixed(1)}</span>
         </div>
       </div>
@@ -1512,6 +1544,7 @@ function WidgetKPICard({ metric, latest, history }: { metric: string; latest: an
 
 // 11. Progress Bar
 function WidgetProgressBar({ metric, latest, thresholds }: { metric: string; latest: any; thresholds: Thresholds }) {
+  const { t, lang } = useLanguage()
   const val = latest?.[metric] ?? 0
   const state = getMetricState(metric, val, thresholds)
   const unit = METRIC_UNITS[metric] || ''
@@ -1529,7 +1562,7 @@ function WidgetProgressBar({ metric, latest, thresholds }: { metric: string; lat
   return (
     <div className="flex flex-col justify-center px-4 h-44 gap-2.5 select-none">
       <div className="flex justify-between items-baseline text-xs font-mono">
-        <span className="text-slate-400 font-mono">Loading Channel</span>
+        <span className="text-slate-400 font-mono">{lang === 'ar' ? 'تحميل القناة' : 'Loading Channel'}</span>
         <span className="font-extrabold text-slate-100 font-mono">{pct.toFixed(0)}%</span>
       </div>
       <div className="w-full bg-slate-950 rounded-full h-3 border border-slate-800 overflow-hidden relative">
@@ -1538,7 +1571,7 @@ function WidgetProgressBar({ metric, latest, thresholds }: { metric: string; lat
           style={{ width: `${pct}%`, backgroundColor: color, boxShadow: `0 0 6px ${color}88` }}
         />
       </div>
-      <span className="text-[10px] text-slate-500 font-mono text-center">
+      <span className="text-[10px] text-slate-500 font-mono text-center font-mono">
         {val.toFixed(1)} / {max} {unit}
       </span>
     </div>
@@ -1547,9 +1580,10 @@ function WidgetProgressBar({ metric, latest, thresholds }: { metric: string; lat
 
 // 12. LED / Status Indicator
 function WidgetLED({ metric, latest, thresholds }: { metric: string; latest: any; thresholds: Thresholds }) {
+  const { t, lang } = useLanguage()
   const val = latest?.[metric] ?? 0
   const state = getMetricState(metric, val, thresholds)
-  const label = METRIC_LABELS[metric] || metric
+  const label = t('metric.' + metric) || metric
 
   const color = state === 'DANGER' ? 'bg-red-500' : state === 'WARNING' ? 'bg-amber-500' : 'bg-emerald-500'
   const glow = state === 'DANGER' ? 'shadow-[0_0_20px_#ef4444] animate-pulse' : state === 'WARNING' ? 'shadow-[0_0_12px_#f59e0b]' : 'shadow-[0_0_8px_#10b981]'
@@ -1562,10 +1596,10 @@ function WidgetLED({ metric, latest, thresholds }: { metric: string; latest: any
       </div>
       <div className="flex flex-col items-center">
         <span className="text-xs font-mono font-bold tracking-widest text-slate-300">
-          {state === 'DANGER' ? 'OVERLIMIT WARNING' : state === 'WARNING' ? 'ATTENTION REQUIRED' : 'NORMAL ACQUISITION'}
+          {state === 'DANGER' ? (lang === 'ar' ? 'تحذير تجاوز الحد' : 'OVERLIMIT WARNING') : state === 'WARNING' ? (lang === 'ar' ? 'انتباه مطلوب' : 'ATTENTION REQUIRED') : (lang === 'ar' ? 'استقبال عادي' : 'NORMAL ACQUISITION')}
         </span>
         <span className="text-[9px] text-slate-500 font-mono mt-0.5">
-          Bound Metric: {label} ({val.toFixed(1)})
+          {lang === 'ar' ? `الإشارة المرتبطة: ${label} (${val.toFixed(1)})` : `Bound Metric: ${label} (${val.toFixed(1)})`}
         </span>
       </div>
     </div>
@@ -1596,6 +1630,7 @@ function WidgetSparkline({ metric, history, thresholds }: { metric: string; hist
 
 // 14. Multi-line Chart
 function WidgetMultiLine({ history }: { history: any[] }) {
+  const { t } = useLanguage()
   const data = history.slice(-65)
   if (data.length < 2) return <EmptyWidgetState />
   return (
@@ -1606,9 +1641,9 @@ function WidgetMultiLine({ history }: { history: any[] }) {
           <XAxis dataKey="timestamp" tick={false} stroke="#1f2937" />
           <YAxis tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'var(--font-mono)' }} stroke="#1f2937" />
           <Tooltip content={<CustomMiniTooltip />} />
-          <Line type="monotone" dataKey="temp_carburant" name="Fuel Temp" stroke="#3b82f6" strokeWidth={1.5} dot={false} isAnimationActive={false} />
-          <Line type="monotone" dataKey="temp_echap" name="Exhaust Temp" stroke="#f59e0b" strokeWidth={1.5} dot={false} isAnimationActive={false} />
-          <Line type="monotone" dataKey="temp_admission" name="Intake Temp" stroke="#8b5cf6" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+          <Line type="monotone" dataKey="temp_carburant" name={t('metric.temp_carburant')} stroke="#3b82f6" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+          <Line type="monotone" dataKey="temp_echap" name={t('metric.temp_echap')} stroke="#f59e0b" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+          <Line type="monotone" dataKey="temp_admission" name={t('metric.temp_admission')} stroke="#8b5cf6" strokeWidth={1.5} dot={false} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -1672,6 +1707,7 @@ function WidgetCandlestick({ metric, history }: { metric: string; history: any[]
 
 // 16. Polar/Radar
 function WidgetPolarRadar({ latest, thresholds }: { latest: any; thresholds: Thresholds }) {
+  const { t } = useLanguage()
   const radarData = useMemo(() => {
     const metrics = ['rpm', 'vitesse', 'vibration', 'temp_carburant', 'temp_echap', 'temp_admission']
     const maxRanges: Record<string, number> = {
@@ -1688,7 +1724,7 @@ function WidgetPolarRadar({ latest, thresholds }: { latest: any; thresholds: Thr
       const limit = maxRanges[m] || 100
       const pct = Math.min(100, (val / limit) * 100)
       return {
-        subject: METRIC_LABELS[m]?.split(' ')[0] || m,
+        subject: t('metric.' + m)?.split(' ')[0] || m,
         value: pct,
         fullMark: 100
       }
@@ -1711,6 +1747,7 @@ function WidgetPolarRadar({ latest, thresholds }: { latest: any; thresholds: Thr
 
 // 17. Waveform
 function WidgetWaveform({ metric, latest }: { metric: string; latest: any }) {
+  const { lang } = useLanguage()
   const val = latest?.[metric] ?? 0
 
   let max = 100
@@ -1753,13 +1790,14 @@ function WidgetWaveform({ metric, latest }: { metric: string; latest: any }) {
       <svg className="w-full h-32 bg-black/25 border border-slate-900/60 rounded" viewBox="0 0 200 100">
         <path d={points} fill="none" stroke="#22d3ee" strokeWidth="1.5" strokeLinecap="round" opacity={0.75} />
       </svg>
-      <span className="absolute bottom-2.5 text-[8px] font-mono text-cyan-500/50 uppercase tracking-widest">REAL-TIME SIGNAL WAVE</span>
+      <span className="absolute bottom-2.5 text-[8px] font-mono text-cyan-500/50 uppercase tracking-widest">{lang === 'ar' ? 'موجة الإشارة في الوقت الفعلي' : 'REAL-TIME SIGNAL WAVE'}</span>
     </div>
   )
 }
 
 // 18. Frequency Spectrum (FFT visualizer)
 function WidgetFFT({ metric, latest }: { metric: string; latest: any }) {
+  const { lang } = useLanguage()
   const val = latest?.[metric] ?? 0
 
   let max = 100
@@ -1796,7 +1834,7 @@ function WidgetFFT({ metric, latest }: { metric: string; latest: any }) {
           />
         ))}
       </div>
-      <span className="absolute bottom-2.5 text-[8px] font-mono text-indigo-500/50 uppercase tracking-widest font-semibold font-mono">VIBRATION FREQUENCIES (FFT)</span>
+      <span className="absolute bottom-2.5 text-[8px] font-mono text-indigo-500/50 uppercase tracking-widest font-semibold font-mono">{lang === 'ar' ? 'ترددات الاهتزاز (FFT)' : 'VIBRATION FREQUENCIES (FFT)'}</span>
     </div>
   )
 }
