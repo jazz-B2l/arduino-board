@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react'
 import { TerminalIcon, Trash2Icon } from 'lucide-react'
+import { useLanguage } from '../LanguageContext'
 
 interface CompilerTerminalProps {
   logs: string[]
@@ -10,6 +11,7 @@ interface CompilerTerminalProps {
 
 export function CompilerTerminal({ logs, onClear }: CompilerTerminalProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -21,12 +23,12 @@ export function CompilerTerminal({ logs, onClear }: CompilerTerminalProps) {
     <div className="flex flex-col h-full bg-bench-bg">
       <div className="flex items-center justify-between px-4 py-2 border-b border-bench-border bg-bench-header-bg">
         <div className="flex items-center gap-2 text-xs font-medium text-bench-muted">
-          <TerminalIcon size={14} /> Output
+          <TerminalIcon size={14} /> {t('terminal.output')}
         </div>
         <button 
           onClick={onClear}
           className="text-bench-muted hover:text-bench-text transition-colors p-1 cursor-pointer"
-          title="Clear Terminal"
+          title={t('terminal.clear')}
         >
           <Trash2Icon size={14} />
         </button>
@@ -37,7 +39,7 @@ export function CompilerTerminal({ logs, onClear }: CompilerTerminalProps) {
         className="flex-1 p-4 overflow-y-auto font-mono text-[13px] leading-relaxed select-text"
       >
         {logs.length === 0 ? (
-          <div className="text-bench-muted italic font-mono">No output. Ready to compile.</div>
+          <div className="text-bench-muted italic font-mono">{t('terminal.noOutput')}</div>
         ) : (
           <div className="space-y-1">
             {logs.map((log, i) => {
