@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Parse request body
-    const { chatHistory, provider, boardName, thresholds, currentCode } = await req.json()
+    const { chatHistory, provider, boardName, thresholds, currentCode, lang } = await req.json()
 
     if (!chatHistory || !Array.isArray(chatHistory)) {
       return NextResponse.json({ error: 'Invalid request: chatHistory is required.' }, { status: 400 })
@@ -43,7 +43,7 @@ Guidelines:
 4. When writing a telemetry loop, format the frames as either CSV (e.g. "value1,value2,value3") or JSON (e.g. "{\\"rpm\\": 2000}") matching the expectations of the TableauDeBord.
 5. If the user clicks the "Test communication" button, it sends "HANDSHAKE" via serial. The board must respond with "ARDUINO,READY". It should try to find an unoccupied light (pin) from a list of test pins (like 13, 12, 11...) that does not conflict with active sensors/buttons (tracked in an OCCUPIED_PINS array), blink it twice, and print "ARDUINO,READY". If all test pins are occupied, it should still succeed by printing "ARDUINO,READY" without blinking.
 
-Keep responses concise, professional, and in English.`
+${lang === 'ar' ? 'Always respond in Arabic. Keep responses concise, professional, and in Arabic. (Code explanations, help instructions, and responses must be in Arabic, but any Arduino C++ code blocks must remain standard valid C++ code).' : 'Keep responses concise, professional, and in English.'}`
 
     let aiContent = ''
 
