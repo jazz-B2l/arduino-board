@@ -439,28 +439,31 @@ void loop() {
           </div>
 
           {/* Personal Info Badge */}
-          <div className="flex flex-col items-center gap-2 border border-bench-border/60 bg-bench-surface/40 px-4 py-3 rounded-lg backdrop-blur-md transition-all hover:border-blue-500/30 hover:bg-bench-surface/60">
-            <span className="text-[10px] uppercase tracking-wider text-blue-400 font-bold">Developed by Ahmed Merabti</span>
-            <div className="flex items-center gap-4 text-bench-muted">
+          <div className="flex flex-col items-center gap-3 border border-bench-border/80 bg-bench-surface/60 px-6 py-4 rounded-xl backdrop-blur-md transition-all hover:border-blue-500/40 hover:bg-bench-surface/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+            <span className="text-xs uppercase tracking-widest text-blue-400 font-extrabold flex items-center gap-1.5">
+              <CpuIcon size={12} className="text-blue-400 animate-pulse" />
+              Developed by Ahmed Merabti
+            </span>
+            <div className="flex items-center gap-5 text-bench-muted font-medium text-xs">
               <a
                 href="mailto:merabtiahmedabderahim213@gmail.com"
-                className="flex items-center gap-1.5 hover:text-blue-400 transition-colors text-[11px]"
+                className="flex items-center gap-2 hover:text-blue-400 hover:scale-105 transition-all text-xs"
                 title="Email Ahmed Merabti"
               >
-                <MailIcon size={12} className="text-blue-500" />
+                <MailIcon size={14} className="text-blue-500" />
                 <span>Email</span>
               </a>
-              <span className="text-bench-border">|</span>
+              <span className="text-bench-border/80">|</span>
               <a
                 href="https://github.com/jazz-B2l"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 hover:text-blue-400 transition-colors text-[11px]"
+                className="flex items-center gap-2 hover:text-emerald-400 hover:scale-105 transition-all text-xs"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -474,17 +477,17 @@ void loop() {
                 </svg>
                 <span>GitHub</span>
               </a>
-              <span className="text-bench-border">|</span>
+              <span className="text-bench-border/80">|</span>
               <a
                 href="https://www.linkedin.com/in/ahmed-merabti-536790282/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 hover:text-blue-400 transition-colors text-[11px]"
+                className="flex items-center gap-2 hover:text-indigo-400 hover:scale-105 transition-all text-xs"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
