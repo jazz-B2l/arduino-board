@@ -2,22 +2,38 @@
 
 import { AlertTriangleIcon, ZapIcon } from 'lucide-react'
 import type { AlarmEvent } from '@/lib/types'
-import { METRIC_LABELS, METRIC_UNITS } from '@/lib/types'
+import { useLanguage } from './LanguageContext'
 
 interface RecentAlarmsProps {
   alarms: AlarmEvent[]
   limit?: number
 }
 
-function relativeTime(ts: number) {
+function relativeTime(ts: number, lang: string) {
   const diff = Math.floor((Date.now() - ts) / 1000)
-  if (diff < 60)   return `il y a ${diff}s`
-  if (diff < 3600) return `il y a ${Math.floor(diff / 60)}min`
-  return `il y a ${Math.floor(diff / 3600)}h`
+  if (lang === 'ar') {
+    if (diff < 60)   return `منذ ${diff} ثانية`
+    if (diff < 3600) return `منذ ${Math.floor(diff / 60)} دقيقة`
+    return `منذ ${Math.floor(diff / 3600)} ساعة`
+  } else {
+    if (diff < 60)   return `${diff}s ago`
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+    return `${Math.floor(diff / 3600)}h ago`
+  }
 }
 
 export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
+  const { t, lang } = useLanguage()
   const shown = alarms.slice(0, limit)
+
+  // Resolve localized units dynamically
+  const getUnit = (metric: string) => {
+    if (metric.startsWith('temp_')) return t('unit.temp')
+    if (metric === 'rpm') return t('unit.rpm')
+    if (metric === 'vitesse') return t('unit.vitesse')
+    if (metric === 'vibration') return t('unit.vibration')
+    return ''
+  }
 
   return (
     <div
@@ -30,7 +46,7 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
       >
         <AlertTriangleIcon size={14} style={{ color: '#f59e0b' }} />
         <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--bench-text)' }}>
-          Recent Alarms
+          {t('alarms.recent')}
         </span>
         {alarms.length > 0 && (
           <span
@@ -45,7 +61,7 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
       <div className="flex flex-col divide-y" style={{ borderColor: 'var(--bench-border)' }}>
         {shown.length === 0 ? (
           <div className="px-4 py-6 text-center text-xs" style={{ color: 'var(--bench-muted)' }}>
-            No active alarms — system nominal
+            {t('alarms.nominal')}
           </div>
         ) : (
           shown.map(alarm => (
@@ -63,11 +79,11 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
 
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-semibold truncate" style={{ color: 'var(--bench-text)' }}>
-                  {METRIC_LABELS[alarm.metric] ?? alarm.metric}
+                  {t('metric.' + alarm.metric)}
                 </div>
                 <div className="text-[10px] font-mono" style={{ color: 'var(--bench-muted)' }}>
                   {alarm.value.toFixed(alarm.metric === 'rpm' ? 0 : 2)}{' '}
-                  {METRIC_UNITS[alarm.metric] ?? ''}
+                  {getUnit(alarm.metric)}
                 </div>
               </div>
 
@@ -79,9 +95,9 @@ export function RecentAlarms({ alarms, limit = 10 }: RecentAlarmsProps) {
                     color: alarm.level === 'DANGER' ? '#ef4444' : '#f59e0b',
                   }}
                 >
-                  {alarm.level}
+                  {alarm.level === 'DANGER' ? t('alarms.danger') : t('alarms.warning')}
                 </span>
-                <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{relativeTime(alarm.timestamp)}</span>
+                <span className="text-[10px]" style={{ color: 'var(--bench-muted)' }}>{relativeTime(alarm.timestamp, lang)}</span>
               </div>
             </div>
           ))
