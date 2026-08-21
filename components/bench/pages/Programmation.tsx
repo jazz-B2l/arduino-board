@@ -139,7 +139,7 @@ void loop() {
 }`
 
 export function Programmation({ initialConversationId }: { initialConversationId?: string } = {}) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { connectionStatus, boardName, disconnect, connect, selectedBoard, setSelectedBoard, connectedUsbInfo } = useBench()
   const effectiveBoard = resolveBoardProfile(boardName)
   
@@ -373,7 +373,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingV && dragVStartRef.current && containerRef.current) {
         const deltaX = e.clientX - dragVStartRef.current.clientX
-        const newWidth = dragVStartRef.current.width + deltaX
+        const newWidth = dragVStartRef.current.width + (lang === 'ar' ? -deltaX : deltaX)
         const containerWidth = containerRef.current.clientWidth
         const clampedWidth = Math.max(MIN_AI_WIDTH, Math.min(containerWidth - MIN_EDITOR_WIDTH, newWidth))
         setAiWidth(clampedWidth)
@@ -412,7 +412,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDraggingV, isDraggingH, aiWidth, outputHeight])
+  }, [isDraggingV, isDraggingH, aiWidth, outputHeight, lang])
 
   return (
     <div className="absolute inset-0 flex flex-col bg-bench-bg text-bench-text select-none overflow-hidden font-sans">
@@ -456,7 +456,9 @@ export function Programmation({ initialConversationId }: { initialConversationId
             
             {/* Sliding Vertical Configuration Toolbar */}
             <div 
-              className="absolute right-0 top-6 bottom-6 z-20 flex transition-transform duration-300 ease-in-out translate-x-[216px] hover:translate-x-0 group/bar"
+              className={`absolute ltr:right-0 rtl:left-0 top-6 bottom-6 z-20 flex ltr:flex-row rtl:flex-row-reverse transition-transform duration-300 ease-in-out hover:translate-x-0 group/bar ${
+                lang === 'ar' ? '-translate-x-[216px]' : 'translate-x-[216px]'
+              }`}
               style={{ width: '240px' }}
               onMouseEnter={() => {
                 if (isDirty && !isSavedVisual) {
@@ -464,8 +466,8 @@ export function Programmation({ initialConversationId }: { initialConversationId
                 }
               }}
             >
-              {/* Peek Handle (visible on the left edge of toolbar wrapper when hidden) */}
-              <div className={`w-[24px] h-full flex flex-col items-center justify-center bg-bench-header-bg/95 backdrop-blur border border-r-0 border-bench-border rounded-l-lg shadow-md group-hover/bar:opacity-0 transition-all duration-300 select-none cursor-pointer ${
+              {/* Peek Handle (visible on the edge of toolbar wrapper when hidden) */}
+              <div className={`w-[24px] h-full flex flex-col items-center justify-center bg-bench-header-bg/95 backdrop-blur border ltr:border-r-0 rtl:border-l-0 border-bench-border ltr:rounded-l-lg rtl:rounded-r-lg shadow-md group-hover/bar:opacity-0 transition-all duration-300 select-none cursor-pointer ${
                 shouldBlink ? 'animate-save-blink border-blue-400 bg-blue-500/15' : ''
               }`}>
                 {/* Grabber triple dot handle */}
@@ -477,7 +479,7 @@ export function Programmation({ initialConversationId }: { initialConversationId
               </div>
               
               {/* Toolbar Content Panel */}
-              <div className="flex-1 bg-bench-header-bg/95 backdrop-blur border border-bench-border border-l-0 rounded-l-lg p-3 flex flex-col gap-3.5 shadow-2xl justify-center">
+              <div className="flex-1 bg-bench-header-bg/95 backdrop-blur border border-bench-border ltr:border-l-0 rtl:border-r-0 ltr:rounded-l-lg rtl:rounded-r-lg p-3 flex flex-col gap-3.5 shadow-2xl justify-center">
                 {/* Target Board Select */}
                 <div className="flex flex-col gap-1">
                   <span className="text-[9px] text-bench-muted font-mono uppercase tracking-wider">{t('code.board')}</span>
