@@ -16,6 +16,7 @@ import {
   UsbIcon,
   WifiIcon
 } from 'lucide-react'
+import { useLanguage } from '@/components/bench/LanguageContext'
 
 // Simulated data generator for the hero preview widget
 function usePreviewData() {
@@ -47,6 +48,7 @@ function usePreviewData() {
 }
 
 export default function LandingPage() {
+  const { t, lang, setLang } = useLanguage()
   const preview = usePreviewData()
   const [activeTab, setActiveTab] = useState<'json' | 'csv'>('json')
   const [copied, setCopied] = useState(false)
@@ -145,11 +147,17 @@ void loop() {
           </span>
         </div>
         <div className="flex items-center gap-4 animate-fade-in">
+          <button 
+            onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+            className="px-3 py-1.5 rounded border text-xs font-semibold font-mono border-bench-border text-bench-muted hover:text-bench-text hover:bg-bench-subtle transition-all cursor-pointer"
+          >
+            {lang === 'ar' ? 'English' : 'العربية'}
+          </button>
           <Link href="/dashboard" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400 border-bench-border text-bench-muted">
-            Direct Access
+            {t('landing.directAccess')}
           </Link>
           <Link href="/dashboard" className="px-4 py-1.5 rounded text-xs font-mono font-semibold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]" style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}>
-            Launch Console
+            {t('landing.launchConsole')}
           </Link>
         </div>
       </header>
@@ -166,14 +174,14 @@ void loop() {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
-              The telemetry dashboard for <br />
+              {t('landing.title')} <br />
               <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent animate-gradient-text">
                 Arduino#board
               </span>
             </h1>
 
             <p className="text-sm md:text-base text-bench-muted leading-relaxed max-w-xl">
-              Visualize, analyze, and record physical signals from your mechanical or thermal test bench in real time. Direct connection without any third-party software, thanks to the standard Web Serial API.
+              {t('landing.subtitle')}
             </p>
 
             <div className="flex flex-wrap gap-4 mt-2">
@@ -182,14 +190,14 @@ void loop() {
                 className="flex items-center gap-2 px-6 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(59,130,246,0.35)]"
                 style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
               >
-                Open Console
+                {t('landing.openConsole')}
                 <ArrowRightIcon size={15} />
               </Link>
               <a
                 href="#features"
                 className="flex items-center gap-2 px-6 py-3.5 rounded border text-sm font-mono font-bold transition-all hover:bg-bench-subtle border-bench-border text-bench-muted"
               >
-                Discover
+                {t('landing.discover')}
               </a>
             </div>
           </div>
@@ -203,7 +211,7 @@ void loop() {
               <div className="flex items-center justify-between border-b pb-3 border-bench-border">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-bench-muted">Live Preview</span>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-bench-muted">{t('landing.livePreview')}</span>
                 </div>
                 <div className="text-[10px] font-mono text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
                   <WifiIcon size={10} /> 9600 bps
@@ -213,7 +221,7 @@ void loop() {
               {/* Simulated Metrics */}
               <div className="flex flex-col gap-3.5">
                 <div className="flex justify-between items-center bg-bench-bg p-2.5 rounded border border-bench-border">
-                  <span className="text-xs text-bench-muted">Engine Speed</span>
+                  <span className="text-xs text-bench-muted">{t('landing.engineSpeed')}</span>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-mono font-bold text-blue-500">{preview.rpm.toLocaleString('en-US')}</span>
                     <span className="text-[9px] text-bench-muted font-mono">rpm</span>
@@ -221,7 +229,7 @@ void loop() {
                 </div>
 
                 <div className="flex justify-between items-center bg-bench-bg p-2.5 rounded border border-bench-border">
-                  <span className="text-xs text-bench-muted">Exhaust Temp</span>
+                  <span className="text-xs text-bench-muted">{t('metric.temp_echap')}</span>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-mono font-bold text-amber-500">{preview.temp_echap.toFixed(1)}</span>
                     <span className="text-[9px] text-bench-muted font-mono">°C</span>
@@ -229,7 +237,7 @@ void loop() {
                 </div>
 
                 <div className="flex justify-between items-center bg-bench-bg p-2.5 rounded border border-bench-border">
-                  <span className="text-xs text-bench-muted">Vibration G-Force</span>
+                  <span className="text-xs text-bench-muted">{t('landing.vibrationG')}</span>
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-mono font-bold text-red-500">{preview.vibration.toFixed(2)}</span>
                     <span className="text-[9px] text-bench-muted font-mono">m/s²</span>
@@ -239,7 +247,7 @@ void loop() {
 
               {/* Dynamic waveform visualizer */}
               <div className="h-14 rounded flex items-end gap-[3px] p-2 bg-black/5 dark:bg-black/40 overflow-hidden relative">
-                <span className="absolute top-2 left-2 text-[9px] font-mono text-bench-muted/60">STREAM RATE — 1 HZ</span>
+                <span className="absolute top-2 left-2 text-[9px] font-mono text-bench-muted/60">{t('landing.streamRate')}</span>
                 {Array.from({ length: 28 }).map((_, i) => {
                   const h = mounted
                     ? 15 + Math.sin((preview.timestamp / 1000) + i * 0.4) * 12 + Math.random() * 8
@@ -264,10 +272,10 @@ void loop() {
         <section id="features" className="flex flex-col gap-12 animate-fade-in">
           <div className="flex flex-col gap-2 items-center text-center">
             <h2 className="text-[11px] font-mono uppercase tracking-widest text-blue-500 font-semibold">
-              Key Features
+              {t('landing.keyFeatures')}
             </h2>
             <h3 className="text-2xl md:text-4xl font-bold tracking-tight text-bench-text">
-              A complete workstation in your browser
+              {t('landing.workstation')}
             </h3>
           </div>
 
@@ -275,38 +283,38 @@ void loop() {
             {[
               {
                 icon: UsbIcon,
-                title: "Native Web Serial",
-                desc: "Connect your Arduino directly via USB. No third-party daemons, plugins, or drivers required.",
+                title: t('landing.nativeSerial'),
+                desc: t('landing.nativeSerialDesc'),
                 color: "#3b82f6"
               },
               {
                 icon: ActivityIcon,
-                title: "Live Telemetry",
-                desc: "Instant rendering of crucial indicators (RPM, speeds, vibrations, and 3 thermal sensors).",
+                title: t('landing.liveTelemetry'),
+                desc: t('landing.liveTelemetryDesc'),
                 color: "#10b981"
               },
               {
                 icon: AlertTriangleIcon,
-                title: "Threshold Monitoring",
-                desc: "Set Warning and Danger thresholds with automatic, responsive alarms.",
+                title: t('landing.thresholdMonitor'),
+                desc: t('landing.thresholdMonitorDesc'),
                 color: "#ef4444"
               },
               {
                 icon: LineChartIcon,
-                title: "Time-Series Charts",
-                desc: "Generate smooth trend charts with zoom and time-analysis tools.",
+                title: t('landing.timeSeries'),
+                desc: t('landing.timeSeriesDesc'),
                 color: "#8b5cf6"
               },
               {
                 icon: DownloadIcon,
-                title: "Reports & CSV Export",
-                desc: "Keep the full history of your test sessions and export them with a click in Excel/CSV format.",
+                title: t('landing.csvExport'),
+                desc: t('landing.csvExportDesc'),
                 color: "#f59e0b"
               },
               {
                 icon: SettingsIcon,
-                title: "Parameter Tuning",
-                desc: "Adjust engine diameter, calibrate physical coefficients, and save your configurations.",
+                title: t('landing.paramTuning'),
+                desc: t('landing.paramTuningDesc'),
                 color: "#06b6d4"
               }
             ].map((f, i) => (
@@ -328,34 +336,34 @@ void loop() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 flex flex-col gap-6 text-left">
             <h2 className="text-[11px] font-mono uppercase tracking-widest text-emerald-500 font-semibold">
-              How it works?
+              {t('landing.howItWorks')}
             </h2>
             <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-bench-text">
-              Software Integration Simplicity
+              {t('landing.integrationSimplicity')}
             </h3>
             
             <div className="flex flex-col gap-4 text-xs">
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-bench-surface border flex items-center justify-center font-mono font-bold text-bench-muted border-bench-border">1</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-bench-text">Program your Arduino</p>
-                  <p className="text-bench-muted mt-0.5">Write variables read on the serial port in JSON or CSV format.</p>
+                  <p className="font-semibold text-bench-text">{t('landing.step1Title')}</p>
+                  <p className="text-bench-muted mt-0.5">{t('landing.step1Desc')}</p>
                 </div>
               </div>
               
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-bench-surface border flex items-center justify-center font-mono font-bold text-bench-muted border-bench-border">2</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-bench-text">Connect the USB Device</p>
-                  <p className="text-bench-muted mt-0.5">Plug in the Arduino and open the console on a desktop-compatible browser.</p>
+                  <p className="font-semibold text-bench-text">{t('landing.step2Title')}</p>
+                  <p className="text-bench-muted mt-0.5">{t('landing.step2Desc')}</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-bench-surface border flex items-center justify-center font-mono font-bold text-bench-muted border-bench-border">3</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-bench-text">Monitor Instantly</p>
-                  <p className="text-bench-muted mt-0.5">Click connect, select the COM/USB port, and observe the charts.</p>
+                  <p className="font-semibold text-bench-text">{t('landing.step3Title')}</p>
+                  <p className="text-bench-muted mt-0.5">{t('landing.step3Desc')}</p>
                 </div>
               </div>
             </div>
@@ -377,13 +385,13 @@ void loop() {
                   onClick={() => setActiveTab('json')}
                   className={`px-3 py-1 transition-all cursor-pointer ${activeTab === 'json' ? 'bg-[#3b82f6] text-white' : 'text-bench-muted hover:text-bench-text'}`}
                 >
-                  JSON Format
+                  {lang === 'ar' ? 'صيغة JSON' : 'JSON Format'}
                 </button>
                 <button
                   onClick={() => setActiveTab('csv')}
                   className={`px-3 py-1 transition-all cursor-pointer ${activeTab === 'csv' ? 'bg-[#3b82f6] text-white' : 'text-bench-muted hover:text-bench-text'}`}
                 >
-                  CSV Format
+                  {lang === 'ar' ? 'صيغة CSV' : 'CSV Format'}
                 </button>
               </div>
 
@@ -392,7 +400,7 @@ void loop() {
                 className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded bg-bench-bg border text-bench-muted hover:text-bench-text transition-colors border-bench-border cursor-pointer"
               >
                 <FileCode2Icon size={11} />
-                {copied ? 'Copied!' : 'Copy'}
+                {copied ? t('chat.copied') : t('chat.copy')}
               </button>
             </div>
 
@@ -413,17 +421,17 @@ void loop() {
           
           <CpuIcon size={40} className="text-blue-400 animate-pulse" />
           <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight text-bench-text">
-            Ready to launch acquisition on your test bench?
+            {t('landing.ctaTitle')}
           </h3>
           <p className="text-xs md:text-sm text-bench-muted max-w-lg leading-relaxed">
-            No account required, no installation. Plug in your Arduino and access your physical data directly.
+            {t('landing.ctaDesc')}
           </p>
           <Link
             href="/dashboard"
             className="flex items-center gap-2 px-8 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] mt-2"
             style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
           >
-            Launch Arduino#board
+            {t('landing.ctaButton')}
             <ArrowRightIcon size={14} />
           </Link>
         </section>
@@ -435,14 +443,14 @@ void loop() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col items-center md:items-start gap-1.5">
             <span className="font-bold text-bench-text">&copy; {new Date().getFullYear()} Arduino#board</span>
-            <span className="text-[10px]">Open Source Test Bench Telemetry.</span>
+            <span className="text-[10px]">{t('landing.footerDesc')}</span>
           </div>
 
           {/* Personal Info Badge */}
           <div className="flex flex-col items-center gap-3 border border-bench-border/80 bg-bench-surface/60 px-6 py-4 rounded-xl backdrop-blur-md transition-all hover:border-blue-500/40 hover:bg-bench-surface/80 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)]">
             <span className="text-xs uppercase tracking-widest text-blue-400 font-extrabold flex items-center gap-1.5">
               <CpuIcon size={12} className="text-blue-400 animate-pulse" />
-              Developed by Ahmed Merabti
+              {t('account.developer')}
             </span>
             <div className="flex items-center gap-5 text-bench-muted font-medium text-xs">
               <a
@@ -508,9 +516,9 @@ void loop() {
           <div className="flex flex-col items-center md:items-end gap-1.5 text-[10px] md:text-right">
             <span className="flex items-center gap-1.5">
               <TerminalIcon size={11} style={{ color: '#3b82f6' }} />
-              Built for mechanical and thermal engineering
+              {t('landing.footerMotto')}
             </span>
-            <span>Web Serial API Integration</span>
+            <span>{t('landing.footerApi')}</span>
           </div>
         </div>
       </footer>
