@@ -142,7 +142,19 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
     cachedMessages,
     setCachedMessages
   } = useBench()
-  const { user, loading } = useAuth()
+  const { user, loading, isGuest } = useAuth()
+
+  const GUEST_AI_LIMIT = 5
+  const [guestMsgCount, setGuestMsgCount] = useState<number>(0)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('bench_guest_ai_count')
+      if (saved) {
+        setGuestMsgCount(parseInt(saved, 10) || 0)
+      }
+    }
+  }, [isGuest])
 
   const [provider, setProvider] = useState<'gemini' | 'groq'>('gemini')
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -323,7 +335,12 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
   // Send message flow
   const handleSend = async (textToSend?: string) => {
     const text = textToSend || input
-    if (!text.trim() || isLoading || !user) return
+    if (!text.trim() || isLoading || (!user && !isGuest)) return
+
+    if (isGuest && guestMsgCount >= GUEST_AI_LIMIT) {
+      setToast({ message: t('guest.aiLimitReached'), type: 'error' })
+      return
+    }
 
     setIsLoading(true)
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -345,49 +362,53 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
     let activeConvId = initialConversationId
     
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
+      let token = 'guest'
 
-      if (!token) {
-        throw new Error(t('chat.authError'))
+      if (!isGuest && user) {
+        const { data: { session } } = await supabase.auth.getSession()
+        token = session?.access_token || ''
+
+        if (!token) {
+          throw new Error(t('chat.authError'))
+        }
+
+        // Step 1: Create conversation if we are in "New Chat" mode
+        if (!activeConvId) {
+          const generatedTitle = generateTitle(text, t('chat.newChat'))
+          const { data: newConv, error: convErr } = await supabase
+            .from('conversations')
+            .insert({ title: generatedTitle, user_id: user.id })
+            .select()
+            .single()
+
+          if (convErr) throw convErr
+          activeConvId = newConv.id
+
+          // Force adding conversation to local list
+          setConversations(prev => [newConv, ...prev])
+        }
+
+        // Step 2: Save user's message
+        const { error: msgErr } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: activeConvId,
+            role: 'user',
+            content: text
+          })
+
+        if (msgErr) throw msgErr
       }
-
-      // Step 1: Create conversation if we are in "New Chat" mode
-      if (!activeConvId) {
-        const generatedTitle = generateTitle(text, t('chat.newChat'))
-        const { data: newConv, error: convErr } = await supabase
-          .from('conversations')
-          .insert({ title: generatedTitle, user_id: user.id })
-          .select()
-          .single()
-
-        if (convErr) throw convErr
-        activeConvId = newConv.id
-
-        // Force adding conversation to local list
-        setConversations(prev => [newConv, ...prev])
-      }
-
-      // Step 2: Save user's message
-      const { error: msgErr } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: activeConvId,
-          role: 'user',
-          content: text
-        })
-
-      if (msgErr) throw msgErr
 
       // Step 3: Call AI endpoint with history
-      // We pull current history inside the database context
       const chatHistory = [...messages.filter(m => m.content !== DEFAULT_MESSAGE.content), userMessage]
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'x-guest-mode': isGuest ? 'true' : 'false'
         },
         body: JSON.stringify({
           chatHistory: chatHistory.map(h => ({ role: h.role, content: h.content })),
@@ -406,23 +427,25 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
 
       const aiContent = data.content
       
-      // Step 4: Save AI response
-      const { error: aiMsgErr } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: activeConvId,
-          role: 'assistant',
-          content: aiContent,
-          metadata: { provider }
-        })
+      // Step 4: Save AI response if authenticated
+      if (!isGuest && user && activeConvId) {
+        const { error: aiMsgErr } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: activeConvId,
+            role: 'assistant',
+            content: aiContent,
+            metadata: { provider }
+          })
 
-      if (aiMsgErr) throw aiMsgErr
+        if (aiMsgErr) throw aiMsgErr
 
-      // Step 5: Update conversation updated_at trigger
-      await supabase
-        .from('conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', activeConvId)
+        // Step 5: Update conversation updated_at trigger
+        await supabase
+          .from('conversations')
+          .update({ updated_at: new Date().toISOString() })
+          .eq('id', activeConvId)
+      }
 
       // Step 6: Render response in UI
       const finalAssistantMessage: Message = { role: 'assistant', content: aiContent, timestamp, provider }
@@ -433,14 +456,24 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         }
         return next
       })
-      
-      // Refresh list to pull updated_at ordering
-      fetchConversations(true)
 
-      // Step 7: Redirect to unique chat URL if it was a new chat
-      if (!initialConversationId && activeConvId) {
-        setCachedMessages(activeConvId, [...messages.filter(m => m.content !== DEFAULT_MESSAGE.content), userMessage, finalAssistantMessage])
-        router.push(`/programmation/${activeConvId}`)
+      if (isGuest) {
+        const newCount = guestMsgCount + 1
+        setGuestMsgCount(newCount)
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('bench_guest_ai_count', newCount.toString())
+        }
+      }
+      
+      if (!isGuest && user) {
+        // Refresh list to pull updated_at ordering
+        fetchConversations(true)
+
+        // Step 7: Redirect to unique chat URL if it was a new chat
+        if (!initialConversationId && activeConvId) {
+          setCachedMessages(activeConvId, [...messages.filter(m => m.content !== DEFAULT_MESSAGE.content), userMessage, finalAssistantMessage])
+          router.push(`/programmation/${activeConvId}`)
+        }
       }
     } catch (err: any) {
       console.error('Error sending message:', err.message)
@@ -673,6 +706,13 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         
         {/* Right Actions */}
         <div className="flex items-center gap-2 shrink-0">
+          {isGuest && (
+            <div className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+              <ZapIcon size={11} className="text-amber-400" />
+              <span>{Math.max(0, GUEST_AI_LIMIT - guestMsgCount)}/5 trial prompts</span>
+            </div>
+          )}
+
           <div className="relative flex items-center bg-bench-bg hover:bg-bench-subtle border border-bench-border rounded-md px-2 py-1 transition-colors cursor-pointer focus-within:border-purple-500/50">
             <select 
               value={provider} 
@@ -807,42 +847,62 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
 
       {/* Input Panel */}
       <div className="p-4 border-t border-bench-border bg-bench-header-bg">
-        <div className="relative">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSend()
-            }}
-            className="flex items-end gap-3 bg-bench-input-bg rounded-xl border border-bench-border focus-within:border-purple-500/50 focus-within:ring-1 focus-within:ring-purple-500/20 transition-all px-4 py-3"
-          >
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSend()
-                }
-              }}
-              disabled={isLoading}
-              placeholder={isLoading ? t('chat.loading') : t('chat.placeholder')}
-              rows={1}
-              className="flex-1 bg-transparent border-none outline-none text-[15px] text-bench-text placeholder-bench-muted/60 py-1 resize-none max-h-40 min-h-[28px] overflow-y-auto"
-            />
+        {isGuest && guestMsgCount >= GUEST_AI_LIMIT ? (
+          <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left animate-fade-in">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+                <ZapIcon size={16} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-amber-400 font-mono">{t('guest.aiLimitReached')}</span>
+                <span className="text-[11px] text-bench-muted leading-tight">{t('guest.aiLimitReachedDesc')}</span>
+              </div>
+            </div>
             <button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed mb-0.5 flex-shrink-0 cursor-pointer"
+              onClick={() => router.push('/login')}
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-bold shrink-0 transition-all shadow-md cursor-pointer"
             >
-              {isLoading ? (
-                <LoaderIcon size={16} className="animate-spin" />
-              ) : (
-                <SendIcon size={16} className="ml-0.5" />
-              )}
+              {t('guest.unlockFullAccess')}
             </button>
-          </form>
-        </div>
+          </div>
+        ) : (
+          <div className="relative">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSend()
+              }}
+              className="flex items-end gap-3 bg-bench-input-bg rounded-xl border border-bench-border focus-within:border-purple-500/50 focus-within:ring-1 focus-within:ring-purple-500/20 transition-all px-4 py-3"
+            >
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSend()
+                  }
+                }}
+                disabled={isLoading}
+                placeholder={isLoading ? t('chat.loading') : t('chat.placeholder')}
+                rows={1}
+                className="flex-1 bg-transparent border-none outline-none text-[15px] text-bench-text placeholder-bench-muted/60 py-1 resize-none max-h-40 min-h-[28px] overflow-y-auto"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed mb-0.5 flex-shrink-0 cursor-pointer"
+              >
+                {isLoading ? (
+                  <LoaderIcon size={16} className="animate-spin" />
+                ) : (
+                  <SendIcon size={16} className="ml-0.5" />
+                )}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
     </div>
