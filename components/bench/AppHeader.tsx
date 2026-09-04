@@ -80,14 +80,14 @@ export function AppHeader() {
               >
                 <LogOutIcon size={12} />
               </button>
-              {/* EN | AR language toggle */}
+              {/* EN | FR | AR language toggle */}
               <button
-                onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-                title="Toggle language"
-                className="px-2 py-0.5 rounded border text-[10px] font-mono font-bold transition-colors hover:bg-bench-subtle"
+                onClick={() => setLang(lang === 'en' ? 'fr' : lang === 'fr' ? 'ar' : 'en')}
+                title="Toggle language (EN / FR / AR)"
+                className="px-2 py-0.5 rounded border text-[10px] font-mono font-bold transition-colors hover:bg-bench-subtle uppercase"
                 style={{ borderColor: 'var(--bench-border)', color: 'var(--bench-muted)' }}
               >
-                {lang === 'en' ? 'AR' : 'EN'}
+                {lang.toUpperCase()}
               </button>
             </div>
           )}
