@@ -17,14 +17,15 @@ import {
   Loader2Icon,
   LogOutIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  GlobeIcon
 } from 'lucide-react'
 
 export function Account() {
   const { user, profile, role, sessionExpiresAt, signOut, refreshProfile } = useAuth()
   const { theme, setTheme } = useTheme()
   const { navLayout, setNavLayout } = useBench()
-  const { t } = useLanguage()
+  const { t, lang, setLang } = useLanguage()
 
   const [fullName, setFullName] = useState('')
   const [saveLoading, setSaveLoading] = useState(false)
@@ -221,6 +222,57 @@ export function Account() {
         {/* Right Side: Account Credentials / Security Info */}
         <div className="md:col-span-5 flex flex-col gap-6">
           
+          {/* Language Settings Panel */}
+          <div
+            className="rounded-xl border p-6 flex flex-col gap-4 bg-bench-surface border-bench-border shadow-sm"
+          >
+            <div className="flex flex-col gap-1 border-b border-bench-border pb-3">
+              <h3 className="text-sm font-bold text-bench-text flex items-center gap-2">
+                <GlobeIcon size={14} className="text-blue-500" />
+                {t('account.language')}
+              </h3>
+              <p className="text-[11px] text-bench-muted">{t('account.languageDesc')}</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              <button
+                type="button"
+                onClick={() => setLang('en')}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                  lang === 'en'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.15)] font-bold'
+                    : 'border-bench-border hover:border-bench-text/30 text-bench-muted hover:bg-bench-subtle'
+                }`}
+              >
+                English
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLang('fr')}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                  lang === 'fr'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.15)] font-bold'
+                    : 'border-bench-border hover:border-bench-text/30 text-bench-muted hover:bg-bench-subtle'
+                }`}
+              >
+                Français
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLang('ar')}
+                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-lg border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                  lang === 'ar'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.15)] font-bold'
+                    : 'border-bench-border hover:border-bench-text/30 text-bench-muted hover:bg-bench-subtle'
+                }`}
+              >
+                العربية
+              </button>
+            </div>
+          </div>
+
           {/* Theme Settings Panel */}
           <div
             className="rounded-xl border p-6 flex flex-col gap-4 bg-bench-surface border-bench-border shadow-sm"
