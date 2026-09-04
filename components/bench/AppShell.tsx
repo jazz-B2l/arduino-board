@@ -10,15 +10,15 @@ import { AppNav } from './AppNav'
 import { CpuIcon } from 'lucide-react'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, isGuest, loading } = useAuth()
   const { navLayout } = useBench()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isGuest) {
       router.push('/login')
     }
-  }, [user, loading, router])
+  }, [user, isGuest, loading, router])
 
   if (loading) {
     return (
@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   // Render empty state while redirecting
-  if (!user) {
+  if (!user && !isGuest) {
     return (
       <div className="min-h-screen bg-bench-bg" />
     )
