@@ -240,7 +240,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
   useEffect(() => {
     if (!loading && user) {
       if (cachedConversations.length > 0) {
-        setConversations(cachedConversations)
+        setConversations(cachedConversations as unknown as Conversation[])
         fetchConversations(true)
       } else {
         fetchConversations(false)
@@ -438,7 +438,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
       fetchConversations(true)
 
       // Step 7: Redirect to unique chat URL if it was a new chat
-      if (!initialConversationId) {
+      if (!initialConversationId && activeConvId) {
         setCachedMessages(activeConvId, [...messages.filter(m => m.content !== DEFAULT_MESSAGE.content), userMessage, finalAssistantMessage])
         router.push(`/programmation/${activeConvId}`)
       }
@@ -692,7 +692,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         <span className="text-[10px] text-bench-muted font-mono mr-1 uppercase tracking-wider shrink-0">{t('chat.quickAsk')}</span>
         
         <button
-          onClick={() => handleSend(lang === 'ar' ? ("يرجى شرح ما يفعله كود أردوينو هذا ووصف وظائف الكتل الرئيسية:\n\n" + code) : ("Please explain what this Arduino code does and describe the main block functionalities:\n\n" + code))}
+          onClick={() => handleSend(lang === 'ar' ? ("يرجى شرح ما يفعله كود أردوينو هذا ووصف وظائف الكتل الرئيسية:\n\n" + code) : lang === 'fr' ? ("Veuillez expliquer ce que fait ce code Arduino et décrire les fonctionnalités des blocs principaux :\n\n" + code) : ("Please explain what this Arduino code does and describe the main block functionalities:\n\n" + code))}
           disabled={isLoading || !code.trim()}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] font-mono font-medium transition-all cursor-pointer bg-blue-50/50 hover:bg-blue-50 text-blue-600 border-blue-200/60 hover:border-blue-300 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-500/20 dark:hover:border-blue-500/35 hover:dark:bg-blue-950/30 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           title={t('chat.explainCode')}
@@ -701,7 +701,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         </button>
 
         <button
-          onClick={() => handleSend(lang === 'ar' ? ("تحقق من كود أردوينو هذا للبحث عن أي أخطاء ترجمة أو مشاكل منطقية وإصلاحها:\n\n" + code) : ("Check this Arduino code for any compile errors, bugs, or logic issues and fix them:\n\n" + code))}
+          onClick={() => handleSend(lang === 'ar' ? ("تحقق من كود أردوينو هذا للبحث عن أي أخطاء ترجمة أو مشاكل منطقية وإصلاحها:\n\n" + code) : lang === 'fr' ? ("Vérifiez ce code Arduino pour toute erreur de compilation, bug ou problème logique et corrigez-les :\n\n" + code) : ("Check this Arduino code for any compile errors, bugs, or logic issues and fix them:\n\n" + code))}
           disabled={isLoading || !code.trim()}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] font-mono font-medium transition-all cursor-pointer bg-red-50/50 hover:bg-red-50 text-red-600 border-red-200/60 hover:border-red-300 dark:bg-red-950/20 dark:text-red-400 dark:border-red-500/20 dark:hover:border-red-500/35 hover:dark:bg-red-950/30 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           title={t('chat.fixErrors')}
@@ -710,7 +710,7 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
         </button>
 
         <button
-          onClick={() => handleSend(lang === 'ar' ? ("قم بتحسين أداء كود أردوينو هذا وتقليل استهلاك الذاكرة:\n\n" + code) : ("Optimize the performance and memory usage of this Arduino code:\n\n" + code))}
+          onClick={() => handleSend(lang === 'ar' ? ("قم بتحسين أداء كود أردوينو هذا وتقليل استهلاك الذاكرة:\n\n" + code) : lang === 'fr' ? ("Optimisez les performances et l'utilisation de la mémoire de ce code Arduino :\n\n" + code) : ("Optimize the performance and memory usage of this Arduino code:\n\n" + code))}
           disabled={isLoading || !code.trim()}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md border text-[10px] font-mono font-medium transition-all cursor-pointer bg-emerald-50/50 hover:bg-emerald-50 text-emerald-600 border-emerald-200/60 hover:border-emerald-300 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:border-emerald-500/35 hover:dark:bg-emerald-950/30 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           title={t('chat.optimizeCode')}
