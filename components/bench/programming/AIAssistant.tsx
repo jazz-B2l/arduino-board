@@ -449,13 +449,12 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
 
       // Step 6: Render response in UI
       const finalAssistantMessage: Message = { role: 'assistant', content: aiContent, timestamp, provider }
-      setMessages(prev => {
-        const next = [...prev, finalAssistantMessage]
-        if (initialConversationId) {
-          setCachedMessages(initialConversationId, next)
-        }
-        return next
-      })
+      setMessages(prev => [...prev, finalAssistantMessage])
+      if (initialConversationId) {
+        // Update cache outside state updater to avoid setState-in-render warning
+        const updatedMsgs = [...messages.filter(m => m.content !== DEFAULT_MESSAGE.content), userMessage, finalAssistantMessage]
+        setCachedMessages(initialConversationId, updatedMsgs)
+      }
 
       if (isGuest) {
         const newCount = guestMsgCount + 1
@@ -479,13 +478,12 @@ export function AIAssistant({ code, onCodeUpdate, initialConversationId }: AIAss
       console.error('Error sending message:', err.message)
       setToast({ message: err.message || 'Error occurred.', type: 'error' })
       const errorMsg: Message = { role: 'assistant', content: `Error: ${err.message || 'Could not save or call AI service.'}`, timestamp, provider }
-      setMessages(prev => {
-        const next = [...prev, errorMsg]
-        if (initialConversationId) {
-          setCachedMessages(initialConversationId, next)
-        }
-        return next
-      })
+      setMessages(prev => [...prev, errorMsg])
+      if (initialConversationId) {
+        // Update cache outside state updater to avoid setState-in-render warning
+        const updatedMsgs = [...messages.filter(m => m.content !== DEFAULT_MESSAGE.content), userMessage, errorMsg]
+        setCachedMessages(initialConversationId, updatedMsgs)
+      }
     } finally {
       setIsLoading(false)
     }

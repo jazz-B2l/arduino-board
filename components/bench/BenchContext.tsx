@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import { useAlarms } from '@/hooks/useAlarms'
 import { useSensorFeed, type FeedStats, type SensorFeedResult } from '@/hooks/useSensorFeed'
 import { useThresholds } from '@/hooks/useThresholds'
@@ -253,12 +253,12 @@ export function BenchProvider({ children }: { children: React.ReactNode }) {
   const [activeProject, setActiveProjectState] = useState<Project | null>(null)
   const [projectsLoading, setProjectsLoading] = useState<boolean>(true)
 
-  const setCachedMessages = (convId: string, msgs: ChatMessage[]) => {
+  const setCachedMessages = useCallback((convId: string, msgs: ChatMessage[]) => {
     setCachedMessagesState(prev => ({
       ...prev,
       [convId]: msgs
     }))
-  }
+  }, [])
 
   // Load Nav Layout preference
   useEffect(() => {
