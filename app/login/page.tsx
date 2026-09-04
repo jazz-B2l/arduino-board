@@ -8,7 +8,7 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { CpuIcon, LockIcon, MailIcon, UserIcon, ArrowRightIcon, AlertTriangleIcon, Loader2Icon, EyeIcon, EyeOffIcon } from 'lucide-react'
 
 export default function LoginPage() {
-  const { user, loading } = useAuth()
+  const { user, loading, loginAsGuest } = useAuth()
   const router = useRouter()
 
   const [isSignUp, setIsSignUp] = useState(false)
@@ -21,10 +21,10 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
-  // Redirect to dashboard if user is already logged in
+  // Redirect to projects if user is already logged in
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard')
+      router.push('/projects')
     }
   }, [user, loading, router])
 
@@ -63,8 +63,8 @@ export default function LoginPage() {
         if (error) throw error
 
         if (data.session) {
-          setSuccessMessage('Registration successful! Redirecting to console...')
-          setTimeout(() => router.push('/dashboard'), 1500)
+          setSuccessMessage('Registration successful! Redirecting to projects workspace...')
+          setTimeout(() => router.push('/projects'), 1200)
         } else {
           setSuccessMessage('Sign up complete! Please check your email to confirm your account.')
         }
@@ -77,8 +77,8 @@ export default function LoginPage() {
 
         if (error) throw error
 
-        setSuccessMessage('Welcome back! Redirecting...')
-        setTimeout(() => router.push('/dashboard'), 1000)
+        setSuccessMessage('Welcome back! Redirecting to projects...')
+        setTimeout(() => router.push('/projects'), 800)
       }
     } catch (err: any) {
       let msg = err?.message || 'An error occurred during authentication'
@@ -89,6 +89,11 @@ export default function LoginPage() {
     } finally {
       setActionLoading(false)
     }
+  }
+
+  const handleGuestEntry = () => {
+    loginAsGuest()
+    router.push('/dashboard')
   }
 
   return (
@@ -218,7 +223,7 @@ export default function LoginPage() {
           </form>
 
           {/* Toggle mode */}
-          <div className="border-t border-bench-border/40 pt-4 text-center">
+          <div className="border-t border-bench-border/40 pt-4 flex flex-col gap-2.5 text-center">
             <button
               type="button"
               onClick={() => {
@@ -229,6 +234,21 @@ export default function LoginPage() {
               className="text-xs text-bench-muted hover:text-blue-500 transition-colors font-sans cursor-pointer"
             >
               {isSignUp ? 'Already registered? Sign in instead' : 'Need an account? Create one here'}
+            </button>
+
+            <div className="flex items-center gap-2 my-1">
+              <div className="flex-1 h-px bg-bench-border/40" />
+              <span className="text-[10px] uppercase font-mono text-bench-muted/60">or</span>
+              <div className="flex-1 h-px bg-bench-border/40" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGuestEntry}
+              className="w-full py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Try as Guest (No Signup)</span>
+              <ArrowRightIcon size={12} />
             </button>
           </div>
         </div>
