@@ -13,11 +13,13 @@ import {
   TableIcon,
   CodeIcon,
   UserIcon,
+  LayersIcon,
 } from 'lucide-react'
 import { useBench } from './BenchContext'
 import { useLanguage } from './LanguageContext'
 
 const NAV_ITEMS = [
+  { href: '/projects',     labelKey: 'nav.projects',  icon: LayersIcon },
   { href: '/dashboard',    labelKey: 'nav.dashboard', icon: LayoutDashboardIcon },
   { href: '/programmation',labelKey: 'nav.code',      icon: CodeIcon },
   { href: '/graphiques',   labelKey: 'nav.charts',    icon: BarChart3Icon },
