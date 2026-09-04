@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   ActivityIcon,
   AlertTriangleIcon,
@@ -14,9 +15,12 @@ import {
   SettingsIcon,
   TerminalIcon,
   UsbIcon,
-  WifiIcon
+  WifiIcon,
+  PlayCircleIcon,
+  SparklesIcon
 } from 'lucide-react'
 import { useLanguage } from '@/components/bench/LanguageContext'
+import { useAuth } from '@/components/auth/AuthContext'
 
 // Simulated data generator for the hero preview widget
 function usePreviewData() {
@@ -49,10 +53,17 @@ function usePreviewData() {
 
 export default function LandingPage() {
   const { t, lang, setLang } = useLanguage()
+  const { loginAsGuest } = useAuth()
+  const router = useRouter()
   const preview = usePreviewData()
   const [activeTab, setActiveTab] = useState<'json' | 'csv'>('json')
   const [copied, setCopied] = useState(false)
   const [mounted, setMounted] = useState(false)
+
+  const handleTryGuest = () => {
+    loginAsGuest()
+    router.push('/dashboard')
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -146,17 +157,28 @@ void loop() {
             Arduino#board
           </span>
         </div>
-        <div className="flex items-center gap-4 animate-fade-in">
+        <div className="flex items-center gap-3 animate-fade-in">
           <button 
             onClick={() => setLang(lang === 'en' ? 'fr' : lang === 'fr' ? 'ar' : 'en')}
             className="px-3 py-1.5 rounded border text-xs font-semibold font-mono border-bench-border text-bench-muted hover:text-bench-text hover:bg-bench-subtle transition-all cursor-pointer"
           >
             {lang === 'en' ? 'Français' : lang === 'fr' ? 'العربية' : 'English'}
           </button>
-          <Link href="/dashboard" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400 border-bench-border text-bench-muted">
+          
+          {/* Try as Guest Header Button */}
+          <button
+            onClick={handleTryGuest}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded border text-xs font-mono font-semibold transition-all bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30 cursor-pointer"
+            title="Explore telemetry console without signing up"
+          >
+            <PlayCircleIcon size={13} />
+            <span>{t('guest.tryAsGuest')}</span>
+          </button>
+
+          <Link href="/login" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400 border-bench-border text-bench-muted">
             {t('landing.directAccess')}
           </Link>
-          <Link href="/dashboard" className="px-4 py-1.5 rounded text-xs font-mono font-semibold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]" style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}>
+          <Link href="/login" className="px-4 py-1.5 rounded text-xs font-mono font-semibold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]" style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}>
             {t('landing.launchConsole')}
           </Link>
         </div>
@@ -184,18 +206,27 @@ void loop() {
               {t('landing.subtitle')}
             </p>
 
-            <div className="flex flex-wrap gap-4 mt-2">
+            <div className="flex flex-wrap items-center gap-3.5 mt-2">
+              <button
+                onClick={handleTryGuest}
+                className="flex items-center gap-2 px-6 py-3.5 rounded-lg text-sm font-mono font-bold transition-all bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
+              >
+                <PlayCircleIcon size={16} />
+                {t('guest.tryAsGuest')}
+              </button>
+
               <Link
-                href="/dashboard"
-                className="flex items-center gap-2 px-6 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(59,130,246,0.35)]"
+                href="/login"
+                className="flex items-center gap-2 px-6 py-3.5 rounded-lg text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(59,130,246,0.35)]"
                 style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
               >
                 {t('landing.openConsole')}
                 <ArrowRightIcon size={15} />
               </Link>
+              
               <a
                 href="#features"
-                className="flex items-center gap-2 px-6 py-3.5 rounded border text-sm font-mono font-bold transition-all hover:bg-bench-subtle border-bench-border text-bench-muted"
+                className="flex items-center gap-2 px-5 py-3.5 rounded-lg border text-sm font-mono font-semibold transition-all hover:bg-bench-subtle border-bench-border text-bench-muted"
               >
                 {t('landing.discover')}
               </a>
@@ -426,14 +457,24 @@ void loop() {
           <p className="text-xs md:text-sm text-bench-muted max-w-lg leading-relaxed">
             {t('landing.ctaDesc')}
           </p>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 px-8 py-3.5 rounded text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] mt-2"
-            style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
-          >
-            {t('landing.ctaButton')}
-            <ArrowRightIcon size={14} />
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-3.5 mt-2">
+            <button
+              onClick={handleTryGuest}
+              className="flex items-center gap-2 px-8 py-3.5 rounded-lg text-sm font-mono font-bold transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
+            >
+              <PlayCircleIcon size={16} />
+              {t('guest.tryAsGuest')}
+            </button>
+
+            <Link
+              href="/login"
+              className="flex items-center gap-2 px-8 py-3.5 rounded-lg text-sm font-mono font-bold transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+              style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
+            >
+              {t('landing.ctaButton')}
+              <ArrowRightIcon size={14} />
+            </Link>
+          </div>
         </section>
 
       </main>
