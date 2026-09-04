@@ -140,28 +140,41 @@ void loop() {
 
 export function Programmation({ initialConversationId }: { initialConversationId?: string } = {}) {
   const { t, lang } = useLanguage()
-  const { connectionStatus, boardName, disconnect, connect, selectedBoard, setSelectedBoard, connectedUsbInfo } = useBench()
+  const { 
+    connectionStatus, 
+    boardName, 
+    disconnect, 
+    connect, 
+    selectedBoard, 
+    setSelectedBoard, 
+    connectedUsbInfo,
+    activeProject,
+    updateProject 
+  } = useBench()
   const effectiveBoard = resolveBoardProfile(boardName)
   
   const isConnected = connectionStatus === 'connected'
   const protocolVersion = '1.0'
   
-  const [code, setCode] = useState<string>(DEFAULT_SKETCH)
+  const [code, setCode] = useState<string>(activeProject?.sketch_code || DEFAULT_SKETCH)
 
-  // Load code from localStorage on mount
+  // Sync code when active project changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (activeProject?.sketch_code) {
+      setCode(activeProject.sketch_code)
+    } else if (typeof window !== 'undefined') {
       const savedCode = localStorage.getItem('bench_arduino_code')
       if (savedCode) {
         setCode(savedCode)
       }
     }
-  }, [])
+  }, [activeProject?.id])
 
   const [isSavedVisual, setIsSavedVisual] = useState(false)
   const [shouldBlink, setShouldBlink] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const blinkTimerRef = useRef<any>(null)
+  const autoSaveTimerRef = useRef<any>(null)
 
   useEffect(() => {
     if (isSavedVisual) {
@@ -174,9 +187,8 @@ export function Programmation({ initialConversationId }: { initialConversationId
 
   useEffect(() => {
     return () => {
-      if (blinkTimerRef.current) {
-        clearTimeout(blinkTimerRef.current)
-      }
+      if (blinkTimerRef.current) clearTimeout(blinkTimerRef.current)
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
     }
   }, [])
 
@@ -197,18 +209,29 @@ export function Programmation({ initialConversationId }: { initialConversationId
         setShouldBlink(true)
       }, 1000)
     }
+
+    // Auto-save debounced to project
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (activeProject) {
+        updateProject({ id: activeProject.id, sketch_code: newCode })
+      }
+    }, 1500)
   }
 
   const handleSave = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('bench_arduino_code', code)
-      setIsSavedVisual(true)
-      setShouldBlink(false)
-      setIsDirty(false)
-      if (blinkTimerRef.current) {
-        clearTimeout(blinkTimerRef.current)
-        blinkTimerRef.current = null
-      }
+    }
+    if (activeProject) {
+      updateProject({ id: activeProject.id, sketch_code: code })
+    }
+    setIsSavedVisual(true)
+    setShouldBlink(false)
+    setIsDirty(false)
+    if (blinkTimerRef.current) {
+      clearTimeout(blinkTimerRef.current)
+      blinkTimerRef.current = null
     }
   }
 
