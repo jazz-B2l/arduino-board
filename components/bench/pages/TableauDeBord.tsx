@@ -86,29 +86,54 @@ interface DashboardWidget {
   metric: string
 }
 
-const getLocalizedChartInfo = (id: string, name: string, bestFor: string, example: string, isRTL: boolean) => {
-  if (!isRTL) return { name, bestFor, example };
-  switch (id) {
-    case 'line': return { name: 'مخطط خطي', bestFor: 'تغير البيانات بمرور الوقت', example: 'درجة الحرارة، الجهد الكهربائي' };
-    case 'area': return { name: 'مخطط مساحي', bestFor: 'القياسات المستمرة والمتراكمة', example: 'الضغط، الرطوبة' };
-    case 'gauge': return { name: 'مقياس دائري / تاكومتر', bestFor: 'القيمة الحالية + النطاق الآمن', example: 'دورة في الدقيقة، السرعة، الحرارة' };
-    case 'radial': return { name: 'مقياس شعاعي', bestFor: 'النسبة المئوية والنطاق', example: 'البطارية، حمل المعالج' };
-    case 'bar': return { name: 'مخطط شريطي عمودي', bestFor: 'مقارنة القراءات المنفصلة', example: 'قراءات المستشعرات، الحالات' };
-    case 'hbar': return { name: 'مخطط شريطي أفقي', bestFor: 'الترتيب والمقارنات المتعددة', example: 'مستشعرات متعددة' };
-    case 'scatter': return { name: 'مخطط التشتت', bestFor: 'العلاقة بين قيمتين', example: 'دورة في الدقيقة مقابل الحرارة' };
-    case 'histogram': return { name: 'مخطط توزيع التكرار', bestFor: 'توزيع القراءات الإحصائي', example: 'الاهتزاز، الضوضاء' };
-    case 'heatmap': return { name: 'المخطط الحراري', bestFor: 'كثافة القراءات عبر الوقت', example: 'درجة الحرارة والاهتزاز' };
-    case 'number': return { name: 'بطاقة رقمية / مؤشر رئيسي', bestFor: 'قيمة حالية واحدة بارزة', example: '72.5 درجة مئوية' };
-    case 'progress': return { name: 'شريط تقدم خطي', bestFor: 'النسبة المئوية المنتهية', example: 'البطارية 78%' };
-    case 'led': return { name: 'مؤشر LED / الحالة', bestFor: 'الحالة الرقمية الثنائية', example: 'تشغيل/إيقاف، تنبيه' };
-    case 'sparkline': return { name: 'خط اتجاهي صغير', bestFor: 'مؤشر اتجاه مصغر مدمج', example: 'تغير الحرارة على بطاقة' };
-    case 'multiline': return { name: 'مخطط خطي متعدد', bestFor: 'مستشعرات متعددة في وقت واحد', example: 'تسارع المحاور X/Y/Z' };
-    case 'candlestick': return { name: 'مخطط الشموع اليابانية', bestFor: 'القيم القصوى والدنيا والمستويات', example: 'حركة مستشعرات التبريد' };
-    case 'polar': return { name: 'مخطط قطبي / رادار', bestFor: 'القياسات متعددة المحاور', example: 'توجيه المستشعر' };
-    case 'waveform': return { name: 'شكل الموجة التناظرية', bestFor: 'الإشارات ذات التردد العالي', example: 'الصوت، الاهتزاز السريع' };
-    case 'fft': return { name: 'طيف التردد (FFT)', bestFor: 'تحليل الترددات والاهتزازات', example: 'اهتزاز المحرك الميكانيكي' };
-    default: return { name, bestFor, example };
+const getLocalizedChartInfo = (id: string, name: string, bestFor: string, example: string, lang: string) => {
+  if (lang === 'fr') {
+    switch (id) {
+      case 'line': return { name: 'Graphique linéaire', bestFor: 'Évolution des données au cours du temps', example: 'Température, Tension' };
+      case 'area': return { name: 'Graphique de surface', bestFor: 'Mesures continues et accumulées', example: 'Pression, Humidité' };
+      case 'gauge': return { name: 'Tachymètre / Cadran', bestFor: 'Valeur actuelle + Plage de sécurité', example: 'TR/MIN, Vitesse, Température' };
+      case 'radial': return { name: 'Jauge radiale', bestFor: 'Pourcentage et étendue', example: 'Batterie, Charge processeur' };
+      case 'bar': return { name: 'Histogramme vertical', bestFor: 'Comparaison de mesures distinctes', example: 'Capteurs, États' };
+      case 'hbar': return { name: 'Histogramme horizontal', bestFor: 'Classement et comparaisons multiples', example: 'Capteurs multiples' };
+      case 'scatter': return { name: 'Nuage de points', bestFor: 'Relation entre deux variables', example: 'TR/MIN vs Température' };
+      case 'histogram': return { name: 'Histogramme de fréquence', bestFor: 'Distribution statistique des mesures', example: 'Vibrations, Bruit' };
+      case 'heatmap': return { name: 'Carte thermique', bestFor: 'Densité des relevés dans le temps', example: 'Température et vibration' };
+      case 'number': return { name: 'Carte numérique / KPI', bestFor: 'Valeur unique importante', example: '72,5 °C' };
+      case 'progress': return { name: 'Barre de progression', bestFor: 'Pourcentage complété', example: 'Batterie 78%' };
+      case 'led': return { name: 'Voyant LED / État', bestFor: 'État binaire (Marche/Arrêt)', example: 'Actif/Inactif, Alarme' };
+      case 'sparkline': return { name: 'Mini-courbe de tendance', bestFor: 'Indicateur de tendance compact', example: 'Variation de temp. sur carte' };
+      case 'multiline': return { name: 'Graphique multi-courbes', bestFor: 'Capteurs multiples simultanés', example: 'Accélération X/Y/Z' };
+      case 'candlestick': return { name: 'Graphique en chandeliers', bestFor: 'Valeurs min/max et variations', example: 'Variations du circuit de refroidissement' };
+      case 'polar': return { name: 'Graphique polaire / Radar', bestFor: 'Mesures multi-axes', example: 'Orientation de capteur' };
+      case 'waveform': return { name: 'Forme d\'onde analogique', bestFor: 'Signaux haute fréquence', example: 'Audio, Vibration rapide' };
+      case 'fft': return { name: 'Spectre de fréquence (FFT)', bestFor: 'Analyse fréquentielle et vibrations', example: 'Vibration mécanique moteur' };
+      default: return { name, bestFor, example };
+    }
   }
+  if (lang === 'ar') {
+    switch (id) {
+      case 'line': return { name: 'مخطط خطي', bestFor: 'تغير البيانات بمرور الوقت', example: 'درجة الحرارة، الجهد الكهربائي' };
+      case 'area': return { name: 'مخطط مساحي', bestFor: 'القياسات المستمرة والمتراكمة', example: 'الضغط، الرطوبة' };
+      case 'gauge': return { name: 'مقياس دائري / تاكومتر', bestFor: 'القيمة الحالية + النطاق الآمن', example: 'دورة في الدقيقة، السرعة، الحرارة' };
+      case 'radial': return { name: 'مقياس شعاعي', bestFor: 'النسبة المئوية والنطاق', example: 'البطارية، حمل المعالج' };
+      case 'bar': return { name: 'مخطط شريطي عمودي', bestFor: 'مقارنة القراءات المنفصلة', example: 'قراءات المستشعرات، الحالات' };
+      case 'hbar': return { name: 'مخطط شريطي أفقي', bestFor: 'الترتيب والمقارنات المتعددة', example: 'مستشعرات متعددة' };
+      case 'scatter': return { name: 'مخطط التشتت', bestFor: 'العلاقة بين قيمتين', example: 'دورة في الدقيقة مقابل الحرارة' };
+      case 'histogram': return { name: 'مخطط توزيع التكرار', bestFor: 'توزيع القراءات الإحصائي', example: 'الاهتزاز، الضوضاء' };
+      case 'heatmap': return { name: 'المخطط الحراري', bestFor: 'كثافة القراءات عبر الوقت', example: 'درجة الحرارة والاهتزاز' };
+      case 'number': return { name: 'بطاقة رقمية / مؤشر رئيسي', bestFor: 'قيمة حالية واحدة بارزة', example: '72.5 درجة مئوية' };
+      case 'progress': return { name: 'شريط تقدم خطي', bestFor: 'النسبة المئوية المنتهية', example: 'البطارية 78%' };
+      case 'led': return { name: 'مؤشر LED / الحالة', bestFor: 'الحالة الرقمية الثنائية', example: 'تشغيل/إيقاف، تنبيه' };
+      case 'sparkline': return { name: 'خط اتجاهي صغير', bestFor: 'مؤشر اتجاه مصغر مدمج', example: 'تغير الحرارة على بطاقة' };
+      case 'multiline': return { name: 'مخطط خطي متعدد', bestFor: 'مستشعرات متعددة في وقت واحد', example: 'تسارع المحاور X/Y/Z' };
+      case 'candlestick': return { name: 'مخطط الشموع اليابانية', bestFor: 'القيم القصوى والدنيا والمستويات', example: 'حركة مستشعرات التبريد' };
+      case 'polar': return { name: 'مخطط قطبي / رادار', bestFor: 'القياسات متعددة المحاور', example: 'توجيه المستشعر' };
+      case 'waveform': return { name: 'شكل الموجة التناظرية', bestFor: 'الإشارات ذات التردد العالي', example: 'الصوت، الاهتزاز السريع' };
+      case 'fft': return { name: 'طيف التردد (FFT)', bestFor: 'تحليل الترددات والاهتزازات', example: 'اهتزاز المحرك الميكانيكي' };
+      default: return { name, bestFor, example };
+    }
+  }
+  return { name, bestFor, example };
 }
 
 export function TableauDeBord() {
@@ -593,10 +618,10 @@ export function TableauDeBord() {
             onClick={() => setSetupStep('connect-device')}
             className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded border border-[#1f2937] text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
           >
-            {lang === 'ar' ? `← العودة لفحص الاتصال (${boardName})` : `← Back to Connection Check (${boardName})`}
+            {lang === 'ar' ? `← العودة لفحص الاتصال (${boardName})` : lang === 'fr' ? `← Retour à la vérification (${boardName})` : `← Back to Connection Check (${boardName})`}
           </button>
           <span className="text-xs text-slate-500 font-mono">
-            {lang === 'ar' ? `تم اختيار ${selectedChartIds.size} عناصر` : `${selectedChartIds.size} widgets selected`}
+            {lang === 'ar' ? `تم اختيار ${selectedChartIds.size} عناصر` : lang === 'fr' ? `${selectedChartIds.size} widgets sélectionnés` : `${selectedChartIds.size} widgets selected`}
           </span>
         </div>
 
@@ -605,7 +630,7 @@ export function TableauDeBord() {
           {AVAILABLE_CHARTS.map(chart => {
             const isSelected = selectedChartIds.has(chart.id)
             const isAllMetric = chart.defaultMetric === 'all'
-            const localized = getLocalizedChartInfo(chart.id, chart.name, chart.bestFor, chart.example, lang === 'ar')
+            const localized = getLocalizedChartInfo(chart.id, chart.name, chart.bestFor, chart.example, lang)
             return (
               <div
                 key={chart.id}
@@ -634,8 +659,8 @@ export function TableauDeBord() {
                 </div>
 
                 <div className="flex flex-col gap-1.5 text-xs leading-relaxed text-slate-400 flex-1">
-                  <p><strong>{lang === 'ar' ? 'أفضل استخدام:' : 'Best for:'}</strong> {localized.bestFor}</p>
-                  <p><strong>{lang === 'ar' ? 'مثال:' : 'Example:'}</strong> {localized.example}</p>
+                  <p><strong>{lang === 'ar' ? 'أفضل استخدام:' : lang === 'fr' ? 'Idéal pour :' : 'Best for:'}</strong> {localized.bestFor}</p>
+                  <p><strong>{lang === 'ar' ? 'مثال:' : lang === 'fr' ? 'Exemple :' : 'Example:'}</strong> {localized.example}</p>
                 </div>
 
                 {/* Metric Selector Dropdown */}
@@ -643,10 +668,10 @@ export function TableauDeBord() {
                   onClick={e => e.stopPropagation()} // prevent toggle chart
                   className="flex items-center justify-between gap-3 border-t border-[#1f2937]/40 pt-3 text-xs"
                 >
-                  <span className="text-slate-500 font-mono">{lang === 'ar' ? 'الإشارة المرتبطة:' : 'Bound Metric:'}</span>
+                  <span className="text-slate-500 font-mono">{lang === 'ar' ? 'الإشارة المرتبطة:' : lang === 'fr' ? 'Métrique liée :' : 'Bound Metric:'}</span>
                   {isAllMetric ? (
                     <span className="text-slate-300 font-semibold font-mono text-[10px] bg-slate-900 border border-slate-800 px-2 py-1 rounded">
-                      {lang === 'ar' ? 'جميع الإشارات النشطة' : 'All Active Metrics'}
+                      {lang === 'ar' ? 'جميع الإشارات النشطة' : lang === 'fr' ? 'Toutes les métriques actives' : 'All Active Metrics'}
                     </span>
                   ) : (
                     <select
@@ -691,10 +716,10 @@ export function TableauDeBord() {
         <div className="flex flex-col">
           <h1 className="text-lg font-bold text-slate-100 flex items-center gap-2">
             <CpuIcon size={18} className="text-blue-400" />
-            {lang === 'ar' ? `محطة قياس البعد لـ ${boardName}` : `${boardName} Telemetry Station`}
+            {lang === 'ar' ? `محطة قياس البعد لـ ${boardName}` : lang === 'fr' ? `Station de télémesure ${boardName}` : `${boardName} Telemetry Station`}
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            {lang === 'ar' ? 'مساحة عمل لوحة التحكم • استقبال البيانات في الوقت الفعلي بمعدل 1 هرتز' : 'Console Workspace • Real-time acquisition running at 1 Hz'}
+            {lang === 'ar' ? 'مساحة عمل لوحة التحكم • استقبال البيانات في الوقت الفعلي بمعدل 1 هرتز' : lang === 'fr' ? 'Console de supervision • Acquisition temps réel à 1 Hz' : 'Console Workspace • Real-time acquisition running at 1 Hz'}
           </p>
         </div>
 
@@ -708,10 +733,10 @@ export function TableauDeBord() {
                 ? 'bg-amber-600/10 border-amber-500 text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.1)]'
                 : 'border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900'
             }`}
-            title={lang === 'ar' ? 'تبديل قيم القياس المحاكاة لمعاينة المخططات' : 'Toggle simulated telemetry values to preview charts'}
+            title={lang === 'ar' ? 'تبديل قيم القياس المحاكاة لمعاينة المخططات' : lang === 'fr' ? 'Basculer les valeurs de télémesure simulées' : 'Toggle simulated telemetry values to preview charts'}
           >
             <PlayIcon size={13} className={demoMode ? 'animate-pulse' : ''} />
-            {demoMode ? (lang === 'ar' ? 'وضع المحاكاة نشط' : 'DEMO MODE ACTIVE') : (lang === 'ar' ? 'تفعيل وضع المحاكاة' : 'ACTIVATE DEMO MODE')}
+            {demoMode ? (lang === 'ar' ? 'وضع المحاكاة نشط' : lang === 'fr' ? 'MODE DÉMO ACTIF' : 'DEMO MODE ACTIVE') : (lang === 'ar' ? 'تفعيل وضع المحاكاة' : lang === 'fr' ? 'ACTIVER MODE DÉMO' : 'ACTIVATE DEMO MODE')}
           </button>
 
           {/* Add Widget Button */}
@@ -727,7 +752,7 @@ export function TableauDeBord() {
           <button
             onClick={() => setSetupStep('choose-charts')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors text-xs font-mono"
-            title={lang === 'ar' ? 'اختر المخططات التي تريد عرضها' : 'Select which charts to display'}
+            title={lang === 'ar' ? 'اختر المخططات التي تريد عرضها' : lang === 'fr' ? 'Sélectionner les graphiques à afficher' : 'Select which charts to display'}
           >
             <SlidersHorizontalIcon size={13} />
             {t('dashboard.step.configTitle')}
@@ -736,7 +761,7 @@ export function TableauDeBord() {
           <button
             onClick={handleResetWorkspace}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded border border-slate-800 text-slate-400 hover:text-red-400 hover:border-red-900/50 hover:bg-red-950/10 transition-colors text-xs font-mono"
-            title={lang === 'ar' ? 'مسح تهيئة عناصر مساحة العمل' : 'Clear workspace widgets configuration'}
+            title={lang === 'ar' ? 'مسح تهيئة عناصر مساحة العمل' : lang === 'fr' ? 'Réinitialiser la disposition' : 'Clear workspace widgets configuration'}
           >
             <RotateCcwIcon size={13} />
             {t('dashboard.widget.reset')}
@@ -747,7 +772,7 @@ export function TableauDeBord() {
               setSetupStep('connect-device')
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-red-500/25 bg-red-950/15 hover:bg-red-600 text-red-400 hover:text-white transition-all text-xs font-mono font-bold"
-            title={lang === 'ar' ? 'فحص اتصال المنفذ المتسلسل للجهاز' : 'Check device serial connection'}
+            title={lang === 'ar' ? 'فحص اتصال المنفذ المتسلسل للجهاز' : lang === 'fr' ? 'Vérifier la connexion du port série' : 'Check device serial connection'}
           >
             {t('dashboard.btn.connectionPage')}
           </button>
@@ -771,7 +796,7 @@ export function TableauDeBord() {
             <div className="flex flex-col">
               <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{t('dashboard.status.serialConn')}</span>
               <span className="text-xs font-bold font-mono text-slate-200">
-                {isConnected ? (lang === 'ar' ? `متصل على ${boardName}` : `Connected on ${boardName}`) : connectionStatus === 'connecting' ? t('dashboard.status.connecting') : t('dashboard.status.disconnected')}
+                {isConnected ? (lang === 'ar' ? `متصل على ${boardName}` : lang === 'fr' ? `Connecté sur ${boardName}` : `Connected on ${boardName}`) : connectionStatus === 'connecting' ? t('dashboard.status.connecting') : t('dashboard.status.disconnected')}
               </span>
             </div>
           </div>
@@ -1086,7 +1111,7 @@ export function TableauDeBord() {
                   className="rounded border border-slate-800 bg-slate-900 p-2 text-xs font-mono text-slate-200 outline-none focus:border-blue-500"
                 >
                   {AVAILABLE_CHARTS.map(c => (
-                    <option key={c.id} value={c.id}>{getLocalizedChartInfo(c.id, c.name, '', '', lang === 'ar').name}</option>
+                    <option key={c.id} value={c.id}>{getLocalizedChartInfo(c.id, c.name, '', '', lang).name}</option>
                   ))}
                 </select>
               </div>
@@ -1364,7 +1389,7 @@ function WidgetHorizontalBar({ metric, latest, thresholds }: { metric: string; l
   return (
     <div className="flex flex-col justify-center gap-3.5 px-4 h-44 select-none">
       <div className="flex justify-between text-xs font-mono">
-        <span className="text-slate-400">{lang === 'ar' ? 'القراءة الحالية' : 'Current Reading'}</span>
+        <span className="text-slate-400">{lang === 'ar' ? 'القراءة الحالية' : lang === 'fr' ? 'Lecture actuelle' : 'Current Reading'}</span>
         <span className="font-extrabold text-slate-100">{val.toFixed(1)} {unit}</span>
       </div>
 
@@ -1383,9 +1408,9 @@ function WidgetHorizontalBar({ metric, latest, thresholds }: { metric: string; l
 
       <div className="flex justify-between text-[9px] text-slate-500 font-mono">
         <span>0</span>
-        <span>{lang === 'ar' ? 'تحذير' : 'Warning'} ({thresh?.warning || '--'})</span>
-        <span>{lang === 'ar' ? 'خطر' : 'Danger'} ({thresh?.danger || '--'})</span>
-        <span>{lang === 'ar' ? 'الأقصى' : 'Max'} ({max})</span>
+        <span>{lang === 'ar' ? 'تحذير' : lang === 'fr' ? 'Avertissement' : 'Warning'} ({thresh?.warning || '--'})</span>
+        <span>{lang === 'ar' ? 'خطر' : lang === 'fr' ? 'Danger' : 'Danger'} ({thresh?.danger || '--'})</span>
+        <span>{lang === 'ar' ? 'الأقصى' : lang === 'fr' ? 'Max' : 'Max'} ({max})</span>
       </div>
     </div>
   )
@@ -1518,23 +1543,23 @@ function WidgetKPICard({ metric, latest, history }: { metric: string; latest: an
 
       <div className="flex gap-4 mt-3 text-[10px] font-mono">
         <div className="text-slate-500 flex flex-col items-center font-mono">
-          <span>{lang === 'ar' ? 'الأدنى' : 'MIN'}</span>
+          <span>{lang === 'ar' ? 'الأدنى' : lang === 'fr' ? 'MIN' : 'MIN'}</span>
           <span className="text-blue-400 font-bold font-mono">{min.toFixed(1)}</span>
         </div>
         <div className="border-r border-slate-800 font-mono" />
         <div className="text-slate-500 flex flex-col items-center font-mono">
-          <span>{lang === 'ar' ? 'الاتجاه' : 'TREND'}</span>
+          <span>{lang === 'ar' ? 'الاتجاه' : lang === 'fr' ? 'TENDANCE' : 'TREND'}</span>
           {trend === 'up' ? (
-            <span className="text-emerald-500 font-bold font-mono">{lang === 'ar' ? '▲ متصاعد' : '▲ RISING'}</span>
+            <span className="text-emerald-500 font-bold font-mono">{lang === 'ar' ? '▲ متصاعد' : lang === 'fr' ? '▲ HAUSSE' : '▲ RISING'}</span>
           ) : trend === 'down' ? (
-            <span className="text-red-500 font-bold font-mono">{lang === 'ar' ? '▼ متناقص' : '▼ FALLING'}</span>
+            <span className="text-red-500 font-bold font-mono">{lang === 'ar' ? '▼ متناقص' : lang === 'fr' ? '▼ BAISSE' : '▼ FALLING'}</span>
           ) : (
-            <span className="text-slate-400 font-bold font-mono">{lang === 'ar' ? '■ مستقر' : '■ STABLE'}</span>
+            <span className="text-slate-400 font-bold font-mono">{lang === 'ar' ? '■ مستقر' : lang === 'fr' ? '■ STABLE' : '■ STABLE'}</span>
           )}
         </div>
         <div className="border-r border-slate-800 font-mono" />
         <div className="text-slate-500 flex flex-col items-center font-mono">
-          <span>{lang === 'ar' ? 'الأقصى' : 'MAX'}</span>
+          <span>{lang === 'ar' ? 'الأقصى' : lang === 'fr' ? 'MAX' : 'MAX'}</span>
           <span className="text-amber-500 font-bold font-mono">{max.toFixed(1)}</span>
         </div>
       </div>
@@ -1562,7 +1587,7 @@ function WidgetProgressBar({ metric, latest, thresholds }: { metric: string; lat
   return (
     <div className="flex flex-col justify-center px-4 h-44 gap-2.5 select-none">
       <div className="flex justify-between items-baseline text-xs font-mono">
-        <span className="text-slate-400 font-mono">{lang === 'ar' ? 'تحميل القناة' : 'Loading Channel'}</span>
+        <span className="text-slate-400 font-mono">{lang === 'ar' ? 'تحميل القناة' : lang === 'fr' ? 'Charge du canal' : 'Loading Channel'}</span>
         <span className="font-extrabold text-slate-100 font-mono">{pct.toFixed(0)}%</span>
       </div>
       <div className="w-full bg-slate-950 rounded-full h-3 border border-slate-800 overflow-hidden relative">
@@ -1596,10 +1621,10 @@ function WidgetLED({ metric, latest, thresholds }: { metric: string; latest: any
       </div>
       <div className="flex flex-col items-center">
         <span className="text-xs font-mono font-bold tracking-widest text-slate-300">
-          {state === 'DANGER' ? (lang === 'ar' ? 'تحذير تجاوز الحد' : 'OVERLIMIT WARNING') : state === 'WARNING' ? (lang === 'ar' ? 'انتباه مطلوب' : 'ATTENTION REQUIRED') : (lang === 'ar' ? 'استقبال عادي' : 'NORMAL ACQUISITION')}
+          {state === 'DANGER' ? (lang === 'ar' ? 'تحذير تجاوز الحد' : lang === 'fr' ? 'ALERTE DÉPASSEMENT' : 'OVERLIMIT WARNING') : state === 'WARNING' ? (lang === 'ar' ? 'انتباه مطلوب' : lang === 'fr' ? 'ATTENTION REQUISE' : 'ATTENTION REQUIRED') : (lang === 'ar' ? 'استقبال عادي' : lang === 'fr' ? 'ACQUISITION NORMALE' : 'NORMAL ACQUISITION')}
         </span>
         <span className="text-[9px] text-slate-500 font-mono mt-0.5">
-          {lang === 'ar' ? `الإشارة المرتبطة: ${label} (${val.toFixed(1)})` : `Bound Metric: ${label} (${val.toFixed(1)})`}
+          {lang === 'ar' ? `الإشارة المرتبطة: ${label} (${val.toFixed(1)})` : lang === 'fr' ? `Métrique liée : ${label} (${val.toFixed(1)})` : `Bound Metric: ${label} (${val.toFixed(1)})`}
         </span>
       </div>
     </div>
