@@ -148,10 +148,10 @@ void loop() {
         </div>
         <div className="flex items-center gap-4 animate-fade-in">
           <button 
-            onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+            onClick={() => setLang(lang === 'en' ? 'fr' : lang === 'fr' ? 'ar' : 'en')}
             className="px-3 py-1.5 rounded border text-xs font-semibold font-mono border-bench-border text-bench-muted hover:text-bench-text hover:bg-bench-subtle transition-all cursor-pointer"
           >
-            {lang === 'ar' ? 'English' : 'العربية'}
+            {lang === 'en' ? 'Français' : lang === 'fr' ? 'العربية' : 'English'}
           </button>
           <Link href="/dashboard" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400 border-bench-border text-bench-muted">
             {t('landing.directAccess')}
@@ -385,13 +385,13 @@ void loop() {
                   onClick={() => setActiveTab('json')}
                   className={`px-3 py-1 transition-all cursor-pointer ${activeTab === 'json' ? 'bg-[#3b82f6] text-white' : 'text-bench-muted hover:text-bench-text'}`}
                 >
-                  {lang === 'ar' ? 'صيغة JSON' : 'JSON Format'}
+                  {lang === 'ar' ? 'صيغة JSON' : lang === 'fr' ? 'Format JSON' : 'JSON Format'}
                 </button>
                 <button
                   onClick={() => setActiveTab('csv')}
                   className={`px-3 py-1 transition-all cursor-pointer ${activeTab === 'csv' ? 'bg-[#3b82f6] text-white' : 'text-bench-muted hover:text-bench-text'}`}
                 >
-                  {lang === 'ar' ? 'صيغة CSV' : 'CSV Format'}
+                  {lang === 'ar' ? 'صيغة CSV' : lang === 'fr' ? 'Format CSV' : 'CSV Format'}
                 </button>
               </div>
 
