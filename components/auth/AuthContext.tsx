@@ -14,10 +14,13 @@ interface AuthContextValue {
   user: User | null
   profile: UserProfile | null
   role: string | null
+  isGuest: boolean
   loading: boolean
   sessionExpiresAt: number | null // Unix timestamp in seconds when JWT token expires
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  loginAsGuest: () => void
+  exitGuestMode: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -26,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [role, setRole] = useState<string | null>(null)
+  const [isGuest, setIsGuest] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
   const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null)
   
@@ -84,10 +88,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const loginAsGuest = () => {
+    setIsGuest(true)
+    setUser(null)
+    setProfile({
+      id: 'guest',
+      full_name: 'Guest User',
+      avatar_url: null,
+    })
+    setRole('guest')
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('bench_guest_mode', 'true')
+    }
+  }
+
+  const exitGuestMode = () => {
+    setIsGuest(false)
+    setProfile(null)
+    setRole(null)
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('bench_guest_mode')
+    }
+  }
+
   useEffect(() => {
+    // Check if previously in guest mode
+    if (typeof window !== 'undefined') {
+      const savedGuest = sessionStorage.getItem('bench_guest_mode')
+      if (savedGuest === 'true') {
+        setIsGuest(true)
+        setProfile({
+          id: 'guest',
+          full_name: 'Guest User',
+          avatar_url: null,
+        })
+        setRole('guest')
+      }
+    }
+
     // 1. Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        setIsGuest(false)
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('bench_guest_mode')
+        }
         setUser(session.user)
         handleSessionExpiration(session.expires_at ?? null)
         fetchProfileAndRole(session.user.id).finally(() => {
@@ -101,13 +146,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
+        setIsGuest(false)
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('bench_guest_mode')
+        }
         setUser(session.user)
         handleSessionExpiration(session.expires_at ?? null)
         await fetchProfileAndRole(session.user.id)
       } else {
         setUser(null)
-        setProfile(null)
-        setRole(null)
+        // If not in guest mode, clear profile
+        if (typeof window !== 'undefined' && sessionStorage.getItem('bench_guest_mode') !== 'true') {
+          setProfile(null)
+          setRole(null)
+          setIsGuest(false)
+        }
         handleSessionExpiration(null)
       }
       setLoading(false)
@@ -124,6 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     setLoading(true)
     try {
+      exitGuestMode()
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
@@ -140,10 +194,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     profile,
     role,
+    isGuest,
     loading,
     sessionExpiresAt,
     signOut,
-    refreshProfile
+    refreshProfile,
+    loginAsGuest,
+    exitGuestMode,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
