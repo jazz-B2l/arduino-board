@@ -511,11 +511,11 @@ export function useSensorFeed(): SensorFeedResult {
     }
 
     if (typeof window !== 'undefined' && 'serial' in navigator) {
-      navigator.serial.addEventListener('disconnect', handleDisconnect)
+      (navigator as any).serial.addEventListener('disconnect', handleDisconnect)
     }
     return () => {
       if (typeof window !== 'undefined' && 'serial' in navigator) {
-        navigator.serial.removeEventListener('disconnect', handleDisconnect)
+        (navigator as any).serial.removeEventListener('disconnect', handleDisconnect)
       }
       disconnect()
     }
