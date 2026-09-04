@@ -24,7 +24,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('bench_lang') as Lang | null
-      const resolved: Lang = saved === 'ar' ? 'ar' : 'en'
+      const resolved: Lang = saved === 'ar' ? 'ar' : saved === 'fr' ? 'fr' : 'en'
       setLangState(resolved)
       applyHtml(resolved)
     }
@@ -39,7 +39,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }
 
   const t = (key: string): string => {
-    return translations[lang][key] ?? translations['en'][key] ?? key
+    return translations[lang]?.[key] ?? translations['en']?.[key] ?? key
   }
 
   const isRTL = lang === 'ar'
@@ -60,6 +60,9 @@ function applyHtml(l: Lang) {
   if (l === 'ar') {
     html.setAttribute('lang', 'ar')
     html.setAttribute('dir', 'rtl')
+  } else if (l === 'fr') {
+    html.setAttribute('lang', 'fr')
+    html.removeAttribute('dir')
   } else {
     html.setAttribute('lang', 'en')
     html.removeAttribute('dir')
