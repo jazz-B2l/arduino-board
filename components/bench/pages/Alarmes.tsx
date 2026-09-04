@@ -14,6 +14,10 @@ function relativeTime(ts: number, lang: string) {
     if (diff < 60)   return `منذ ${diff} ثانية`
     if (diff < 3600) return `منذ ${Math.floor(diff / 60)} دقيقة`
     return `منذ ${Math.floor(diff / 3600)} ساعة`
+  } else if (lang === 'fr') {
+    if (diff < 60)   return `il y a ${diff}s`
+    if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`
+    return `il y a ${Math.floor(diff / 3600)} h`
   } else {
     if (diff < 60)   return `${diff}s ago`
     if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
