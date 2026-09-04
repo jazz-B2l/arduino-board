@@ -3,16 +3,22 @@ import { supabase } from '@/lib/supabase'
 
 export async function POST(req: Request) {
   try {
-    // 1. Authenticate user using JWT from Authorization header
+    // 1. Authenticate user using JWT from Authorization header (or allow guest test mode)
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
+    const isGuestHeader = req.headers.get('x-guest-mode') === 'true'
+
+    if (!authHeader && !isGuestHeader) {
       return NextResponse.json({ error: 'Unauthorized: No token provided' }, { status: 401 })
     }
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 })
+    const token = authHeader ? authHeader.replace('Bearer ', '') : ''
+    const isGuest = isGuestHeader || token === 'guest'
+
+    if (!isGuest) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorized: Invalid session token' }, { status: 401 })
+      }
     }
 
     // 2. Parse request body
@@ -70,7 +76,8 @@ ${lang === 'ar' ? 'Always respond in Arabic. Keep responses concise, professiona
         body: JSON.stringify({
           model: 'openai/gpt-oss-20b',
           messages: groqMessages,
-          temperature: 0.2
+          temperature: 0.2,
+          max_tokens: isGuest ? 500 : 2048
         })
       })
 
@@ -106,10 +113,11 @@ ${lang === 'ar' ? 'Always respond in Arabic. Keep responses concise, professiona
         body: JSON.stringify({
           contents,
           systemInstruction: {
-            parts: [{ text: systemPrompt }]
+            parts: [{ text: isGuest ? systemPrompt + '\n[GUEST TRIAL MODE: Keep response token-efficient, highly concise, and under 400 words.]' : systemPrompt }]
           },
           generationConfig: {
-            temperature: 0.2
+            temperature: 0.2,
+            maxOutputTokens: isGuest ? 600 : 3000
           }
         })
       })
