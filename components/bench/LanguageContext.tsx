@@ -6,7 +6,7 @@ import { translations, type Lang } from '@/lib/i18n'
 interface LanguageContextValue {
   lang: Lang
   setLang: (l: Lang) => void
-  t: (key: string) => string
+  t: (key: string, params?: Record<string, string | number>) => string
   isRTL: boolean
 }
 
@@ -38,8 +38,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     applyHtml(l)
   }
 
-  const t = (key: string): string => {
-    return translations[lang]?.[key] ?? translations['en']?.[key] ?? key
+  const t = (key: string, params?: Record<string, string | number>): string => {
+    let str = translations[lang]?.[key] ?? translations['en']?.[key] ?? key
+    if (params) {
+      Object.entries(params).forEach(([paramKey, paramVal]) => {
+        str = str.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramVal))
+      })
+    }
+    return str
   }
 
   const isRTL = lang === 'ar'

@@ -17,10 +17,12 @@ import {
   UsbIcon,
   WifiIcon,
   PlayCircleIcon,
-  SparklesIcon
+  SparklesIcon,
+  TimerIcon,
+  XIcon
 } from 'lucide-react'
 import { useLanguage } from '@/components/bench/LanguageContext'
-import { useAuth } from '@/components/auth/AuthContext'
+import { useAuth, formatCooldownTime } from '@/components/auth/AuthContext'
 
 // Simulated data generator for the hero preview widget
 function usePreviewData() {
@@ -53,16 +55,41 @@ function usePreviewData() {
 
 export default function LandingPage() {
   const { t, lang, setLang } = useLanguage()
-  const { loginAsGuest } = useAuth()
+  const { 
+    loginAsGuest, 
+    isGuestCooldownActive, 
+    guestCooldownSecondsRemaining, 
+    guestExpiredNotice, 
+    clearGuestExpiredNotice 
+  } = useAuth()
   const router = useRouter()
   const preview = usePreviewData()
   const [activeTab, setActiveTab] = useState<'json' | 'csv'>('json')
   const [copied, setCopied] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [showCooldownModal, setShowCooldownModal] = useState(false)
+
+  // Check URL params for ?guest_expired=true or flag
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('guest_expired') === 'true' || guestExpiredNotice) {
+        setShowCooldownModal(true)
+      }
+    }
+  }, [guestExpiredNotice])
 
   const handleTryGuest = () => {
-    loginAsGuest()
-    router.push('/dashboard')
+    if (isGuestCooldownActive) {
+      setShowCooldownModal(true)
+      return
+    }
+    const success = loginAsGuest()
+    if (success) {
+      router.push('/dashboard')
+    } else {
+      setShowCooldownModal(true)
+    }
   }
 
   useEffect(() => {
@@ -168,11 +195,15 @@ void loop() {
           {/* Try as Guest Header Button */}
           <button
             onClick={handleTryGuest}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded border text-xs font-mono font-semibold transition-all bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30 cursor-pointer"
-            title="Explore telemetry console without signing up"
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded border text-xs font-mono font-semibold transition-all cursor-pointer ${
+              isGuestCooldownActive
+                ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+            }`}
+            title={isGuestCooldownActive ? t('guest.backAfter') : "Explore telemetry console"}
           >
-            <PlayCircleIcon size={13} />
-            <span>{t('guest.tryAsGuest')}</span>
+            {isGuestCooldownActive ? <TimerIcon size={13} className="text-amber-400" /> : <PlayCircleIcon size={13} />}
+            <span>{isGuestCooldownActive ? t('guest.cooldownBadge', { time: formatCooldownTime(guestCooldownSecondsRemaining) }) : t('guest.tryAsGuest')}</span>
           </button>
 
           <Link href="/login" className="px-4 py-1.5 rounded border text-xs font-mono font-semibold transition-all hover:bg-blue-500/10 hover:border-blue-400 border-bench-border text-bench-muted">
@@ -209,10 +240,14 @@ void loop() {
             <div className="flex flex-wrap items-center gap-3.5 mt-2">
               <button
                 onClick={handleTryGuest}
-                className="flex items-center gap-2 px-6 py-3.5 rounded-lg text-sm font-mono font-bold transition-all bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
+                className={`flex items-center gap-2 px-6 py-3.5 rounded-lg text-sm font-mono font-bold transition-all shadow-lg hover:scale-[1.02] cursor-pointer ${
+                  isGuestCooldownActive
+                    ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-amber-500/25'
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25'
+                }`}
               >
-                <PlayCircleIcon size={16} />
-                {t('guest.tryAsGuest')}
+                {isGuestCooldownActive ? <TimerIcon size={16} /> : <PlayCircleIcon size={16} />}
+                <span>{isGuestCooldownActive ? t('guest.cooldownBadge', { time: formatCooldownTime(guestCooldownSecondsRemaining) }) : `${t('guest.tryAsGuest')} (20 min)`}</span>
               </button>
 
               <Link
@@ -460,10 +495,14 @@ void loop() {
           <div className="flex flex-wrap items-center justify-center gap-3.5 mt-2">
             <button
               onClick={handleTryGuest}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-lg text-sm font-mono font-bold transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02] cursor-pointer"
+              className={`flex items-center gap-2 px-8 py-3.5 rounded-lg text-sm font-mono font-bold transition-all shadow-lg hover:scale-[1.02] cursor-pointer ${
+                isGuestCooldownActive
+                  ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-500/25'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white hover:shadow-emerald-500/25'
+              }`}
             >
-              <PlayCircleIcon size={16} />
-              {t('guest.tryAsGuest')}
+              {isGuestCooldownActive ? <TimerIcon size={16} /> : <PlayCircleIcon size={16} />}
+              <span>{isGuestCooldownActive ? t('guest.cooldownBadge', { time: formatCooldownTime(guestCooldownSecondsRemaining) }) : `${t('guest.tryAsGuest')} (20 min)`}</span>
             </button>
 
             <Link
@@ -563,6 +602,80 @@ void loop() {
           </div>
         </div>
       </footer>
+
+      {/* 20-Min Guest Expiration & 3-Hour Cooldown Modal */}
+      {showCooldownModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-bench-border bg-bench-surface p-6 shadow-2xl flex flex-col gap-5 text-bench-text font-sans">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowCooldownModal(false)
+                clearGuestExpiredNotice()
+              }}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-bench-muted hover:text-bench-text hover:bg-bench-subtle transition-colors cursor-pointer"
+              title="Close"
+            >
+              <XIcon size={18} />
+            </button>
+
+            {/* Icon & Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                <TimerIcon size={26} className="animate-pulse" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className="text-base font-bold text-bench-text">
+                  {t('guest.expiredModalTitle')}
+                </h3>
+                <span className="text-[11px] font-mono text-amber-400 font-semibold">
+                  {t('guest.backAfter')}
+                </span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <p className="text-xs text-bench-muted leading-relaxed">
+              {t('guest.expiredModalDesc')}
+            </p>
+
+            {/* Digital Cooldown Timer Display */}
+            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-950/20 flex flex-col items-center justify-center gap-1 text-center">
+              <span className="text-[10px] uppercase font-mono tracking-widest text-amber-400/80">
+                {t('guest.cooldownRemaining', { time: '' })}
+              </span>
+              <div className="text-2xl md:text-3xl font-mono font-extrabold text-amber-300 tracking-wider my-1">
+                {formatCooldownTime(guestCooldownSecondsRemaining)}
+              </div>
+              <span className="text-[10px] text-bench-muted">
+                {t('guest.cooldownAlert', { time: formatCooldownTime(guestCooldownSecondsRemaining) })}
+              </span>
+            </div>
+
+            {/* Call to Action for Unlimited Access */}
+            <div className="flex flex-col gap-2.5 pt-2 border-t border-bench-border/40">
+              <Link
+                href="/login"
+                className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/25 transition-all cursor-pointer"
+              >
+                <span>{t('guest.signInForUnlimited')}</span>
+                <ArrowRightIcon size={14} />
+              </Link>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCooldownModal(false)
+                  clearGuestExpiredNotice()
+                }}
+                className="w-full py-2 text-xs font-mono text-bench-muted hover:text-bench-text transition-colors cursor-pointer text-center"
+              >
+                Continuer / Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

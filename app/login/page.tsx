@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/components/auth/AuthContext'
+import { useAuth, formatCooldownTime } from '@/components/auth/AuthContext'
+import { useLanguage } from '@/components/bench/LanguageContext'
 import { CpuIcon, LockIcon, MailIcon, UserIcon, ArrowRightIcon, AlertTriangleIcon, Loader2Icon, EyeIcon, EyeOffIcon } from 'lucide-react'
 
 export default function LoginPage() {
-  const { user, loading, loginAsGuest } = useAuth()
+  const { user, loading, loginAsGuest, isGuestCooldownActive, guestCooldownSecondsRemaining } = useAuth()
+  const { t } = useLanguage()
   const router = useRouter()
 
   const [isSignUp, setIsSignUp] = useState(false)
@@ -92,8 +94,16 @@ export default function LoginPage() {
   }
 
   const handleGuestEntry = () => {
-    loginAsGuest()
-    router.push('/dashboard')
+    if (isGuestCooldownActive) {
+      setErrorMessage(t('guest.cooldownAlert', { time: formatCooldownTime(guestCooldownSecondsRemaining) }))
+      return
+    }
+    const success = loginAsGuest()
+    if (success) {
+      router.push('/dashboard')
+    } else {
+      setErrorMessage(t('guest.cooldownAlert', { time: formatCooldownTime(guestCooldownSecondsRemaining) }))
+    }
   }
 
   return (
@@ -245,10 +255,20 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleGuestEntry}
-              className="w-full py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className={`w-full py-2.5 rounded-lg border text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 ${
+                isGuestCooldownActive
+                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 cursor-pointer'
+                  : 'border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 cursor-pointer'
+              }`}
             >
-              <span>Try as Guest (No Signup)</span>
-              <ArrowRightIcon size={12} />
+              {isGuestCooldownActive ? (
+                <span>⏳ {t('guest.cooldownBadge', { time: formatCooldownTime(guestCooldownSecondsRemaining) })}</span>
+              ) : (
+                <>
+                  <span>{t('guest.tryAsGuest')} (20 min)</span>
+                  <ArrowRightIcon size={12} />
+                </>
+              )}
             </button>
           </div>
         </div>

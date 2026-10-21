@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { EmergencyStop } from './EmergencyStop'
 import { StatusPill } from './StatusPill'
 import { useBench } from './BenchContext'
-import { useAuth } from '@/components/auth/AuthContext'
+import { useAuth, formatGuestTime } from '@/components/auth/AuthContext'
 import { useLanguage } from './LanguageContext'
 import Link from 'next/link'
 import { 
@@ -16,13 +16,14 @@ import {
   ShieldAlertIcon, 
   CpuIcon,
   FolderIcon,
-  ExternalLinkIcon
+  ExternalLinkIcon,
+  TimerIcon
 } from 'lucide-react'
 import { BOARD_DETAILS } from '@/lib/types'
 
 export function AppHeader() {
   const { frozen, freeze, unfreeze, activeProject, projects, setActiveProject } = useBench()
-  const { user, profile, isGuest, signOut } = useAuth()
+  const { user, profile, isGuest, signOut, guestSecondsRemaining, exitGuestMode } = useAuth()
   const { lang, setLang, t } = useLanguage()
 
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false)
@@ -62,19 +63,48 @@ export function AppHeader() {
         </div>
       )}
 
-      {/* Guest Mode subtle alert banner */}
+      {/* Guest Mode banner with 20-min countdown timer */}
       {isGuest && (
-        <div className="w-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 border-b border-amber-500/30 px-4 py-1.5 flex items-center justify-between text-xs z-30 font-mono">
+        <div className={`w-full border-b px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs z-30 font-mono transition-colors ${
+          guestSecondsRemaining <= 300 
+            ? 'bg-gradient-to-r from-red-500/25 via-amber-500/20 to-red-500/25 border-red-500/40 text-red-300' 
+            : 'bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 border-amber-500/30 text-amber-300'
+        }`}>
           <div className="flex items-center gap-2 text-amber-300">
-            <ShieldAlertIcon size={14} className="shrink-0 animate-pulse" />
+            <ShieldAlertIcon size={14} className={`shrink-0 ${guestSecondsRemaining <= 300 ? 'text-red-400 animate-bounce' : 'text-amber-400 animate-pulse'}`} />
             <span className="text-[11px] font-semibold">{t('guest.banner')}</span>
           </div>
-          <Link
-            href="/login"
-            className="px-3 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase transition-all shadow-sm"
-          >
-            {t('guest.signUpToSave')}
-          </Link>
+
+          <div className="flex items-center gap-3">
+            {/* Live 20-min countdown timer badge */}
+            <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-bold tracking-wider ${
+              guestSecondsRemaining <= 300
+                ? 'bg-red-500/20 border-red-500/50 text-red-200 animate-pulse'
+                : 'bg-amber-500/20 border-amber-500/40 text-amber-200'
+            }`}>
+              <TimerIcon size={12} className={guestSecondsRemaining <= 300 ? 'text-red-400 animate-spin' : 'text-amber-300'} />
+              <span>
+                {guestSecondsRemaining <= 300 
+                  ? t('guest.timerUrgentBadge', { time: formatGuestTime(guestSecondsRemaining) })
+                  : t('guest.timerBadge', { time: formatGuestTime(guestSecondsRemaining) })}
+              </span>
+            </div>
+
+            <Link
+              href="/login"
+              className="px-3 py-0.5 rounded bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold uppercase transition-all shadow-sm hover:scale-105"
+            >
+              {t('guest.signUpToSave')}
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => exitGuestMode('manual')}
+              className="text-[10px] text-amber-300/70 hover:text-amber-200 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              {t('guest.exitEarly')}
+            </button>
+          </div>
         </div>
       )}
 
