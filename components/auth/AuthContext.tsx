@@ -141,6 +141,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setLoading(false)
       }
+    }).catch(err => {
+      console.warn('Supabase auth session check failed, continuing as offline/guest:', err)
+      setLoading(false)
     })
 
     // 2. Listen for auth changes
